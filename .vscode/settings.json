@@ -1,0 +1,25 @@
+{
+  "accessibility.signals.sounds.volume": 0,
+  "accessibility.signals.lineHasError": {
+    "sound": "off",
+    "announcement": "off"
+  },
+  "accessibility.signals.chatRequestSent": {
+    "sound": "off"
+  },
+  "accessibility.signals.chatResponseReceived": {
+    "sound": "off"
+  },
+  "accessibility.signals.clear": {
+    "sound": "off"
+  },
+  "accessibility.signals.diffLineDeleted": {
+    "sound": "off"
+  },
+  "accessibility.signals.diffLineInserted": {
+    "sound": "off"
+  },
+  "accessibility.signals.diffLineModified": {
+    "sound": "off"
+  }
+}
