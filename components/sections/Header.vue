@@ -72,6 +72,10 @@ watch(()=> [searchCard.value, loadStore.isLoading], (newValue, prevValue) => {
 
 <style lang="scss" scoped>
 .header {
+  position: fixed;
+  width: 100vw;
+  top: 0;
+  z-index: 500;
   background: linear-gradient(
     -220deg,
     #ff8ae9,

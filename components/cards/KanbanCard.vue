@@ -110,7 +110,7 @@ const getColorText = computed(()=> {
   position: relative;
   width: 100%;
   height: 100%;
-  padding: 20px;
+  padding: 15px 20px;
   border-radius: var(--radius-md);
   overflow: hidden;
 
@@ -126,16 +126,17 @@ const getColorText = computed(()=> {
   }
 
   &__client {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 300;
   }
 
   &__name {
-    font-size: 18px;
+    font-size: 16px;
+    font-weight: 700;
   }
 
   &__price {
-    font-size: 22px;
+    font-size: 14px;
   }
 
   &__link {
@@ -143,6 +144,7 @@ const getColorText = computed(()=> {
     border-bottom: solid transparent 1px;
     padding-bottom: 10px;
     width: max-content;
+    font-size: 14px;
 
     @media (hover: hover) {
       transition: border 0.3s;
@@ -157,6 +159,7 @@ const getColorText = computed(()=> {
   &__date-add {
     display: flex;
     justify-content: space-between;
+    font-size: 14px;
   }
 
   &__delete {
@@ -199,7 +202,7 @@ const getColorText = computed(()=> {
   }
 
   &__ui-button {
-    width: 40%;
+    // width: 40%;
   }
 }
 

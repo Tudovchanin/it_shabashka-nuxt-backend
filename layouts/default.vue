@@ -27,6 +27,7 @@ const router = useRouter();
   flex-direction: column;
   background-image: url('/images/bg-3.jpg');
   height: 100vh;
+  padding-top: 50px;
   background-repeat: no-repeat;
   background-size: cover;
   background-color: var(--main-color);
@@ -38,8 +39,8 @@ const router = useRouter();
 
 .main {
   flex-grow: 1;
-  max-width: 1920px;
-  width: 100%;
+  -width: 1920px;
+  // width: 100%;
   margin-right: auto;
   margin-left: auto;
 }

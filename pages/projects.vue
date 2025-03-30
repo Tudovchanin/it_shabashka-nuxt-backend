@@ -177,14 +177,14 @@ const handleHiddenColumn = (i: number) => {
 
 // обработчик клика на kanban(скрывает меню)
 
-const handleClickKanban = (e:Event)=> {
-const elem = e.target as HTMLElement;
-if(elem.closest('.kanban-column__menu') || elem.closest('.kanban-column__button-open-menu'))  return;
+const handleClickKanban = (e: Event) => {
+  const elem = e.target as HTMLElement;
+  if (elem.closest('.kanban-column__menu') || elem.closest('.kanban-column__button-open-menu')) return;
 
   indexPanelMenu.value = -1;
 
 
-console.log(indexPanelMenu.value);
+  console.log(indexPanelMenu.value);
 
 }
 
@@ -392,7 +392,6 @@ function handleTouchStartCard(e: any) {
   }
 
   if (e.target.closest(".kanban-column__menu")) {
-    console.log(e.target.closest(".panel-sort"));
     e.target.closest(".panel-sort")
       ? (flagEventSelect = true)
       : (flagEventSelect = false);
@@ -409,7 +408,7 @@ function handleTouchMoveCard(e: any) {
 
     const clientX = e.type !== "mousemove" ? e.touches[0].clientX : e.clientX;
     const clientY = e.type !== "mousemove" ? e.touches[0].clientY : e.clientY;
-    console.log("move");
+
 
     valueTransformX = clientX - clickProductX;
     valueTransformY = clientY - clickProductY;
@@ -739,13 +738,19 @@ onUnmounted(async () => {
           </div>
         </Transition>
 
-        <div :style="{ background: project.color }" :data-project-status="key" :data-project-id="project.$id"
+
+        <div class="kanban-column__container-cards">
+          <div :style="{ background: project.color }" :data-project-status="key" :data-project-id="project.$id"
           v-for="(project, i) in column" class="kanban__card" :key="project.$id">
           <CardsKanbanCard :color="project.color" :id="project.$id" :status="project.status" :client="project.client"
             :name="project.name" :price="project.price" :link="project.link" :deadline="project.deadline"
             :createdAt="project.$createdAt" :description="project.description" @click-card="handleClickCard(project)"
             @delete-card="handleDeleteCard(project)" />
         </div>
+        </div>
+        
+
+
       </div>
     </div>
 
@@ -957,7 +962,7 @@ onUnmounted(async () => {
 .kanban {
   flex-grow: 1;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(5, 300px);
   grid-auto-rows: min-content;
   align-items: start;
   gap: 20px;
@@ -993,18 +998,28 @@ onUnmounted(async () => {
 }
 
 .kanban-column {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
+  // display: flex;
+  // flex-direction: column;
+  // align-items: center;
+
+  // gap: 15px;
   background-color: white;
-  padding: 20px;
+  padding: 20px 20px 40px;
   position: relative;
   border-radius: var(--radius-md);
-  box-shadow: 0 0 20px 10px black;
+  box-shadow: 0 0 20px 5px black;
   max-height: 100%;
+  // max-height: 800px;
   height: min-content;
+  max-height: 700px;
+  overflow-y: scroll;
   transition: max-height .1s ease-in;
+
+
+  /* Фикс для Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #ccc transparent;
+
 
   &--hidden {
     overflow: hidden;
@@ -1018,7 +1033,7 @@ onUnmounted(async () => {
       & span {
         opacity: 0;
       }
-      
+
     }
 
     .kanban-column__toggle-visible {
@@ -1026,11 +1041,18 @@ onUnmounted(async () => {
     }
   }
 
+  &__container-cards {
+    background-color: red;  
+  }
+
   &__title {
     background-color: black;
     width: 100%;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    border-radius: var(--radius-sm);
     text-align: center;
-    font-size: 26px;
+    font-size: 22px;
     font-weight: 700;
     color: var(--color-light-50);
   }
@@ -1038,17 +1060,18 @@ onUnmounted(async () => {
   &__toggle-visible {
     position: absolute;
     top: 10px;
-    right: 10px;
+    right: 0px;
     background-color: transparent;
     transition: transform var(--timing-animation-min);
     border: none;
+
     width: 50px;
     height: 50px;
     cursor: pointer;
 
     & img {
-      width: 40px;
-      height: 40px;
+      width: 30px;
+      height: 30px;
     }
   }
 
@@ -1071,7 +1094,7 @@ onUnmounted(async () => {
     border: solid white 2px;
     background-color: rgb(0, 0, 0);
     transition: transform var(--timing-animation-min) linear;
-     
+
 
     &--open {}
 
@@ -1115,6 +1138,9 @@ onUnmounted(async () => {
       transition: opacity 1s;
     }
   }
+
+
+
 }
 
 .card-drop-animation {
@@ -1122,8 +1148,10 @@ onUnmounted(async () => {
 }
 
 .selected-product {
-  position: relative;
-  z-index: 100;
+  // position: relative;
+
+position: fixed;
+z-index: 1000;
   box-shadow: -5px -5px 15px 0px rgba(0, 0, 0, 0.8);
 
   &::before {
@@ -1140,10 +1168,7 @@ onUnmounted(async () => {
   }
 }
 
-.selected-menu {
-  
-
-}
+.selected-menu {}
 
 .fade-enter-active,
 .fade-leave-active {
@@ -1213,13 +1238,15 @@ onUnmounted(async () => {
 
 @keyframes cardDrop {
   0% {
+    position: fixed;
     opacity: 1;
-    z-index: 100;
+    z-index: 10000;
   }
 
   100% {
+    position: fixed;
     opacity: 0;
-    z-index: 100;
+    z-index: 10000;
   }
 }
 
