@@ -41,34 +41,50 @@ const refDescriptionTextarea = ref();
 const refDescription = ref();
 const refInputPhone = ref();
 
-const heightDescription = ref("");
+const heightDescriptionTextarea = ref("");
 
+// цвет для кнопки, в зависимости от цвета карточки
 const getColorText = computed(() => {
   switch (props.color) {
     case "black":
       return "white";
-      break;
 
     case "white":
       return "black";
-      break;
 
-    case "red":
-      return "white";
-      break;
+      case "red":
+      return "black"
+      
 
     case "black":
       return "white";
-      break;
+
+      case "green":
+      return "black";
+
+    
+      case "gold":
+      return "black"
+
+         
+      case "blue":
+      return "black"
+
+
+      case "maroon":
+      return "white"
 
     default:
       return "inherit";
-      break;
   }
 });
 
 const emit = defineEmits(["add-comment", "delete-comment", "update-card"]);
 
+
+// --------------------------------------------------------------------------------
+
+// Комментарии
 const emitAddComment = () => {
   comment.value = comment.value.replace(/\s+/g, " ").trim();
   if (!comment.value) return;
@@ -83,33 +99,12 @@ const emitDeleteComment = () => {
   flagHiddenPanelDelete.value = true;
 };
 
-const emitUpdateCard = () => {
-  emit("update-card", props.id, {
-    name: modelName.value ? modelName.value : props.name,
-    description: modelDescription.value,
-    price: modelPrice.value ? modelPrice.value : props.price,
-    link: modelLink.value,
-    deadline: modelDeadLine.value,
-    client: modelClient.value ? modelClient.value : props.client,
-    client_email: modelClientEmail.value,
-    client_phone: valueClientPhone.value
-  });
-  setStateFlagHiddenFormUpdate(true);
-};
-
-const handleKeyUp = ((e: KeyboardEvent) => {
-  const inputPhone = e.target as HTMLInputElement;
-  if (inputPhone.value ) {
-    valueClientPhone.value = inputPhone.value
-  }
-})
-
 const handleCancelDeleteComment = () => {
   idCommentDelete.value = "";
   flagHiddenPanelDelete.value = true;
 };
 
-const handleClickBtnTogglePanelDelete = (idComment: string) => {
+const handleClickBtnTogglePanelDeleteComment = (idComment: string) => {
   flagHiddenPanelDelete.value = !flagHiddenPanelDelete.value;
   idCommentDelete.value = "";
 
@@ -119,30 +114,72 @@ const handleClickBtnTogglePanelDelete = (idComment: string) => {
 };
 
 const handleVisibleFormComment = () => {
-  console.log(props);
-
   flagHiddenFormComment.value = !flagHiddenFormComment.value;
 };
 
-const handleVisibleFormUpdateCard = () => {
-  console.log(refDescription.value.offsetHeight);
-  addValuePropsInRefs();
-  setStateFlagHiddenFormUpdate(!flagHiddenFormUpdate.value);
-  if (!flagHiddenFormUpdate.value) {
-    refDescriptionTextarea.value.style.height = heightDescription.value + "px";
-  }
+
+// --------------------------------------------------------------------------
+
+
+
+// Карточка
+
+const emitUpdateCard = () => {
+
+  if (modelDescription.value) {
+    modelDescription.value = modelDescription.value
+      .replace(/\s+/g, ' ')
+      .trim()
+  }  
+
+  emit("update-card", props.id, {
+    name: modelName.value ? modelName.value : props.name,
+    description: modelDescription.value,
+    price: modelPrice.value ? modelPrice.value : props.price,
+    link: modelLink.value,
+    deadline: modelDeadLine.value,
+    client: modelClient.value ? modelClient.value : props.client,
+    client_email: modelClientEmail.value,
+    client_phone:  refInputPhone.value.value
+  });
+  setStateFlagHiddenFormUpdate(true);
 };
 
+// используем для маски телефона, так как модель с маской глючит
+const handleKeyUp = ((e: KeyboardEvent) => {
+  const inputPhone = e.target as HTMLInputElement;  
+  
+  if (inputPhone.value) {
+    valueClientPhone.value = inputPhone.value
+  }
+})
+
+
+const handleVisibleFormUpdateCard = () => {
+
+
+
+  addValuePropsInRefs();
+
+  setStateFlagHiddenFormUpdate(!flagHiddenFormUpdate.value);
+  if (!flagHiddenFormUpdate.value) {
+   
+    removePhoneMask();
+    refInputPhone.value.value = props.client_phone;
+    removePhoneMask = inputMask(maskStart, maskValue, maskSymbols, refInputPhone.value, maskHover);
+    refDescriptionTextarea.value.style.height = heightDescriptionTextarea.value + "px";
+  } 
+};
+
+// для подбора высоты Textarea
 const handleEventInputTextarea = () => {
-  console.log(heightDescription.value);
 
   refDescriptionTextarea.value.style.height = "0px";
   refDescriptionTextarea.value.style.height =
     refDescriptionTextarea.value.scrollHeight + "px";
 };
 
-
-
+// при клике на редактирование карточки, добавляет состояние в input и textarea
 function addValuePropsInRefs() {
   if (props.name) {
     modelName.value = props.name;
@@ -150,73 +187,137 @@ function addValuePropsInRefs() {
   if (props.description) {
     modelDescription.value = props.description;
   }
+  if (props.link) {
+    modelLink.value = props.link
+  }
+  if (props.client) {
+    modelClient.value = props.client;
+  } if (props.price) {
+    modelPrice.value = props.price;
+  } if (props.deadline) {
+    modelDeadLine.value = props.deadline;
+  } if (props.client_email) {
+    modelClientEmail.value = props.client_email;
+  } if (props.client_phone) {
+    console.log(props.client_phone, 'props.client_phone');
+    
+    valueClientPhone.value = props.client_phone
+  }
 }
+
 function setStateFlagHiddenFormUpdate(value: boolean) {
   flagHiddenFormUpdate.value = value;
 }
+
+
+
+// эффект blur при update card и изменении цвета
 function setStateFlagBlur(value: boolean) {
   flagBlur.value = value;
 }
 
+// -------------------------------------------------------
+
+
+// маска телефона 
+let removePhoneMask: any = null;
+
+const maskStart = 3;
+const maskValue = "+7(___)___-__-__";
+const maskSymbols = [")", "(", "-"];
+const maskHover = false;
+
+
+
+// function resetModels() {
+
+//   modelName.value = "";
+//   modelDescription.value = "";
+//   modelPrice.value = 0;
+//   modelLink.value = "";
+//   modelDeadLine.value = "";
+//   modelClient.value = "";
+//   modelClientEmail.value = "";
+//   valueClientPhone.value = "";
+//   removePhoneMask();
+// }
+
+
+
+// пробрасываем вверх 
 defineExpose({
-  setStateFlagHiddenFormUpdate,
+  // setStateFlagHiddenFormUpdate,
   setStateFlagBlur,
+  // resetModels
 });
 
-watch(
-  () => [
-    props.id,
-    props.name,
-    props.description,
-    props.price,
-    props.link,
-    props.deadline,
-    props.client,
-    props.client_email,
-    props.client_phone,
-  ],
-  () => {
-    heightDescription.value = refDescription.value.offsetHeight;
 
-    if (props.name) {
-      modelName.value = props.name;
-    }
-    if (props.description) {
-      modelDescription.value = props.description;
-    }
-    if (props.price) {
-      modelPrice.value = props.price;
-    }
-    if (props.link) {
-      modelLink.value = props.link;
-    }
 
-    if (props.deadline) {
-      modelDeadLine.value = props.deadline;
-    }
-    if (props.client) {
-      modelClient.value = props.client;
-    }
-    if (props.client_email) {
-      modelClientEmail.value = props.client_email;
-    }
-    if (props.client_phone) {
-      valueClientPhone.value = props.client_phone;
-    }
-  }
-);
+
+
+// watch(
+//   () => [
+//     props.id,
+//     props.name,
+//     props.description,
+//     props.price,
+//     props.link,
+//     props.deadline,
+//     props.client,
+//     props.client_email,
+//     props.client_phone,
+//   ],
+//   () => {
+//     heightDescriptionTextarea.value = refDescription.value.offsetHeight;
+//     removePhoneMask = inputMask(maskStart, maskValue, maskSymbols, refInputPhone.value, maskHover);
+
+//     if (props.name) {
+//       modelName.value = props.name;
+//     }
+//     if (props.description) {
+//       modelDescription.value = props.description;
+//     }
+//     if (props.price) {
+//       modelPrice.value = props.price;
+//     }
+//     if (props.link) {
+//       modelLink.value = props.link;
+//     }
+
+//     if (props.deadline) {
+//       modelDeadLine.value = props.deadline;
+//     }
+//     if (props.client) {
+//       modelClient.value = props.client;
+//     }
+//     if (props.client_email) {
+//       modelClientEmail.value = props.client_email;
+//     }
+//     if (props.client_phone) {
+   
+
+//       console.log(props.client_phone, 'props.client_phone');
+
+//     }
+//   }
+// );
 
 onMounted(() => {
-
-  const maskStart = 3;
-  const maskValue = "+7(___)___-__-__";
-  const maskSymbols = [")", "(", "-"];
-  const maskHover = true;
-
-
-
-  inputMask(maskStart, maskValue, maskSymbols, refInputPhone.value, maskHover);
+  console.log('создание маски боковой панели');
+  heightDescriptionTextarea.value = refDescription.value.offsetHeight;
+  removePhoneMask = inputMask(maskStart, maskValue, maskSymbols, refInputPhone.value, maskHover);
 });
+
+onBeforeUnmount(() => {
+  console.log('удаление маски боковой панели');
+
+  if (removePhoneMask) {
+    console.log('удаляем маску');
+    removePhoneMask();
+  }
+})
+
+
 </script>
 <template>
   <div class="aside-panel">
@@ -232,7 +333,7 @@ onMounted(() => {
         <div :aria-hidden="flagHiddenFormUpdate" class="aside-panel__button-save"
           :class="{ 'aside-panel__button-save--hidden': flagHiddenFormUpdate }">
           <UiBaseButton :bg-color="props.color || 'black'" :text-color="getColorText" @click="emitUpdateCard">Save
-            update</UiBaseButton>
+          </UiBaseButton>
         </div>
       </div>
 
@@ -347,7 +448,7 @@ onMounted(() => {
 
       <div class="info-project__contact">
         <span>Телефон клиента: </span>
-        <input ref="refInputPhone" @keyup="handleKeyUp" type="text"
+        <input placeholder="+7(___)___-__-__" ref="refInputPhone" @keyup="handleKeyUp" type="text"
           class="info-project__contact-link aside-panel__update-input" />
       </div>
     </form>
@@ -414,9 +515,9 @@ onMounted(() => {
         <div class="aside-panel__comment" v-for="comment in props.comments" :key="comment.$id">
           <span class="aside-panel__comment-date">{{
             formatDateToRussianLocale(comment.$createdAt)
-            }}</span>
+          }}</span>
           <span>{{ comment.text }}</span>
-          <button :data-id="comment.$id" @click="handleClickBtnTogglePanelDelete(comment.$id)"
+          <button :data-id="comment.$id" @click="handleClickBtnTogglePanelDeleteComment(comment.$id)"
             class="aside-panel__comments-delete">
             <img src="/images/icon-close.png" alt="удалить комментарий" />
           </button>
@@ -441,15 +542,17 @@ onMounted(() => {
   &__contact-link {
     padding-bottom: 5px;
     border-bottom: solid 1px transparent;
+    margin-bottom: 10px;
     animation: borderBottomAnimation var(--timing-animation-min) reverse;
   }
 
   &__name-project {
-    font-size: 30px;
+    font-size: 22px;
   }
 
   &__description {
     font-size: 16px;
+    overflow-wrap: break-word;
   }
 
   &__price {
@@ -531,17 +634,16 @@ onMounted(() => {
   gap: 20px;
   position: relative;
   padding: 20px 25px 20px;
-  color: var(--color-light-50);
 
   &__header {
     display: flex;
     align-items: flex-start;
     gap: 25px;
-    min-height: 220px;
+    min-height: 190px;
   }
 
   &__card {
-    flex-basis: 300px;
+    flex-basis: 250px;
     flex-shrink: 0;
     position: relative;
     border-radius: var(--radius-middle-v1);
@@ -568,7 +670,6 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-
     font-size: 18px;
     font-weight: 600;
 
@@ -588,7 +689,7 @@ onMounted(() => {
 
   &__button-save {
     color: white;
-    max-width: 200px;
+    max-width: 100px;
     width: 100%;
     filter: blur(0);
     transition: filter var(--timing-animation-min),
@@ -608,7 +709,7 @@ onMounted(() => {
 
   &__update-input-length {
     position: absolute;
-    bottom: 0;
+    bottom: 10px;
     right: 0;
   }
 
@@ -772,14 +873,16 @@ onMounted(() => {
   }
 
   &__panel-delete {
-    display: grid;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
     gap: 20px;
     position: absolute;
     z-index: 100;
     left: 50%;
     top: 0;
     max-width: 300px;
-    height: 250px;
+    height: 150px;
     transform: translateX(-50%);
     padding: 20px;
     border-radius: var(--radius-md);
@@ -792,6 +895,10 @@ onMounted(() => {
       opacity: 0;
       pointer-events: none;
     }
+  }
+
+  &__panel-delete-button {
+    font-size: 14px;
   }
 
   &__panel-delete:not(.aside-panel__panel-delete--hidden)+.aside-panel__container-comments>.aside-panel__comment {

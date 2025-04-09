@@ -37,7 +37,9 @@ const handleBlur = () => {
 <style lang="scss" scoped>
 .base-search {
   position: relative;
+  display: flex;
   min-width: 250px;
+  height: 100;
   border-radius: var(--radius-input);
   overflow: hidden;
   background-color: rgba(0, 0, 0, 0.906);
@@ -45,12 +47,8 @@ const handleBlur = () => {
   &__icon-search {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    position: absolute;
-    width: 20px;
-    left: 0;
-    top: 0;
-    bottom: 0;
+    justify-content: center;
+    width: 25px;
     opacity: .5;
     
     & img {
@@ -60,14 +58,13 @@ const handleBlur = () => {
   }
 
   &__input {
-    display: block;
     width: 100%;
     min-width: 1px;
-    height: 32px;
+    height: 100%;
    background-color: transparent;
     border: none;
     color: white;
-    padding-left: 25px;
+    padding-left: 10px;
     outline: none;
     transition: min-width var(--timing-animation-min);
 
@@ -77,23 +74,24 @@ const handleBlur = () => {
   }
 
   &__reset {
-    // display: flex;
-    // justify-content: center;
-    // align-items: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     position: absolute;
     top: 0;
     bottom: 0;
-    right: 10px;
+    right: 0;
     z-index: 1;
     width: 30px;
+
     background-color: transparent;
     outline: none;
     border: none;
     cursor: pointer;
 
     & img {
-      width: 16px;
-      height: 16px;
+      width: 10px;
+      height: 10px;
     }
   }
 }

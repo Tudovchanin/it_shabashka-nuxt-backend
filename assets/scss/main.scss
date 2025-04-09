@@ -1,52 +1,39 @@
 
-@import './_variables.css';
-
-* {
-  padding: 0;
-  margin: 0;
-  box-sizing: border-box;
-}
+@use './_variables.css';
+@use './_reset';
 
 body {
   min-height: 100vh;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  overflow-x: hidden;
+background-color: rgb(145, 98, 98);
+// overflow: hidden;
 }
 
 
 
-
-textarea {
-  resize: none;
+.x-center {
+  margin-left: auto;
+  margin-right: auto;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-
-img {
-  display: block;
-  width: 100%;
-  height: 100%;
+.width {
+  max-width: 1920px;
+  padding-right: 20px;
+  padding-left: 20px;
 }
 
 
+// /* Для WebKit-браузеров (Chrome, Safari) */
+// ::-webkit-scrollbar {
+//   width: 8px; /* Ширина вертикального скроллбара */
+//   height: 8px; /* Высота горизонтального скроллбара */
+// }
 
-/* Для Chrome и Safari */
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
+// ::-webkit-scrollbar-thumb {
+//   background-color: darkgrey; /* Цвет скроллбара */
+//   border-radius: 10px; /* Закругление углов */
+// }
 
-/* Для Firefox */
-input[type="number"] {
-  -moz-appearance: textfield;
-}
-
-/* Для IE и Edge */
-input[type="number"]::-ms-clear {
-  display: none;
-}
+// ::-webkit-scrollbar-track {
+//   background: #f1f1f1; /* Цвет фона скроллбара */
+// }

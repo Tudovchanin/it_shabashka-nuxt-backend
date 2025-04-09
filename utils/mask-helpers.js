@@ -10,7 +10,6 @@ export const inputMask = (positionStart, mask, arrSymbols, elem, hover = false) 
 	let cursorPosition = positionStart;
 	let inputFocus = false;
 
-console.log('kkkkkkkkkkkkkkkkk');
 	input.addEventListener('focus', handleFocus);
 	input.addEventListener('blur', handleBlur);
 	input.addEventListener('keydown', handleKeydown);
@@ -23,14 +22,13 @@ console.log('kkkkkkkkkkkkkkkkk');
 	}
 
 
-
-
 	// Функция для удаления всех слушателей
 	function removeAllListeners() {
 		input.removeEventListener('focus', handleFocus);
 		input.removeEventListener('blur', handleBlur);
 		input.removeEventListener('keydown', handleKeydown);
 		input.removeEventListener('click', handleClick);
+
 
 		if (hover) {
 			input.removeEventListener('mouseenter', handleMouseEnter); // Если у вас есть обработчики для hover

@@ -269,9 +269,9 @@ export const useProjectsStore = defineStore('projects', () => {
       }
       console.error('Ошибка при получении документов:', error);
     } finally {
-
     }
-
+    console.log('query cards');
+    
     // projects.value = dataTest 
   }
 

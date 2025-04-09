@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FormCardKanban } from "../form/CreateProject.vue";
+import type { FormCardKanban } from "../forms/CreateProject.vue";
 import { formatDate } from "#imports";
 
 export type CardKanban = FormCardKanban & {
@@ -33,23 +33,34 @@ const getColorText = computed(()=> {
   switch (props.color) {
     case "black":
       return "white"
-      break;
+   
 
       case "white":
       return "black"
-      break;
+   
       
       case "red":
-      return "white"
-      break;
+      return "black"
+      
+      case "green":
+      return "black";
+
       
       case "black":
       return "white"
-      break;
-  
+     
+        
+      case "gold":
+      return "black"
+
+      case "blue":
+      return "black"
+
+      case "maroon":
+      return "white"
+
     default:
       return "inherit";
-      break;
   }
 })
 
@@ -112,7 +123,8 @@ const getColorText = computed(()=> {
   height: 100%;
   padding: 15px 20px;
   border-radius: var(--radius-md);
-  overflow: hidden;
+  border: solid 2px currentColor;
+
 
 
   &__client,
@@ -184,25 +196,32 @@ const getColorText = computed(()=> {
     flex-wrap: wrap;
     gap: 20px;
     position: absolute;
-    top: 0;
-    bottom: 0;
-    right: 0;
-    left: 0;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
     padding: 20px;
-    transition: transform 0.5s;
-    background-color: rgb(1, 1, 1);
+    border-radius: var(--radius-md);
+
+
+    background-color: rgba(0, 0, 0);
+    transition: opacity  .5s;
+
 
     &--hidden {
-      transform: translateY(100%);
+      opacity: 0;
+      pointer-events: none;
     }
   }
 
   &__confirm-text {
+    font-size: 14px;
     color: var(--color-light-50);
+    letter-spacing: var(--letter-spacing);
   }
 
   &__ui-button {
-    // width: 40%;
+  
   }
 }
 
