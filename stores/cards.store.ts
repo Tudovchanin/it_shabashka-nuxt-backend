@@ -235,7 +235,6 @@ export type DataCardAppWrite = Models.Document & {
   // $createdAt: string; // // Дата создания (уже есть в Models.Document, но можно переопределить)
 };
 
-// 2025-05-01
 
 export const useProjectsStore = defineStore('projects', () => {
 
@@ -270,7 +269,9 @@ export const useProjectsStore = defineStore('projects', () => {
       console.error('Ошибка при получении документов:', error);
     } finally {
     }
-    console.log('query cards');
+
+    console.log('Запрос на проекты пошел');
+    
     
     // projects.value = dataTest 
   }

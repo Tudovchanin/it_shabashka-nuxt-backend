@@ -1,12 +1,12 @@
-
 @use './_variables.css';
 @use './_reset';
 
 body {
   min-height: 100vh;
+  // микро scroll убирает на touch устройствах
+  width: 100%;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-background-color: rgb(145, 98, 98);
-// overflow: hidden;
+  overflow-x: hidden;  
 }
 
 
@@ -20,6 +20,10 @@ background-color: rgb(145, 98, 98);
   max-width: 1920px;
   padding-right: 20px;
   padding-left: 20px;
+  @media (max-width:550px) {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
 }
 
 

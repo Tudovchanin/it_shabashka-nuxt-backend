@@ -45,6 +45,9 @@ const props = defineProps<UserInfo>()
     height: 40px;
     border-radius: 100%;
     overflow: hidden;
+    & img {
+      object-fit: cover;
+    }
   }
 
   &__user-info {

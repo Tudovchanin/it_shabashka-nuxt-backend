@@ -39,8 +39,8 @@ watch(
 
     <UiBaseLogo size="small" />
 
-    <div class="header-content__search">
-      <UiBaseSearchInput ref="refInputSearch" placeholder="искать карточку по имени" max-length="50"
+    <div @keyup.enter="handleClickButtonSearch" class="header-content__search">
+      <UiBaseSearchInput ref="refInputSearch" placeholder="искать карточку по названию" max-length="50"
         v-model="modelSearchCard">
       </UiBaseSearchInput>
       <div @click="handleClickButtonSearch" class="header-content__search-button"
@@ -63,17 +63,46 @@ watch(
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-top: 5px;
+  padding-bottom: 5px;
   gap: 50px;
   width: 100%;
-  height: 60px;
   color: white;
 
+  @media (max-width:900px) {
+    gap: 10px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  @media (max-width:550px) {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+
   &__search {
+    min-height: 35px;
     display: flex;
     margin-left: auto;
+    font-size: 14px;
+
+    @media (max-width:550px) {
+      margin-left: 0;
+      order: 3;
+      grid-column: 2/4;
+      justify-self: end;
+      min-height: 30px;
+      font-size: 12px;
+    }
+    @media (max-width: 320px) {
+      grid-column: 1/4;
+      width: 100%;
+    }
   }
 
   &__search-button {
+    flex-shrink: 0;
     outline: solid black 1px;
     border-radius: var(--radius-input);
     transition: opacity var(--timing-animation-min);
@@ -81,22 +110,36 @@ watch(
     overflow: hidden;
     z-index: 1;
 
-    &--disabled{
+    @media (max-width:650px) {
+      display: none;
+    }
+
+    &--disabled {
       pointer-events: none;
       opacity: 0.2;
       overflow: hidden;
-    
     }
   }
 
   &__user-ava {
+    flex-shrink: 0;
     width: 50px;
     height: 50px;
     border-radius: 100%;
     overflow: hidden;
     cursor: pointer;
+
+    @media (max-width:550px) {
+      width: 35px;
+      height: 35px;
+      grid-column: 3/4;
+      justify-self: end;
+    }
+
+
+    & img {
+      object-fit: cover;
+    }
   }
 }
-
-
 </style>

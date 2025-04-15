@@ -16,9 +16,6 @@ defineExpose({
   resetInputSearch
 });
 
-const handleBlur = () => {
-  // modelValue.value = '';
-}
 </script>
 <template>
 
@@ -26,9 +23,9 @@ const handleBlur = () => {
     <div class="base-search__icon-search">
       <img src="/images/search-icon.png" alt="иконка поиска">
     </div>
-    <input :maxlength="props.maxLength" :placeholder="props.placeholder" @blur="handleBlur" class="base-search__input" v-model="modelValue" type="text">
+    <input :maxlength="props.maxLength" :placeholder="props.placeholder" class="base-search__input" v-model="modelValue" type="text">
     <button v-show="modelValue?.trim().length" @click="resetInputSearch" class="base-search__reset">
-      <img src="/public/images/icon-close.png" alt="стереть поисковый запрос">
+      <img src="/images/icon-close.png" alt="стереть поисковый запрос">
     </button>
   </div>
 </template>
@@ -38,16 +35,20 @@ const handleBlur = () => {
 .base-search {
   position: relative;
   display: flex;
-  min-width: 250px;
+  width: 100%;
+  min-width: 257px;
   height: 100;
   border-radius: var(--radius-input);
   overflow: hidden;
   background-color: rgba(0, 0, 0, 0.906);
+  @media (max-width: 320px) {
+    min-width: 1px;
+  }
 
   &__icon-search {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
     width: 25px;
     opacity: .5;
     
@@ -61,15 +62,26 @@ const handleBlur = () => {
     width: 100%;
     min-width: 1px;
     height: 100%;
-   background-color: transparent;
+    background-color: transparent;
     border: none;
-    color: white;
     padding-left: 10px;
+    padding-right: 35px;
     outline: none;
     transition: min-width var(--timing-animation-min);
+    font-size: inherit;
+    color: inherit;
 
+    @media (max-width: 550px) {
+    }
     &:focus {
       min-width: 450px;
+
+      @media (max-width:900px) {
+        min-width: 300px;
+      }
+      @media (max-width:730px) {
+        min-width: 1px;
+      }
     }
   }
 
@@ -80,7 +92,7 @@ const handleBlur = () => {
     position: absolute;
     top: 0;
     bottom: 0;
-    right: 0;
+    right: 10px;
     z-index: 1;
     width: 30px;
 

@@ -32,23 +32,18 @@ watch(
   () => {
     if (props.status) {
       formData.value.status = props.status;
-
-      console.log('maska init');
-
     }
   }
 );
 
 const emit = defineEmits(["create-project", "change-status"]);
+
 const emitChangeStatus = (() => {
-
   emit("change-status", formData.value.status);
-  console.log(formData.value.description, 'formData.value.description');
-
 });
+
 const emitCreateProject = (() => {
   if (formData.value.description) {
-    console.log(formData.value.description, 'formData.value.description');
 
     formData.value.description = formData.value.description
       .replace(/\s+/g, ' ')
@@ -170,10 +165,12 @@ onBeforeUnmount(() => {
 </template>
 <style lang="scss" scoped>
 .form-create-project {
- 
   width: 100%;
   padding: 15px 25px;
-
+// background-color: red;
+  @media (max-width: 550px) {
+    padding: 12px 20px;
+  }
 
   &__field {
     display: grid;
@@ -186,20 +183,23 @@ onBeforeUnmount(() => {
     font-size: 14px;
     font-weight: 700;
     letter-spacing: var(--letter-spacing);
+    @media (max-width: 550px) {
+    font-size: 12px;
+  }
   }
 
   &__input {
     height: 35px;
     padding-left: 10px;
-    
     outline: none;
     border: none;
     border-radius: var(--radius-sm);
     background-color: rgb(0, 0, 0);
     color: rgb(255, 255, 255, 0.5);
     font-size: 14px;
-   
-
+    @media (max-width: 550px) {
+    font-size: 12px;
+  }
 
     &::placeholder {
       color: rgba(255, 255, 255, 0.5);
@@ -207,7 +207,7 @@ onBeforeUnmount(() => {
 
     &:focus {
       opacity: 1;
-     color: white;
+      color: white;
     }
 
   }
@@ -221,12 +221,17 @@ onBeforeUnmount(() => {
     background-color: rgb(0, 0, 0);
     border: none;
     border-radius: var(--radius-input);
+    font-size: 14px;
     font-weight: 700;
     text-transform: uppercase;
     color: var(--color-light-50);
     letter-spacing: 0.079em;
     transition: color var(--timing-animation-min);
     cursor: pointer;
+
+    @media (max-width: 550px) {
+    font-size: 12px;
+  }
 
     @media (hover: hover) {
       &:hover {
@@ -291,7 +296,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 input:-webkit-autofill {
   -webkit-box-shadow: 0 0 0 500px rgb(0, 0, 0) inset;
-  -webkit-text-fill-color: var(--color-light-50);
+  -webkit-text-fill-color: rgb(255, 255, 255, 0.5);
   ;
 }
 </style>

@@ -32,18 +32,20 @@ const valueClientPhone = ref("");
 const comment = ref<string>("");
 const idCommentDelete = ref<string>("");
 
-const flagHiddenFormComment = ref(true);
-const flagHiddenPanelDelete = ref(true);
+const flagHiddenFormAddComment = ref(true);
+const flagHiddenPanelDeleteComment = ref(true);
 const flagHiddenFormUpdate = ref(true);
 const flagBlur = ref(false);
 
 const refDescriptionTextarea = ref();
 const refDescription = ref();
 const refInputPhone = ref();
+const refClientEmail = ref();
+const refLink = ref();
 
 const heightDescriptionTextarea = ref("");
 
-// цвет для кнопки, в зависимости от цвета карточки
+// цвет для текста кнопки, в зависимости от цвета карточки
 const getColorText = computed(() => {
   switch (props.color) {
     case "black":
@@ -52,27 +54,23 @@ const getColorText = computed(() => {
     case "white":
       return "black";
 
-      case "red":
-      return "black"
-      
+    case "red":
+      return "black";
 
     case "black":
       return "white";
 
-      case "green":
+    case "green":
       return "black";
 
-    
-      case "gold":
-      return "black"
+    case "gold":
+      return "black";
 
-         
-      case "blue":
-      return "black"
+    case "blue":
+      return "black";
 
-
-      case "maroon":
-      return "white"
+    case "maroon":
+      return "white";
 
     default:
       return "inherit";
@@ -81,56 +79,93 @@ const getColorText = computed(() => {
 
 const emit = defineEmits(["add-comment", "delete-comment", "update-card"]);
 
-
 // --------------------------------------------------------------------------------
 
 // Комментарии
+
 const emitAddComment = () => {
   comment.value = comment.value.replace(/\s+/g, " ").trim();
   if (!comment.value) return;
   emit("add-comment", comment.value, props.id);
-  comment.value = "";
-  flagHiddenFormComment.value = true;
+  flagHiddenFormAddComment.value = true;
+  resetRefValueComment();
 };
 
 const emitDeleteComment = () => {
   emit("delete-comment", idCommentDelete.value, props.id);
-  idCommentDelete.value = "";
-  flagHiddenPanelDelete.value = true;
+  flagHiddenPanelDeleteComment.value = true;
+  resetRefValueComment();
 };
 
 const handleCancelDeleteComment = () => {
-  idCommentDelete.value = "";
-  flagHiddenPanelDelete.value = true;
+  flagHiddenPanelDeleteComment.value = true;
+  resetRefValueComment();
 };
 
-const handleClickBtnTogglePanelDeleteComment = (idComment: string) => {
-  flagHiddenPanelDelete.value = !flagHiddenPanelDelete.value;
-  idCommentDelete.value = "";
+const handleClickBtnTogglePanelDeleteComment = (
+  idComment: string,
+  commentValue: string
+) => {
+  flagHiddenPanelDeleteComment.value = !flagHiddenPanelDeleteComment.value;
+  flagHiddenFormAddComment.value = true;
+  resetRefValueComment();
 
-  if (!flagHiddenPanelDelete.value) {
+  if (!flagHiddenPanelDeleteComment.value) {
     idCommentDelete.value = idComment;
+    comment.value = commentValue;
   }
 };
 
 const handleVisibleFormComment = () => {
-  flagHiddenFormComment.value = !flagHiddenFormComment.value;
+  flagHiddenFormAddComment.value = !flagHiddenFormAddComment.value;
+  flagHiddenPanelDeleteComment.value = true;
+  resetRefValueComment();
 };
 
+function resetRefValueComment() {
+  idCommentDelete.value = "";
+  comment.value = "";
+}
 
 // --------------------------------------------------------------------------
-
-
 
 // Карточка
 
 const emitUpdateCard = () => {
-
   if (modelDescription.value) {
-    modelDescription.value = modelDescription.value
-      .replace(/\s+/g, ' ')
-      .trim()
-  }  
+    modelDescription.value = modelDescription.value.replace(/\s+/g, " ").trim();
+  }
+
+  if (modelClientEmail.value) {
+    refClientEmail.value.setCustomValidity("");
+
+    const isValid = refClientEmail.value.checkValidity();
+    if (!isValid) {
+      console.log(modelClientEmail.value, "!isValid");
+
+      refClientEmail.value.reportValidity(); // Показывает браузерное сообщение
+      return;
+    }
+
+    if (modelClientEmail.value.length > 254) {
+      refClientEmail.value.setCustomValidity(
+        "Пожалуйста, введите корректный email (максимум 254 символов)"
+      ); // кастомное сообщение
+      refClientEmail.value.reportValidity();
+      return;
+    }
+
+    refClientEmail.value.setCustomValidity("");
+  }
+
+  if (modelLink.value.length > 254) {
+    refLink.value.setCustomValidity("");
+    refLink.value.setCustomValidity(
+      "Пожалуйста, введите ссылку максимум 254 символов"
+    );
+    refLink.value.reportValidity();
+    return;
+  }
 
   emit("update-card", props.id, {
     name: modelName.value ? modelName.value : props.name,
@@ -140,40 +175,41 @@ const emitUpdateCard = () => {
     deadline: modelDeadLine.value,
     client: modelClient.value ? modelClient.value : props.client,
     client_email: modelClientEmail.value,
-    client_phone:  refInputPhone.value.value
+    client_phone: refInputPhone.value.value,
   });
   setStateFlagHiddenFormUpdate(true);
 };
 
 // используем для маски телефона, так как модель с маской глючит
-const handleKeyUp = ((e: KeyboardEvent) => {
-  const inputPhone = e.target as HTMLInputElement;  
-  
-  if (inputPhone.value) {
-    valueClientPhone.value = inputPhone.value
-  }
-})
+const handleKeyUp = (e: KeyboardEvent) => {
+  const inputPhone = e.target as HTMLInputElement;
 
+  if (inputPhone.value) {
+    valueClientPhone.value = inputPhone.value;
+  }
+};
 
 const handleVisibleFormUpdateCard = () => {
-
-
-
   addValuePropsInRefs();
 
   setStateFlagHiddenFormUpdate(!flagHiddenFormUpdate.value);
   if (!flagHiddenFormUpdate.value) {
-   
     removePhoneMask();
     refInputPhone.value.value = props.client_phone;
-    removePhoneMask = inputMask(maskStart, maskValue, maskSymbols, refInputPhone.value, maskHover);
-    refDescriptionTextarea.value.style.height = heightDescriptionTextarea.value + "px";
-  } 
+    removePhoneMask = inputMask(
+      maskStart,
+      maskValue,
+      maskSymbols,
+      refInputPhone.value,
+      maskHover
+    );
+    refDescriptionTextarea.value.style.height =
+      heightDescriptionTextarea.value + "px";
+  }
 };
 
 // для подбора высоты Textarea
 const handleEventInputTextarea = () => {
-
   refDescriptionTextarea.value.style.height = "0px";
   refDescriptionTextarea.value.style.height =
     refDescriptionTextarea.value.scrollHeight + "px";
@@ -188,28 +224,30 @@ function addValuePropsInRefs() {
     modelDescription.value = props.description;
   }
   if (props.link) {
-    modelLink.value = props.link
+    modelLink.value = props.link;
   }
   if (props.client) {
     modelClient.value = props.client;
-  } if (props.price) {
+  }
+  if (props.price) {
     modelPrice.value = props.price;
-  } if (props.deadline) {
+  }
+  if (props.deadline) {
     modelDeadLine.value = props.deadline;
-  } if (props.client_email) {
+  }
+  if (props.client_email) {
     modelClientEmail.value = props.client_email;
-  } if (props.client_phone) {
-    console.log(props.client_phone, 'props.client_phone');
-    
-    valueClientPhone.value = props.client_phone
+  }
+  if (props.client_phone) {
+    console.log(props.client_phone, "props.client_phone");
+
+    valueClientPhone.value = props.client_phone;
   }
 }
 
 function setStateFlagHiddenFormUpdate(value: boolean) {
   flagHiddenFormUpdate.value = value;
 }
-
-
 
 // эффект blur при update card и изменении цвета
 function setStateFlagBlur(value: boolean) {
@@ -218,16 +256,13 @@ function setStateFlagBlur(value: boolean) {
 
 // -------------------------------------------------------
 
-
-// маска телефона 
+// маска телефона
 let removePhoneMask: any = null;
 
 const maskStart = 3;
 const maskValue = "+7(___)___-__-__";
 const maskSymbols = [")", "(", "-"];
 const maskHover = false;
-
-
 
 // function resetModels() {
 
@@ -242,18 +277,12 @@ const maskHover = false;
 //   removePhoneMask();
 // }
 
-
-
-// пробрасываем вверх 
+// пробрасываем вверх
 defineExpose({
   // setStateFlagHiddenFormUpdate,
   setStateFlagBlur,
   // resetModels
 });
-
-
-
-
 
 // watch(
 //   () => [
@@ -294,7 +323,6 @@ defineExpose({
 //       modelClientEmail.value = props.client_email;
 //     }
 //     if (props.client_phone) {
-   
 
 //       console.log(props.client_phone, 'props.client_phone');
 
@@ -303,26 +331,34 @@ defineExpose({
 // );
 
 onMounted(() => {
-  console.log('создание маски боковой панели');
+  console.log("создание маски боковой панели");
   heightDescriptionTextarea.value = refDescription.value.offsetHeight;
-  removePhoneMask = inputMask(maskStart, maskValue, maskSymbols, refInputPhone.value, maskHover);
+  removePhoneMask = inputMask(
+    maskStart,
+    maskValue,
+    maskSymbols,
+    refInputPhone.value,
+    maskHover
+  );
 });
 
 onBeforeUnmount(() => {
-  console.log('удаление маски боковой панели');
+  console.log("удаление маски боковой панели");
 
   if (removePhoneMask) {
-    console.log('удаляем маску');
+    console.log("удаляем маску");
     removePhoneMask();
   }
-})
-
-
+});
 </script>
 <template>
   <div class="aside-panel">
     <div class="aside-panel__header">
-      <div v-if="$slots.card" class="aside-panel__card" :class="{ 'aside-panel__card--blur': flagBlur }">
+      <div
+        v-if="$slots.card"
+        class="aside-panel__card"
+        :class="{ 'aside-panel__card--blur': flagBlur }"
+      >
         <slot name="card"></slot>
       </div>
 
@@ -330,164 +366,268 @@ onBeforeUnmount(() => {
         <div v-if="$slots.color" class="aside-panel__change-color-button">
           <slot name="color"></slot>
         </div>
-        <div :aria-hidden="flagHiddenFormUpdate" class="aside-panel__button-save"
-          :class="{ 'aside-panel__button-save--hidden': flagHiddenFormUpdate }">
-          <UiBaseButton :bg-color="props.color || 'black'" :text-color="getColorText" @click="emitUpdateCard">Save
+        <div
+          :aria-hidden="flagHiddenFormUpdate"
+          class="aside-panel__button-save"
+          :class="{ 'aside-panel__button-save--hidden': flagHiddenFormUpdate }"
+        >
+          <UiBaseButton
+            :bg-color="props.color || 'black'"
+            :text-color="getColorText"
+            @click="emitUpdateCard"
+            >Save
           </UiBaseButton>
         </div>
       </div>
 
-      <div class="aside-panel__days-until-deadline" v-if="props.deadline">
-        Дней до дедлайна:
-        <div :style="{
-          color: getDaysUntilDeadline(props.deadline) < 5 ? 'red' : 'black',
-        }">
+      <div
+        class="aside-panel__days-until-deadline days-until-deadline"
+        v-if="props.deadline"
+      >
+        <div class="days-until-deadline__text">Дней до дедлайна:</div>
+
+        <div
+          class="days-until-deadline__number"
+          :style="{
+            color: getDaysUntilDeadline(props.deadline) < 5 ? 'red' : 'black',
+          }"
+        >
           {{ getDaysUntilDeadline(props.deadline) }}
         </div>
       </div>
     </div>
 
     <div v-show="flagHiddenFormUpdate" class="info-project">
-
       <div class="info-project__name-project">
         <span> {{ props.name }}</span>
       </div>
 
       <div ref="refDescription" class="info-project__description">
         <span v-if="props.description">{{ props.description }}</span>
-
-        <span v-else style="opacity: 0.5; font-weight: 500">нет описания</span>
-
+        <span v-else style="opacity: 0.7; font-weight: 500">нет описания</span>
       </div>
+
       <div class="info-project__price">
         <span>Цена: </span><span>{{ props.price }}</span> р
       </div>
 
-      <a target="_blank" rel="noopener noreferrer" v-if="props.link" :href="props.link"
-        class="info-project__link-layout">
+      <a
+        target="_blank"
+        rel="noopener noreferrer"
+        v-if="props.link"
+        :href="props.link"
+        class="info-project__link-layout"
+      >
         <span>Ссылка на макет: </span>
         <span>{{ props.link }}</span>
       </a>
+
       <div v-else class="info-project__link-layout">
         <span>Ссылка на макет: </span>
-        <span style="opacity: 0.5; font-weight: 500">-</span>
+        <span style="opacity: 0.7; font-weight: 500">-</span>
       </div>
-
-
 
       <div class="info-project__deadline">
         <span>Дедлайн: </span>
         <span v-if="props.deadline">
           {{ props.deadline }}
         </span>
-        <span v-else style="opacity: 0.5; font-weight: 500">-</span>
+        <span v-else style="opacity: 0.7; font-weight: 500">-</span>
       </div>
 
-      <div class="info-project__client layout">
+      <div class="info-project__client">
         <span>Клиент: </span>
         <span>
           {{ props.client }}
         </span>
       </div>
 
-
-
       <div class="info-project__contact">
         <span>Email клиента: </span>
-        <a class="link-contact info-project__contact-link" v-if="props.client_email"
-          :href="'mailto:' + props.client_email" target="_blank" rel="noopener noreferrer"><span
-            class="link-contact__text">{{ props.client_email }}</span>
+        <a
+          class="link-contact info-project__contact-link"
+          v-if="props.client_email"
+          :href="'mailto:' + props.client_email"
+          target="_blank"
+          rel="noopener noreferrer"
+          ><span class="link-contact__text">{{ props.client_email }}</span>
           <span class="link-contact__img">
             <img src="/images/icon-mail.png" alt="иконка почты" />
           </span>
         </a>
-        <span style="opacity: 0.5; font-weight: 500" class="info-project__contact-link" v-else>-</span>
+        <span
+          style="opacity: 0.7; font-weight: 500"
+          class="info-project__contact-link"
+          v-else
+          >-</span
+        >
       </div>
 
       <div class="info-project__contact">
         <span>Телефон клиента: </span>
-        <a target="_blank" rel="noopener noreferrer" class="link-contact info-project__contact-link"
-          v-if="props.client_phone" :href="`https://t.me/${props.client_phone.replace(/[^0-9+]/g, '')}`">
+        <a
+          target="_blank"
+          rel="noopener noreferrer"
+          class="link-contact info-project__contact-link"
+          v-if="props.client_phone"
+          :href="`https://t.me/${props.client_phone.replace(/[^0-9+]/g, '')}`"
+        >
           <span class="link-contact__text">{{ props.client_phone }}</span>
           <span class="link-contact__img">
             <img src="/images/icon-telegram.png" alt="иконка telegram" />
           </span>
         </a>
-        <span style="opacity: 0.5; font-weight: 500" class="info-project__contact-link" v-else>-</span>
+        <span
+          style="opacity: 0.7; font-weight: 500"
+          class="info-project__contact-link"
+          v-else
+          >-</span
+        >
       </div>
     </div>
 
     <form v-show="!flagHiddenFormUpdate" class="info-project">
       <div class="aside-panel__wrapper-update-input">
-        <input maxlength="50" v-model="modelName" type="text"
-          class="info-project__name-project aside-panel__update-input" />
+        <input
+          maxlength="50"
+          v-model="modelName"
+          type="text"
+          class="info-project__name-project aside-panel__update-input"
+        />
         <div class="aside-panel__update-input-length">
           {{ 50 - modelName.length }}
         </div>
       </div>
+
       <div class="aside-panel__wrapper-update-input">
-        <textarea maxlength="200" @input="handleEventInputTextarea" ref="refDescriptionTextarea"
+        <textarea
+          maxlength="200"
+          placeholder="описание шабашки"
+          @input="handleEventInputTextarea"
+          ref="refDescriptionTextarea"
           v-model="modelDescription"
-          class="info-project__description aside-panel__update-input aside-panel__update-text-area"></textarea>
+          class="info-project__description aside-panel__update-input aside-panel__update-text-area"
+        ></textarea>
 
         <div class="aside-panel__update-input-length">
           {{ 200 - modelDescription.length }}
         </div>
       </div>
 
-      <input v-model="modelPrice" type="number" class="info-project__price aside-panel__update-input" />
-      <input v-model="modelLink" type="url" class="info-project__link-layout aside-panel__update-input" />
-      <input v-model="modelDeadLine" type="date" class="info-project__deadline aside-panel__update-input" />
+      <input
+        v-model="modelPrice"
+        type="number"
+        class="info-project__price aside-panel__update-input"
+      />
 
-      <input v-model="modelClient" type="text" class="info-project__client aside-panel__update-input" />
+      <input
+        ref="refLink"
+        v-model="modelLink"
+        type="url"
+        placeholder="ссылка на макет"
+        class="info-project__link-layout aside-panel__update-input"
+      />
+
+      <input
+        v-model="modelDeadLine"
+        type="date"
+        class="info-project__deadline aside-panel__update-input"
+      />
+
+      <input
+        v-model="modelClient"
+        type="text"
+        class="info-project__client aside-panel__update-input"
+      />
 
       <div class="info-project__contact">
-        <span>Email клиента: </span>
-        <input v-model="modelClientEmail" type="email" class="info-project__contact-link aside-panel__update-input" />
+        <div>Email клиента:</div>
+        <input
+          ref="refClientEmail"
+          v-model="modelClientEmail"
+          type="email"
+          title="Пожалуйста, введите корректный email (максимум 320 символов)"
+          class="info-project__contact-link aside-panel__update-input"
+        />
       </div>
 
       <div class="info-project__contact">
         <span>Телефон клиента: </span>
-        <input placeholder="+7(___)___-__-__" ref="refInputPhone" @keyup="handleKeyUp" type="text"
-          class="info-project__contact-link aside-panel__update-input" />
+        <input
+          placeholder="+7(___)___-__-__"
+          ref="refInputPhone"
+          @keyup="handleKeyUp"
+          type="text"
+          class="info-project__contact-link aside-panel__update-input"
+        />
       </div>
     </form>
 
     <div class="aside-panel__main-middle">
       <div class="aside-panel__label">
-        <div class="aside-panel__label-left">
+        <button
+          @click="handleVisibleFormComment"
+          class="aside-panel__label-left"
+        >
           <div class="aside-panel__label-text">Добавить комментарий</div>
-          <button @click="handleVisibleFormComment" class="aside-panel__label-button" :class="{
-            'aside-panel__label-button--close': !flagHiddenFormComment,
-          }">
-            <img :aria-hidden="!flagHiddenFormComment" src="/images/add-comment.png" alt="добавить комментарий" />
-            <img :aria-hidden="flagHiddenFormComment" src="/images/icon-close.png"
-              alt="закрыть форму добавления комментария" />
-          </button>
-        </div>
+          <div
+            class="aside-panel__label-button"
+            :class="{
+              'aside-panel__label-button--close': !flagHiddenFormAddComment,
+            }"
+          >
+            <img
+              aria-hidden="true"
+              src="/images/add-comment.png"
+              alt="иконка"
+            />
+            <img aria-hidden="true" src="/images/icon-close.png" alt="иконка" />
+          </div>
+        </button>
 
-        <button @click="handleVisibleFormUpdateCard" class="aside-panel__label-right">
+        <button
+          @click="handleVisibleFormUpdateCard"
+          class="aside-panel__label-right"
+        >
           <div class="aside-panel__label-text">Редактировать карточку</div>
-          <div class="aside-panel__label-button" :class="{
-            'aside-panel__label-button--close': !flagHiddenFormUpdate,
-          }">
-            <img :aria-hidden="!flagHiddenFormUpdate" src="/images/icon-update.png" alt="редактировать карточку" />
-            <img :aria-hidden="flagHiddenFormUpdate" src="/public/images/icon-close.png"
-              alt="закрыть редактирования карточки" />
+          <div
+            class="aside-panel__label-button"
+            :class="{
+              'aside-panel__label-button--close': !flagHiddenFormUpdate,
+            }"
+          >
+            <img
+              :aria-hidden="!flagHiddenFormUpdate"
+              src="/images/icon-update.png"
+              alt="редактировать карточку"
+            />
+            <img
+              :aria-hidden="flagHiddenFormUpdate"
+              src="/public/images/icon-close.png"
+              alt="закрыть редактирования карточки"
+            />
           </div>
         </button>
       </div>
-      <div class="aside-panel__container-form" :class="{
-        'aside-panel__container-form--hidden': flagHiddenFormComment,
-      }">
+      <div
+        class="aside-panel__container-form"
+        :class="{
+          'aside-panel__container-form--hidden': flagHiddenFormAddComment,
+        }"
+      >
         <form class="aside-panel__form form-comments">
           <div class="form-comments__container-text-area">
-            <textarea maxlength="200" placeholder="комментарий не больше 200 символов"
-              class="aside-panel__text-area form-comments__text-area" v-model="comment"></textarea>
+            <textarea
+              maxlength="200"
+              placeholder="комментарий не больше 200 символов"
+              class="aside-panel__text-area form-comments__text-area"
+              v-model="comment"
+            ></textarea>
             <div class="form-comments__length">{{ 200 - comment.length }}</div>
           </div>
           <div @click="emitAddComment" class="form-comments__button">
-            <UiBaseButton bg-color="white" text-color="black" type="button">Добавить комментарий
+            <UiBaseButton bg-color="white" text-color="black" type="button"
+              >Добавить комментарий
             </UiBaseButton>
           </div>
         </form>
@@ -495,31 +635,63 @@ onBeforeUnmount(() => {
     </div>
 
     <div class="aside-panel__main-footer">
-      <div class="aside-panel__panel-delete" :class="{ 'aside-panel__panel-delete--hidden': flagHiddenPanelDelete }">
+      <div
+        class="aside-panel__panel-delete"
+        :class="{ 'aside-panel__panel-delete--hidden': flagHiddenPanelDeleteComment }"
+        :aria-hidden="flagHiddenPanelDeleteComment"
+      >
         <div class="aside-panel__panel-delete-title">
           Вы уверенны что хотите удалить комментарий
         </div>
         <div class="aside-panel__panel-delete-button">
-          <UiBaseButton @click.stop="handleCancelDeleteComment" text-color="black" bg-color="white">
+          <UiBaseButton
+          :aria-hidden="flagHiddenPanelDeleteComment"
+            aria-label="не удалять комментарий"
+            @click.stop="handleCancelDeleteComment"
+            text-color="black"
+            bg-color="white"
+          >
             Cancel
           </UiBaseButton>
         </div>
         <div class="aside-panel__panel-delete-button">
-          <UiBaseButton @click="emitDeleteComment" text-color="white" bg-color="red">
+          <UiBaseButton
+          :aria-hidden="flagHiddenPanelDeleteComment"
+            :aria-label="`удалить комментарий ${comment}`"
+            @click="emitDeleteComment"
+            text-color="white"
+            bg-color="red"
+          >
             Delete
           </UiBaseButton>
         </div>
       </div>
 
-      <div class="aside-panel__container-comments">
-        <div class="aside-panel__comment" v-for="comment in props.comments" :key="comment.$id">
+      <div v-if="props.comments" class="aside-panel__container-comments">
+        <div
+          class="aside-panel__comment"
+          v-for="comment in props.comments"
+          :key="comment.$id"
+        >
           <span class="aside-panel__comment-date">{{
             formatDateToRussianLocale(comment.$createdAt)
           }}</span>
           <span>{{ comment.text }}</span>
-          <button :data-id="comment.$id" @click="handleClickBtnTogglePanelDeleteComment(comment.$id)"
-            class="aside-panel__comments-delete">
-            <img src="/images/icon-close.png" alt="удалить комментарий" />
+          <button
+            :aria-label="
+              flagHiddenPanelDeleteComment
+                ? `Открыть панель удаления комментария от ${formatDateToRussianLocale(
+                    comment.$createdAt
+                  )}`
+                : 'Закрыть панель'
+            "
+            :data-id="comment.$id"
+            @click="
+              handleClickBtnTogglePanelDeleteComment(comment.$id, comment.text)
+            "
+            class="aside-panel__comments-delete"
+          >
+            <img src="/images/icon-close.png" alt="иконка" aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -547,16 +719,29 @@ onBeforeUnmount(() => {
   }
 
   &__name-project {
+    font-weight: 700;
     font-size: 22px;
+
+    @media (max-width: 430px) {
+      font-size: 18px;
+    }
   }
 
   &__description {
     font-size: 16px;
     overflow-wrap: break-word;
+
+    @media (max-width: 430px) {
+      font-size: 14px;
+    }
   }
 
   &__price {
     font-size: 16px;
+
+    @media (max-width: 430px) {
+      font-size: 14px;
+    }
 
     & span:nth-child(2) {
       font-weight: 700;
@@ -570,6 +755,10 @@ onBeforeUnmount(() => {
     text-overflow: ellipsis;
     max-width: 400px;
 
+    @media (max-width: 430px) {
+      font-size: 14px;
+    }
+
     & span:nth-child(2) {
       font-weight: 700;
     }
@@ -580,6 +769,10 @@ onBeforeUnmount(() => {
     margin-bottom: 20px;
     font-size: 16px;
 
+    @media (max-width: 430px) {
+      font-size: 14px;
+    }
+
     & span:last-child {
       font-weight: 700;
     }
@@ -587,6 +780,10 @@ onBeforeUnmount(() => {
 
   &__client {
     font-size: 20px;
+
+    @media (max-width: 430px) {
+      font-size: 14px;
+    }
 
     & span:nth-child(2) {
       font-weight: 700;
@@ -597,6 +794,10 @@ onBeforeUnmount(() => {
     display: grid;
     gap: 5px;
 
+    @media (max-width: 430px) {
+      font-size: 14px;
+    }
+
     & span:nth-child(2) {
       font-weight: 700;
     }
@@ -605,9 +806,11 @@ onBeforeUnmount(() => {
   &__contact-link {
     height: 31px;
     font-size: 16px;
+
+    @media (max-width: 430px) {
+      font-size: 14px;
+    }
   }
-
-
 }
 
 .link-contact {
@@ -620,11 +823,17 @@ onBeforeUnmount(() => {
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 400px;
+
+    @media (max-width: 430px) {
+      max-width: 250px;
+    }
   }
 
   &__img {
-    width: 25px;
-    height: 25px;
+    width: 30px;
+    height: 30px;
+    background-color: red;
+    padding: 2px;
   }
 }
 
@@ -633,23 +842,26 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 20px;
   position: relative;
-  padding: 20px 25px 20px;
 
   &__header {
     display: flex;
     align-items: flex-start;
-    gap: 25px;
-    min-height: 190px;
+
+    gap: 20px;
+
+    // min-height: 150px;
+    @media (max-width: 760px) {
+      flex-wrap: wrap;
+    }
   }
 
   &__card {
     flex-basis: 250px;
     flex-shrink: 0;
     position: relative;
-    border-radius: var(--radius-middle-v1);
-    overflow: hidden;
     color: var(--color-light-50);
     transition: filter 1s;
+    background-color: transparent;
 
     &--blur {
       filter: blur(10px);
@@ -657,34 +869,37 @@ onBeforeUnmount(() => {
   }
 
   &__header-buttons {
+    flex-shrink: 0;
     align-self: stretch;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    gap: 20px;
     width: 100%;
+    max-width: 240px;
   }
 
   &__days-until-deadline {
-    align-self: stretch;
-    flex-shrink: 0;
+    align-self: flex-end;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
-    font-size: 18px;
-    font-weight: 600;
 
-    & div {
-      font-weight: 600;
-      font-size: 50px;
+    @media (max-width: 760px) {
+      flex-direction: row;
+      align-items: center;
+      gap: 20px;
     }
   }
 
   &__main-middle {
     position: relative;
+    background-color: red;
+    // display: none;
   }
 
   &__main-footer {
     position: relative;
+    // display: none;
   }
 
   &__button-save {
@@ -729,66 +944,45 @@ onBeforeUnmount(() => {
     border-bottom: solid 1px var(--color-light-50);
     outline: none;
     background-color: transparent;
-    color: inherit;
+
     animation: borderBottomAnimation var(--timing-animation-min);
     transition: border-color var(--timing-animation-min) linear;
+    color: inherit;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 
     &:focus {
       border-bottom: solid 1px red;
     }
-  }
 
-  &__container-form {
-    max-width: 400px;
-    width: 100%;
-    height: 180px;
-    position: absolute;
-    bottom: -180px;
-    left: 0;
-    z-index: 100;
-    opacity: 1;
-    transition: opacity var(--timing-animation-min) linear;
-    border-radius: var(--radius-sm);
-    overflow: hidden;
-
-    &--hidden {
-      opacity: 0;
-      pointer-events: none;
+    &::placeholder {
+      opacity: 0.5;
+      color: white;
     }
-  }
-
-  &__form {
-    height: 100%;
-    background-color: var(--main-color);
-  }
-
-  &__text-area {
-    width: 100%;
-    opacity: 1;
-    height: 100%;
-    padding: 10px;
-    background-color: var(--main-color);
-    color: var(--color-light-50);
-    border: none;
-    outline: none;
   }
 
   &__label {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-direction: row-reverse;
     gap: 30px;
     user-select: none;
+
+    @media (max-width: 600px) {
+      // flex-direction: column;
+      // align-items: flex-start;
+      // flex-direction: column-reverse;
+      gap: 20px;
+    }
   }
 
   &__label-left,
   &__label-right {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 20px;
-  }
-
-  &__label-right {
+    flex-direction: row-reverse;
+    gap: 10px;
     background-color: transparent;
     border: none;
     font-size: inherit;
@@ -796,28 +990,38 @@ onBeforeUnmount(() => {
     cursor: pointer;
   }
 
+  &__label-text {
+    text-align: left;
+    font-size: 16px;
+    @media (max-width: 600px) {
+      font-size: 14px;
+    }
+  }
   &__label-button {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    // display: flex;
+    // justify-content: center;
+    // align-items: center;
     background-color: transparent;
-    width: 50px;
-    height: 50px;
+    width: 30px;
+    height: 30px;
     border: none;
     cursor: pointer;
     position: relative;
 
     & img {
       position: absolute;
-      width: 35px;
-      height: 35px;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 26px;
+      height: 26px;
       opacity: 1;
       transition: opacity var(--timing-animation-min) linear;
     }
 
     & img:last-child {
-      width: 20px;
-      height: 20px;
+      width: 15px;
+      height: 15px;
       opacity: 0;
     }
 
@@ -834,6 +1038,49 @@ onBeforeUnmount(() => {
         opacity: 1;
       }
     }
+  }
+
+  &__container-form {
+    display: block;
+    max-width: 400px;
+    width: 100%;
+    // height: 200px;
+    position: absolute;
+    top: 50px;
+    left: 0;
+    z-index: 100;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    opacity: 1;
+    transition: opacity var(--timing-animation-min) linear;
+    &--hidden {
+      opacity: 0;
+      pointer-events: none;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+  }
+
+  &__form {
+    height: 100%;
+    // background-color: var(--main-color);
+    border-radius: var(--radius-sm);
+  }
+
+  &__text-area {
+    width: 100%;
+    opacity: 1;
+    height: 130px;
+    padding: 10px 10px 20px 10px;
+    border-radius: var(--radius-sm);
+    outline: solid wheat 2px;
+    background-color: var(--main-color);
+    color: var(--color-light-50);
+    border: none;
+    // outline: none;
+    overflow-y: hidden;
+    margin-bottom: 20px;
   }
 
   &__container-comments {
@@ -882,7 +1129,8 @@ onBeforeUnmount(() => {
     left: 50%;
     top: 0;
     max-width: 300px;
-    height: 150px;
+    width: 100%;
+
     transform: translateX(-50%);
     padding: 20px;
     border-radius: var(--radius-md);
@@ -894,14 +1142,24 @@ onBeforeUnmount(() => {
       filter: blur(30px);
       opacity: 0;
       pointer-events: none;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
     }
   }
 
   &__panel-delete-button {
     font-size: 14px;
+
+    @media (max-width: 300px) {
+      margin-left: auto;
+      margin-right: auto;
+    }
   }
 
-  &__panel-delete:not(.aside-panel__panel-delete--hidden)+.aside-panel__container-comments>.aside-panel__comment {
+  &__panel-delete:not(.aside-panel__panel-delete--hidden)
+    + .aside-panel__container-comments
+    > .aside-panel__comment {
     filter: blur(2px);
     opacity: 0.5;
     pointer-events: none;
@@ -911,17 +1169,35 @@ onBeforeUnmount(() => {
 .form-comments {
   display: flex;
   flex-direction: column;
-  gap: 20px;
 
   &__container-text-area {
     position: relative;
-    height: 100%;
   }
 
   &__length {
     position: absolute;
     left: 10px;
-    bottom: 5px;
+    bottom: 0px;
+  }
+
+  &__button {
+  }
+}
+
+.days-until-deadline {
+  font-size: 18px;
+  font-weight: 600;
+
+  @media (max-width: 780px) {
+    font-size: 14px;
+  }
+
+  &__number {
+    font-size: 30px;
+
+    @media (max-width: 780px) {
+      font-size: 20px;
+    }
   }
 }
 

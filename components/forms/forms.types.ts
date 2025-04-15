@@ -6,7 +6,7 @@ export type BaseFormData = {
 
 
 export type FormErrorData = {
-  errorEmail: string | null;
-  errorPassword: string | null;
-  errorName?: string | null;
+  error_email: string | null;
+  error_password: string | null;
+  error_name?: string | null;
 };

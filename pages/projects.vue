@@ -32,6 +32,7 @@ const addFormStore = useFormAddStore();
 const commentsStore = useCommentsStore();
 const loadStore = useIsLoadingStore();
 const searchStore = useSearchStore();
+const eventStore = useEventStore();
 
 // state kanban / project / kanbanOriginal-нужен для восстановления state kanban без перезагрузки
 const projects = ref<DataCardAppWrite[]>([]);
@@ -81,15 +82,16 @@ const columnColors = ref<{ [key in TypeProjectStatus]: string }>({
 });
 
 // flags
-const flagProjectCreated = ref(false);
 let flagClickCard = false;
 let flagEventSelect = false;
 
 // ref ссылки на элементы DOM
+const refPageProjects = ref();
 const refKanban = ref();
 const refMenuColumn = ref();
 const refPanelAside = ref();
 const refFormAdd = ref();
+const refWrapperColumn = ref();
 
 // -------------------------------------------------------------------------
 
@@ -190,7 +192,6 @@ const handleClickKanban = (e: Event) => {
     return;
 
   indexPanelMenu.value = -1;
-
 };
 
 // обработчик открытия панели меню(сортировка, изменение цвета)
@@ -233,6 +234,7 @@ const gradient_column = [
   "linear-gradient(90deg, rgb(234, 242, 143), rgb(205, 232, 181), rgb(255, 242, 213), rgb(247, 250, 219))",
   "linear-gradient(90deg, rgb(210, 205, 198), rgb(8, 166, 147), rgb(58, 77, 95), rgb(39, 44, 63))",
   "linear-gradient(90deg, rgb(136, 0, 21), rgb(249, 208, 122), rgb(202, 51, 5))",
+  "linear-gradient(90deg, #e2632c,#fb4955,#ff3286,#fc39be,#d35bf8)"
 ];
 
 // обработчик изменения цвета колонок
@@ -367,7 +369,20 @@ function updateCardInAside(projectId: string) {
 }
 
 // цвета карточки в боковой панели
-const colors_card = ["red", "green", "black", "white", "blue", "gold", "maroon"];
+const colors_card = [
+  "red",
+  "green",
+  "black",
+  "white",
+  "blue",
+  "gold",
+  "maroon",
+  "linear-gradient(90deg, #e2632c,#fb4955,#ff3286,#fc39be,#d35bf8)",
+  "linear-gradient(90deg, #ee6ef5,#57b9ff)",
+  "linear-gradient(90deg, #29482a,#4e8950,#9fb97f)",
+
+
+];
 
 // -------------------------------------------------------------------------
 
@@ -388,37 +403,57 @@ let valueMenuTransformX = 0;
 let prevValueMenuTransformX = 0;
 let clickMenuX = 0;
 
+// .kanban-column__container-cards и scrollYContainerCards, нужны для исправления прыжка карточки по вертикали при dragover,
+//  когда в kanban-column__container-cards появляется вертикальный scroll
 let elemContainerCards: null | HTMLElement = null;
-let scrollTop = 0;
+let scrollYContainerCards = 0;
 
-function handleTouchStartCard(e: any) {
+// переменные, нужны для исправления прыжка карточки по вертикали при dragover,
+// когда появляется горизонтальный scroll в page-project
+let scrollXPageProducts = 0;
+let baseScrollWidthPageProducts = 0;
+
+// таймер handleTouchEnd
+let timerId: number | null = null
+
+// обработчики drag and drop
+
+function handleTouchStart(e: any) {
+  // карточка
   if (e.target.closest(".kanban__card")) {
     selectedProduct = e.target.closest(".kanban__card");
+
     if (!selectedProduct) return;
+
     clickProductX = e.type !== "mousedown" ? e.touches[0].clientX : e.clientX;
     clickProductY = e.type !== "mousedown" ? e.touches[0].clientY : e.clientY;
 
     flagClickCard = true;
 
     elemContainerCards = e.target.closest(".kanban-column__container-cards");
-    if (elemContainerCards) {
-      scrollTop = elemContainerCards.scrollTop;
-      console.log(scrollTop, 'scrollTop');
-      
-    }
+
+    if (!elemContainerCards) return;
+
+    scrollYContainerCards = elemContainerCards.scrollTop;
   }
 
+  // меню колонки
   if (e.target.closest(".kanban-column__menu")) {
     e.target.closest(".panel-sort")
       ? (flagEventSelect = true)
       : (flagEventSelect = false);
+
     selectedColumnMenu = e.target.closest(".kanban-column__menu");
+
     if (!selectedColumnMenu) return;
-    console.log("handleTouchStart", valueMenuTransformX);
+
     clickMenuX = e.type !== "mousedown" ? e.touches[0].clientX : e.clientX;
   }
 }
-function handleTouchMoveCard(e: any) {
+
+function handleTouchMove(e: any) {
+  refPageProjects.value.style.scrollSnapType = "none";
+
   if (selectedProduct) {
     e.preventDefault();
     indexPanelMenu.value = -1;
@@ -426,8 +461,19 @@ function handleTouchMoveCard(e: any) {
     const clientX = e.type !== "mousemove" ? e.touches[0].clientX : e.clientX;
     const clientY = e.type !== "mousemove" ? e.touches[0].clientY : e.clientY;
 
-    valueTransformX = clientX - clickProductX;
-    valueTransformY = clientY - clickProductY - scrollTop;
+    if (
+      clientX + 95 > window.innerWidth &&
+      canScrollRight(refPageProjects.value, baseScrollWidthPageProducts)
+    ) {
+      refPageProjects.value.scrollLeft += 10;
+      scrollXPageProducts += 10;
+    } else if (clientX - 95 < 0 && refPageProjects.value.scrollLeft > 20) {
+      refPageProjects.value.scrollLeft -= 10;
+      scrollXPageProducts -= 10;
+    }
+
+    valueTransformX = clientX - clickProductX + scrollXPageProducts;
+    valueTransformY = clientY - clickProductY - scrollYContainerCards;
 
     touchClientMoveX = clientX;
     touchClientMoveY = clientY;
@@ -437,10 +483,7 @@ function handleTouchMoveCard(e: any) {
     selectedProduct.classList.add(`selected-product`);
     flagClickCard = false;
 
-
-
-
-    // подсветка колонки под карточкой
+    //удаляем предыдущую  подсветку колонки под карточкой
     removeHighlighted();
 
     const hoverDataElem = {
@@ -450,7 +493,11 @@ function handleTouchMoveCard(e: any) {
       targetClass: "kanban__wrapper-column",
     };
 
+    // подсветка колонки под карточкой(функция из utils)
     hoverInElemUnder(hoverDataElem);
+
+    // записываем в store для реализации авто scroll по из default layout
+    eventStore.initDragover();
   }
 
   if (selectedColumnMenu && !flagEventSelect) {
@@ -465,13 +512,24 @@ function handleTouchMoveCard(e: any) {
     selectedColumnMenu.style.transform = `translate(${valueMenuTransformX}px, ${0}px)`;
 
     selectedColumnMenu.classList.add(`selected-menu`);
+
+    // записываем в store для реализации авто scroll по из default layout
+    eventStore.initDragover();
   }
 }
+
+
 function handleTouchEnd() {
+
+  // записываем в store  drag over
+  eventStore.stopDragover();
+
   if (selectedColumnMenu) {
     prevValueMenuTransformX = valueMenuTransformX;
     selectedColumnMenu.style.transform = `translate(${valueMenuTransformX}px, ${0}px)`;
     resetElemSelectedMenu();
+    refPageProjects.value.style.scrollSnapType = "x mandatory";
+
   }
 
   if (selectedProduct) {
@@ -499,7 +557,6 @@ function handleTouchEnd() {
       resetElemSelectedCard();
       resetValueCard();
       removeHighlighted();
-
     } else {
       const projectId = selectedProduct.getAttribute("data-project-id");
       const copySelectElem = selectedProduct;
@@ -509,7 +566,6 @@ function handleTouchEnd() {
       resetValueCard();
       copySelectElem.classList.add("card-drop-animation");
       console.log(copySelectElem);
-      
 
       if (columnStatus && projectId) {
         addCardInColumn(projectId, columnStatus);
@@ -517,9 +573,13 @@ function handleTouchEnd() {
     }
 
     flagUpdateColumn = false;
+
+    // добавляем задержку, что бы колонки выравнивались из за x mandatory, когда пройдет 1500мс после начала анимации cardDrop
+    timerId = window.setTimeout(() => {
+      refPageProjects.value.style.scrollSnapType = "x mandatory";
+    }, 1500);
   }
 }
-
 
 // Сброс состояния переменных DRAG AND DROP
 function resetValueCard() {
@@ -527,6 +587,8 @@ function resetValueCard() {
   valueTransformY = 0;
   touchClientMoveX = 0;
   touchClientMoveY = 0;
+  scrollXPageProducts = 0;
+  scrollYContainerCards = 0;
 }
 function resetElemSelectedCard() {
   if (!selectedProduct) return;
@@ -547,7 +609,6 @@ function resetElemSelectedMenu() {
 
 // HELPERS:
 
-
 // добавление в ref kanban и kanbanOriginal данных из ref projects
 function initKanban() {
   for (let index = 0; index < projects.value.length; index++) {
@@ -560,16 +621,13 @@ function initKanban() {
   }
 }
 
-
 // сброс подсветки
 
 function removeHighlighted() {
-
-  const elemHighlighted = document.querySelector('.highlight');
+  const elemHighlighted = document.querySelector(".highlight");
   if (elemHighlighted) {
-    elemHighlighted.classList.remove('highlight');
+    elemHighlighted.classList.remove("highlight");
   }
-
 }
 
 // сброс state ref kanban и  ref kanbanOriginal
@@ -607,6 +665,7 @@ function applyColumnSorting() {
           const direction = stateSortColumn[sortName][columnName];
 
           if (direction === "default") continue;
+
           if (direction === "desc") {
             if (nameSort === "price") {
               sortDesc(columnData, nameSort);
@@ -619,9 +678,10 @@ function applyColumnSorting() {
             } else {
               sortDateStringAsc(columnData, nameSort);
             }
-          } else {
-            continue;
           }
+          //  else {
+          //   continue;
+          // }
         }
       }
     }
@@ -648,6 +708,14 @@ function getSumPriceInColumn(key: TypeProjectStatus): number {
   return sumPrice;
 }
 
+// проверка
+function canScrollRight(element: HTMLElement, scrollWidth: number): boolean {
+  const { scrollLeft, clientWidth } = element;
+  return scrollLeft + clientWidth < scrollWidth;
+}
+
+// -------------------------------------------------------------------------
+
 // watcher
 
 watch(
@@ -670,16 +738,35 @@ watch(
   }
 );
 
+
+watch(()=> [asidePanelVisible.value, addFormStore.isOpen], ([newValueAsidePanelVisible, newValueFormVisible])=> {
+  if(newValueAsidePanelVisible || newValueFormVisible) {
+    document.body.style.overflowY = 'hidden';
+    // document.body.style.marginRight = '15px';
+  } else {
+    document.body.style.overflowY = 'initial';
+    // document.body.style.marginRight = '0';
+  }
+  
+})
+
+// -------------------------------------------------------------------------
+
+// хуки
+
 onBeforeMount(() => {
   const localStoredColors = localStorage.getItem(
     `${authStore.user.$id}-columnColors`
   );
+
   columnColors.value = localStoredColors
     ? JSON.parse(localStoredColors)
     : columnColors.value;
 });
 
 onMounted(async () => {
+  baseScrollWidthPageProducts = refPageProjects.value.scrollWidth;
+
   await projectsStore.getProjectsByUser();
   getProjects(projectsStore.projects);
 
@@ -689,16 +776,16 @@ onMounted(async () => {
     }
   }
 
-  refKanban.value.addEventListener("touchstart", handleTouchStartCard, {
+  refKanban.value.addEventListener("touchstart", handleTouchStart, {
     passive: false,
   });
-  refKanban.value.addEventListener("touchmove", handleTouchMoveCard, {
+  refKanban.value.addEventListener("touchmove", handleTouchMove, {
     passive: false,
   });
-  refKanban.value.addEventListener("mousedown", handleTouchStartCard, {
+  refKanban.value.addEventListener("mousedown", handleTouchStart, {
     passive: false,
   });
-  refKanban.value.addEventListener("mousemove", handleTouchMoveCard, {
+  refKanban.value.addEventListener("mousemove", handleTouchMove, {
     passive: false,
   });
 
@@ -708,65 +795,118 @@ onMounted(async () => {
 
 onUnmounted(async () => {
   if (refKanban.value) {
-    refKanban.value.removeEventListener("touchstart", handleTouchStartCard);
-    refKanban.value.removeEventListener("touchmove", handleTouchMoveCard);
-    refKanban.value.removeEventListener("mousedown", handleTouchStartCard);
-    refKanban.value.removeEventListener("mousemove", handleTouchMoveCard);
+    refKanban.value.removeEventListener("touchstart", handleTouchStart);
+    refKanban.value.removeEventListener("touchmove", handleTouchMove);
+    refKanban.value.removeEventListener("mousedown", handleTouchStart);
+    refKanban.value.removeEventListener("mousemove", handleTouchMove);
 
     window.removeEventListener("touchend", handleTouchEnd);
     window.removeEventListener("mouseup", handleTouchEnd);
   }
-});
 
+  if (timerId) {
+    clearInterval(timerId);
+  }
+
+});
 </script>
 
 <template>
-  <div class="page-project">
-   
-    <div @click="handleClickWrapperFormAdd" class="page-project__wrapper-form-add" :class="{
-      'page-project__wrapper-form-add--visible': addFormStore.isOpen,
-    }">
+  <div ref="refPageProjects" class="page-project">
+    <div
+      @click="handleClickWrapperFormAdd"
+      class="page-project__wrapper-form-add"
+      :class="{
+        'page-project__wrapper-form-add--visible': addFormStore.isOpen,
+      }"
+    >
       <div ref="refFormAdd" class="page-project__form-add project-form">
         <div class="project-form__status">
           {{ STATUS_TRANSLATIONS[statusNewProject] }}
           <span v-if="loadStore.isLoading" class="project-form__load"></span>
         </div>
-        <button class="project-form__close" @click="addFormStore.setOpen(false)">
+        <button
+          class="project-form__close"
+          @click="addFormStore.setOpen(false)"
+        >
           <img src="/public/images/icon-close.png" alt="закрыть форму" />
         </button>
-        <div v-show="flagProjectCreated" style="color: wheat">
-          проект добавлен
-        </div>
-        <FormsCreateProject :status="statusNewProject" @change-status="handleChangeStatus"
-          @create-project="handleSubmitCreateCard" />
+
+        <FormsCreateProject
+          :status="statusNewProject"
+          @change-status="handleChangeStatus"
+          @create-project="handleSubmitCreateCard"
+        />
       </div>
     </div>
 
-    <div @click="handleClickKanban" ref="refKanban" class="kanban">
-      <div v-for="(column, key, i) in kanban" :key="key" class="kanban__wrapper-column" :data-status="key">
-        <div :style="{
-          background: columnColors[key],
-          backgroundRepeat: 'no-repeat',
-        }" class="kanban-column" :class="{ 'kanban-column--hidden': hiddenColumns[i] }">
-          <div :aria-label="STATUS_TRANSLATIONS[key]" class="kanban-column__title">
+    <div
+      @click="handleClickKanban"
+      ref="refKanban"
+      class="page-project__kanban kanban"
+    >
+      <div
+        ref="refWrapperColumn"
+        v-for="(column, key, i) in kanban"
+        :key="key"
+        class="kanban__wrapper-column"
+        :data-status="key"
+      >
+        <div
+          :style="{
+            background: columnColors[key],
+            backgroundRepeat: 'no-repeat',
+          }"
+          class="kanban-column"
+          :class="{ 'kanban-column--hidden': hiddenColumns[i] }"
+        >
+          <div
+            :aria-label="STATUS_TRANSLATIONS[key]"
+            class="kanban-column__title"
+          >
             {{ STATUS_TRANSLATIONS[key] }}
           </div>
-          <button aria-hidden="true" @click="handleHiddenColumn(i)" class="kanban-column__toggle-visible">
-            <img src="/images/icon-toggle-column-white.png" alt="кнопка свернуть-развернуть колонку" />
+          <button
+            aria-hidden="true"
+            @click="handleHiddenColumn(i)"
+            class="kanban-column__toggle-visible"
+          >
+            <img
+              src="/images/icon-toggle-column-white.png"
+              alt="кнопка свернуть-развернуть колонку"
+            />
           </button>
-          <button @click="handleClickColumnDots(i)" class="kanban-column__button-open-menu">
+          <button
+            @click="handleClickColumnDots(i)"
+            class="kanban-column__button-open-menu"
+          >
             <img src="/images/icon-1.png" alt="открыть меню колонки" />
           </button>
-          <button @click="handleAddProject(key)" class="kanban-column__add-project">
-            <span><img src="/public/images/icon-2.png" alt="добавить карточку" /></span><span>добавить шабашку</span>
+          <button
+            @click="handleAddProject(key)"
+            class="kanban-column__add-project"
+          >
+            <span
+              ><img
+                src="/public/images/icon-2.png"
+                alt="добавить карточку" /></span
+            ><span>добавить шабашку</span>
           </button>
 
           <Transition name="fade">
-            <div v-show="indexPanelMenu === i" ref="refMenuColumn" class="kanban-column__menu column-menu" :class="{
-              'kanban-column__menu--open': indexPanelMenu === i,
-              'kanban-column__menu--test': i === 0,
-            }">
-              <button @click.stop="indexPanelMenu = -1" class="kanban-column__menu-close">
+            <div
+              v-show="indexPanelMenu === i"
+              ref="refMenuColumn"
+              class="kanban-column__menu column-menu"
+              :class="{
+                'kanban-column__menu--open': indexPanelMenu === i,
+                'kanban-column__menu--test': i === 0,
+              }"
+            >
+              <button
+                @click.stop="indexPanelMenu = -1"
+                class="kanban-column__menu-close"
+              >
                 <img src="/images/icon-close.png" alt="закрыть меню" />
               </button>
               <div class="column-menu__title">
@@ -777,60 +917,119 @@ onUnmounted(async () => {
                 <div class="total-cost">{{ getSumPriceInColumn(key) }} руб</div>
               </div>
               <div class="column-menu__title">Сортировать:</div>
-              <PanelSortByPrice @sort-select="(sortValue: string) => handleEmitSort(sortValue, key)" />
-              <div class="column-menu__title">Выберите цвет колонки</div>
-              <PanelChangeColor @click-color="(color: string) => handleChangeColorColumn(key, color)"
-                :colors="colors_column" />
-              <div class="column-menu__title">
-                Выберите градиент для колонки
-              </div>
-              <PanelChangeColor @click-color="(color: string) => handleChangeColorColumn(key, color)"
-                :colors="gradient_column" />
-                <div class="column-menu__title">Сбросить цвет</div>
-                <PanelChangeColor @click-color="(color: string) => handleChangeColorColumn(key, color)"
-                :colors="color_transparent"><img class="reset-color-img" src="/images/icon-close.png" alt="сбросить цвет"></PanelChangeColor>
+              <PanelSortByPrice
+                @sort-select="(sortValue: string) => handleEmitSort(sortValue, key)"
+              />
+              <div class="column-menu__title">цвет колонки</div>
+              <PanelChangeColor
+                @click-color="(color: string) => handleChangeColorColumn(key, color)"
+                :colors="colors_column"
+              />
+              <div class="column-menu__title">градиент колонки</div>
+              <PanelChangeColor
+                @click-color="(color: string) => handleChangeColorColumn(key, color)"
+                :colors="gradient_column"
+              />
+              <div class="column-menu__title">Сбросить цвет</div>
+              <PanelChangeColor
+                @click-color="(color: string) => handleChangeColorColumn(key, color)"
+                :colors="color_transparent"
+                ><img
+                  class="reset-color-img"
+                  src="/images/icon-close.png"
+                  alt="сбросить цвет"
+              /></PanelChangeColor>
             </div>
           </Transition>
 
           <div class="kanban-column__container-cards">
-            <div :style="{ background: project.color }" :data-project-status="key" :data-project-id="project.$id"
-              v-for="(project, i) in column" class="kanban__card" :key="project.$id">
-              <CardsKanbanCard :color="project.color" :id="project.$id" :status="project.status"
-                :client="project.client" :name="project.name" :price="project.price" :link="project.link"
-                :deadline="project.deadline" :createdAt="project.$createdAt" :description="project.description"
-                @click-card="handleClickCard(project)" @delete-card="handleDeleteCard(project)" />
+            <div
+              :style="{ background: project.color }"
+              :data-project-status="key"
+              :data-project-id="project.$id"
+              v-for="(project, i) in column"
+              class="kanban__card"
+              :key="project.$id"
+            >
+              <CardsKanbanCard
+                :color="project.color"
+                :id="project.$id"
+                :status="project.status"
+                :client="project.client"
+                :name="project.name"
+                :link="project.link"
+                :price="project.price"
+                :deadline="project.deadline"
+                :createdAt="project.$createdAt"
+                :description="project.description"
+                @click-card="handleClickCard(project)"
+                @delete-card="handleDeleteCard(project)"
+              />
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div @click="handleClickInAsidePanel" class="page-project__aside-panel"
-      :class="{ 'page-project__aside-panel--visible': asidePanelVisible }">
+    <div
+      @click="handleClickInAsidePanel"
+      class="page-project__aside-panel"
+      :class="{ 'page-project__aside-panel--visible': asidePanelVisible }"
+    >
       <div class="page-project__aside-panel-inner">
-        <button class="page-project__aside-panel-close" @click="handleHiddenAsidePanel">
-          <img src="/public/images/icon-close.png" alt="закрыть боковую панель" />
+        <button
+          class="page-project__aside-panel-close"
+          @click="handleHiddenAsidePanel"
+        >
+          <img
+            src="/public/images/icon-close.png"
+            alt="закрыть боковую панель"
+          />
         </button>
-        <PanelAsideCardInfo  v-if="asidePanelData?.$id"  :key="asidePanelData?.$id" ref="refPanelAside" @update-card="handleUpdateCard"
-          :color="asidePanelData?.color || 'black'" :id="asidePanelData?.$id" :client="asidePanelData?.client"
-          :client_email="asidePanelData?.client_email" :client_phone="asidePanelData?.client_phone"
-          :name="asidePanelData?.name" :price="asidePanelData?.price" :description="asidePanelData?.description || ''"
-          :comments="asidePanelData?.comments" :link="asidePanelData?.link" :createdAt="asidePanelData?.$createdAt"
-          :deadline="asidePanelData?.deadline" @add-comment="handleAddComment" @delete-comment="handleDeleteComment">
+        <PanelAsideCardInfo
+          v-if="asidePanelData?.$id"
+          :key="asidePanelData?.$id"
+          ref="refPanelAside"
+          @update-card="handleUpdateCard"
+          :color="asidePanelData?.color || 'black'"
+          :id="asidePanelData?.$id"
+          :client="asidePanelData?.client"
+          :client_email="asidePanelData?.client_email"
+          :client_phone="asidePanelData?.client_phone"
+          :name="asidePanelData?.name"
+          :price="asidePanelData?.price"
+          :description="asidePanelData?.description || ''"
+          :comments="asidePanelData?.comments"
+          :link="asidePanelData?.link"
+          :createdAt="asidePanelData?.$createdAt"
+          :deadline="asidePanelData?.deadline"
+          @add-comment="handleAddComment"
+          @delete-comment="handleDeleteComment"
+        >
           <template #card>
-            <CardsKanbanCard v-if="asidePanelData?.$id" :color="asidePanelData?.color" :id="asidePanelData?.$id"
-              :status="asidePanelData?.status || ProjectStatus.NEW" :client="asidePanelData?.client"
-              :name="asidePanelData?.name" :price="asidePanelData?.price || 0"
-              :description="asidePanelData?.description" :link="asidePanelData?.link"
-              :deadline="asidePanelData?.deadline" :createdAt="asidePanelData?.$createdAt || '-'"
-              @delete-card="asidePanelData && handleDeleteCard(asidePanelData)" />
+            <CardsKanbanCard
+              v-if="asidePanelData?.$id"
+              :color="asidePanelData?.color"
+              :id="asidePanelData?.$id"
+              :status="asidePanelData?.status || ProjectStatus.NEW"
+              :client="asidePanelData?.client"
+              :name="asidePanelData?.name"
+              :price="asidePanelData?.price || 0"
+              :description="asidePanelData?.description"
+              :link="asidePanelData?.link"
+              :deadline="asidePanelData?.deadline"
+              :createdAt="asidePanelData?.$createdAt || '-'"
+              @delete-card="asidePanelData && handleDeleteCard(asidePanelData)"
+            />
           </template>
 
           <template #color>
             <div style="margin-bottom: 10px">изменить цвет карточки</div>
 
-            <PanelChangeColor @click-color="(color: string) => handleChangeColorCard(asidePanelData?.$id || '', color)"
-              :colors="colors_card" />
+            <PanelChangeColor
+              @click-color="(color: string) => handleChangeColorCard(asidePanelData?.$id || '', color)"
+              :colors="colors_card"
+            />
           </template>
         </PanelAsideCardInfo>
       </div>
@@ -861,25 +1060,42 @@ onUnmounted(async () => {
 }
 
 .page-project {
- 
   position: relative;
   height: 100%;
-  outline: solid brown;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-top: 50px;
+  padding-bottom: 50px;
+  padding-right: 20px;
+  padding-left: 20px;
 
+  scroll-snap-type: x mandatory;
+
+  &__kanban {
+    margin-left: auto;
+    margin-right: auto;
+  }
 
   &__wrapper-form-add {
     position: fixed;
-    inset: 0;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
     z-index: 1000;
+  
     opacity: 0;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(5px);
     pointer-events: none;
-    animation: hiddenOpacity var(--timing-animation-min) forwards;
+    animation: visibleToHidden var(--timing-animation-min) forwards;
+
 
     &--visible {
+      overflow-y: auto;
       opacity: 1;
       pointer-events: initial;
-      animation: visibleOpacity var(--timing-animation-min) forwards;
+      display: block;
+      animation: hiddenToVisible var(--timing-animation-min) forwards;
 
       .page-project__form-add {
         opacity: 1;
@@ -890,12 +1106,17 @@ onUnmounted(async () => {
 
   &__form-add {
     position: absolute;
-    top: 50%;
+    top: 100px;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
     opacity: 0;
     filter: blur(2000px);
     transition: filter 0.5s;
+    @media (max-width: 550px) {
+      transform: none;
+      left: 0;
+      background-color: red;
+    }
   }
 
   &__aside-panel {
@@ -905,12 +1126,13 @@ onUnmounted(async () => {
     right: 0;
     top: 0;
     bottom: 0;
-    width: 100vw;
+    left: 0;
     z-index: 1000;
     transform: translateX(100%);
     background-color: rgba(0, 0, 0, 0);
     transition: transform var(--timing-animation-min),
       backdrop-filter var(--timing-animation-min) var(--timing-animation-min);
+  
 
     &--visible {
       transform: translateX(0);
@@ -919,32 +1141,41 @@ onUnmounted(async () => {
   }
 
   &__aside-panel-inner {
+    position: relative;
     width: 50vw;
     max-width: 900px;
+    padding: 50px 20px 20px 20px;
     overflow-y: auto;
     transition: transform 1s;
     background-color: rgba(48, 48, 48, 0.7);
     color: rgb(224, 224, 224);
 
-
     @media (max-width: 1400px) {
       width: 100%;
+    }
+    @media (max-width: 380px) {
     }
   }
 
   &__aside-panel-close {
     position: absolute;
-    right: 40px;
-    top: 20px;
+    right: 0;
+    top: 0;
     z-index: 100;
     background-color: transparent;
     border: none;
     cursor: pointer;
+    padding: 15px;
+   
+      & img {
+        width: 16px;
+        height: 16px;
+      }
+  
   }
 }
 
 .project-form {
-  position: relative;
   max-width: 450px;
   width: 100%;
   border: solid rgb(255, 255, 255) 2px;
@@ -981,7 +1212,6 @@ onUnmounted(async () => {
     text-align: center;
     font-weight: 700;
     background-color: rgb(0, 0, 0);
-    
   }
 
   &__load {
@@ -995,7 +1225,6 @@ onUnmounted(async () => {
   }
 
   &__close {
-  
     position: absolute;
     right: 0;
     top: 0;
@@ -1010,22 +1239,33 @@ onUnmounted(async () => {
 }
 
 .kanban {
-// background-color: black;
   display: grid;
   grid-template-columns: repeat(5, 300px);
-  align-items: start;
-  gap: 20px;
+  justify-content: center;
+  width: 1580px;
   height: 100%;
-  @media (max-width: 380px) {
-    grid-template-columns: 1fr;
+  gap: 20px;
+
+  @media (max-width: 1200px) {
+  }
+
+  @media (max-width: 550px) {
+     grid-template-columns: repeat(5, 270px);
+     width: 1430px;
   }
 
   &__wrapper-column {
-    background-color: rgba(0, 0, 0, 0.3);
     height: 100%;
+    background-color: rgba(0, 0, 0, 0.095);
     border-radius: var(--radius-md);
-    outline: solid red;
+    scroll-snap-align: start;
+  }
 
+  &__wrapper-column:last-child {
+    .column-menu {
+      left: -360px;
+      right: 0;
+    }
   }
 
   &__card {
@@ -1033,9 +1273,9 @@ onUnmounted(async () => {
     width: 250px;
     border-radius: var(--radius-md);
     margin-bottom: 10px;
-    animation: cardAdd .2s ease-in;
+    animation: cardAdd 0.2s ease-in;
+  
 
-    
     -webkit-user-select: none;
     /* Chrome/Safari */
     -moz-user-select: none;
@@ -1050,7 +1290,6 @@ onUnmounted(async () => {
       cursor: grabbing;
     }
   }
-
 }
 
 .kanban-column {
@@ -1059,7 +1298,7 @@ onUnmounted(async () => {
   flex-direction: column;
   // align-items: center;
   // height: min-content;
-  
+
   max-height: 100%;
 
   padding-top: 20px;
@@ -1067,24 +1306,29 @@ onUnmounted(async () => {
 
   border-radius: var(--radius-md);
 
-  background-color: rgba(255, 255, 255, 0.199);
-  box-shadow: 0 0 20px 5px black;
+  box-shadow: 0 0 20px 1px black;
   transition: max-height var(--timing-animation-min) ease-in;
+
+  @media (max-width: 550px) {
+  
+  
+  }
 
   &:not(.kanban-column--hidden) {
     .kanban-column__container-cards {
-      animation:overflow 0s .2s forwards ease-in, scrollVisible 2s ease-in forwards;
+      animation: overflow 0s 0.2s forwards ease-in,
+        scrollVisible 2s ease-in forwards;
     }
   }
 
   &--hidden {
+
     overflow: hidden;
     max-height: 70px;
 
-
     .kanban-column__container-cards {
       scrollbar-color: rgba(250, 250, 250, 0) rgba(0, 0, 0, 0);
-      animation: overflow 0s .2s forwards ease-in;
+      animation: overflow 0s 0.2s forwards ease-in;
     }
 
     .kanban-column__button-open-menu {
@@ -1108,10 +1352,15 @@ onUnmounted(async () => {
     padding-top: 20px;
     padding-left: 25px;
     padding-right: 25px;
-    background-color: blue;
     scrollbar-width: thin;
     scrollbar-color: rgb(250, 250, 250) black;
     // animation: overflow 0s .2s forwards ease-in;
+
+  @media (max-width: 550px) {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
   }
 
   &__title {
@@ -1123,7 +1372,6 @@ onUnmounted(async () => {
     margin-left: 10px;
     margin-right: 10px;
 
-    
     background-color: black;
 
     text-align: center;
@@ -1160,6 +1408,7 @@ onUnmounted(async () => {
     transition: opacity 1s linear;
 
     cursor: pointer;
+
     & img {
       width: 50px;
     }
@@ -1174,12 +1423,14 @@ onUnmounted(async () => {
     z-index: 50;
     border-radius: var(--radius-md);
     border: solid white 2px;
-    background-color: rgb(0, 0, 0);
-    transition: transform var(--timing-animation-min) linear;
+    background-color: rgba(0, 0, 0, 0.9);
+    transition: transform var(--timing-animation-min) ease-out;
 
-    &--open {}
+    &--open {
+    }
 
-    &--test {}
+    &--test {
+    }
   }
 
   &__menu-close {
@@ -1226,22 +1477,24 @@ onUnmounted(async () => {
 .selected-product {
   position: absolute;
   z-index: 1000;
+  filter: blur(1px);
 
   &::before {
     content: "";
     position: absolute;
     z-index: -1;
-    top: -5px;
-    left: -5px;
-    right: -5px;
-    bottom: -5px;
-    background-color: inherit;
+    top: -10px;
+    left: -15px;
+    right: 0px;
+    bottom: 0px;
+    background: inherit;
     border-radius: var(--radius-lg);
     filter: blur(5px);
   }
 }
 
-.selected-menu {}
+.selected-menu {
+}
 
 .fade-enter-active,
 .fade-leave-active {
@@ -1255,7 +1508,6 @@ onUnmounted(async () => {
 
 .highlight {
   background-color: rgba(0, 0, 0, 0.5);
-
 }
 
 .reset-color-img {
@@ -1266,6 +1518,7 @@ onUnmounted(async () => {
   width: 10px;
   height: 10px;
 }
+
 .total-cost {
   padding-top: 8px;
   padding-bottom: 2px;
@@ -1273,8 +1526,7 @@ onUnmounted(async () => {
   border-bottom: solid white 1px;
 }
 
-
-@keyframes visibleOpacity {
+@keyframes hiddenToVisible {
   0% {
     opacity: 0;
     visibility: hidden;
@@ -1291,7 +1543,7 @@ onUnmounted(async () => {
   }
 }
 
-@keyframes hiddenOpacity {
+@keyframes visibleToHidden {
   0% {
     opacity: 1;
     visibility: visible;
@@ -1310,25 +1562,25 @@ onUnmounted(async () => {
 
 @keyframes cardAdd {
   0% {
-    position: fixed;
+    position: absolute;
     z-index: 1000;
     transform: scale(2);
   }
 
   25% {
-    position: fixed;
+    position: absolute;
     z-index: 1000;
     transform: scale(1.75);
   }
 
   50% {
-    position: fixed;
+    position: absolute;
     z-index: 1000;
     transform: scale(1.5);
   }
 
   75% {
-    position: fixed;
+    position: absolute;
     z-index: 1000;
     transform: scale(1.25);
   }
@@ -1370,17 +1622,13 @@ onUnmounted(async () => {
   }
 }
 
-
-   
 @keyframes scrollVisible {
   0% {
     scrollbar-color: rgba(250, 250, 250, 0) rgba(0, 0, 0, 0);
-
   }
 
   100% {
     scrollbar-color: rgba(250, 250, 250, 1) rgba(0, 0, 0, 1);
-
   }
 }
 </style>

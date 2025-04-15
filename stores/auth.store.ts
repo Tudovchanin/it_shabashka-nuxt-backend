@@ -57,17 +57,20 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
 
-      // if (!prefs['avatarId']) {
-      //   await getAvatar(defaultAvatarId);
+      if (!prefs['avatarId']) {
+        await getAvatar(defaultAvatarId);
 
-      // } else {
-      //   await getAvatar(prefs['avatarId']);
+      } else {
+        await getAvatar(prefs['avatarId']);
 
-      // }
+      }
 
     } catch (e: unknown) {
 
       user.value = defaultValue;
+    } finally {
+      console.log(user.value);
+      
     }
   }
 

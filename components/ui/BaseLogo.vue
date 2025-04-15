@@ -3,12 +3,12 @@ type Size = {
   size?: 'small'
 }
 
-const  props = defineProps<Size>()
+const props = defineProps<Size>()
 </script>
 <template>
 
-  <NuxtLink to="/" class="logo" :class="{'logo--small': props.size}">
-    <img src="/images/logo.png" alt="Логотип IT_Shabashka" />
+  <NuxtLink to="/" class="logo" :class="{ 'logo--small': props.size }">
+    <img class="logo__img" src="/images/logo.png" alt="Логотип IT_Shabashka" />
     IT_Shabashka
   </NuxtLink>
 </template>
@@ -26,16 +26,29 @@ const  props = defineProps<Size>()
   font-weight: 700;
   background-color: var(--main-color);
   color: var(--color-light-50);
-  max-width: 200px;
-  &--small {
-      border: solid white 2px;
-      font-size: 16px;
-  }
-
-
-  & img {
+  width: max-content;
+  &__img {
     width: 25px;
     height: 20px;
   }
+
+  &--small {
+    height: 40px;
+    gap: 8px;
+    padding: 0 8px;
+    border: solid white 2px;
+    font-size: 16px;
+
+    .logo__img {
+     width: 20px;
+     height: 16px;
+    }
+
+    @media (max-width:550px){
+      height: 32px;
+      font-size: 14px;
+    }
+  }
+
 }
 </style>

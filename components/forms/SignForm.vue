@@ -3,7 +3,7 @@ import type { BaseFormData, FormErrorData } from "./forms.types";
 
 
 type HomeForm = {
-  errorMessages: FormErrorData | null;
+  error_messages: FormErrorData | null;
   variantForm: 'sign-in' | 'sign-up'
 }
 
@@ -41,14 +41,14 @@ const emitEventSignUp = () => {
 <template>
   <form v-if="props.variantForm === 'sign-in'" class="sign">
     <div class="sign__field">
-      <div class="sign__error" v-show="props.errorMessages && props.errorMessages?.errorEmail">
-        {{ props.errorMessages?.errorEmail }}
+      <div class="sign__error" v-show="props.error_messages && props.error_messages?.error_email">
+        {{ props.error_messages?.error_email }}
       </div>
       <input class="sign__input" placeholder="email" type="email" v-model="emailRef" autocomplete="on" />
     </div>
     <div class="sign__field">
-      <div class="sign__error" v-show="props.errorMessages && props.errorMessages?.errorPassword">
-        {{ props.errorMessages?.errorPassword }}
+      <div class="sign__error" v-show="props.error_messages && props.error_messages?.error_password">
+        {{ props.error_messages?.error_password }}
       </div>
       <input class="sign__input" placeholder="password" type="password" v-model="passwordRef" autocomplete="on" />
     </div>
@@ -60,20 +60,20 @@ const emitEventSignUp = () => {
   </form>
   <form v-else-if="props.variantForm === 'sign-up'" class="sign">
     <div class="sign__field">
-      <div class="sign__error" v-show="props.errorMessages && props.errorMessages?.errorEmail">
-        {{ props.errorMessages?.errorEmail }}
+      <div class="sign__error" v-show="props.error_messages && props.error_messages?.error_email">
+        {{ props.error_messages?.error_email }}
       </div>
       <input class="sign__input" placeholder="email" type="email" v-model="emailRef" autocomplete="on" />
     </div>
     <div class="sign__field">
-      <div class="sign__error" v-show="props.errorMessages && props.errorMessages?.errorPassword">
-        {{ props.errorMessages?.errorPassword }}
+      <div class="sign__error" v-show="props.error_messages && props.error_messages?.error_password">
+        {{ props.error_messages?.error_password }}
       </div>
       <input class="sign__input" placeholder="password" type="password" v-model="passwordRef" autocomplete="on" />
     </div>
     <div class="sign__field">
-      <div class="sign__error" v-show="props.errorMessages && props.errorMessages?.errorName">
-        {{ props.errorMessages && props.errorMessages?.errorName }}
+      <div class="sign__error" v-show="props.error_messages && props.error_messages?.error_name">
+        {{ props.error_messages && props.error_messages?.error_name }}
       </div>
       <input class="sign__input" placeholder="name" type="text" v-model="nameRef" autocomplete="on" />
 
