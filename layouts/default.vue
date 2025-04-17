@@ -98,7 +98,7 @@ const handleChangeRoom = (room: Room) => {
     // для анимации смены комнаты, добавляем класс с анимацией , что бы она не применялась при инициализации / указываем столько же сколько длится анимация  
     timerId = window.setTimeout(() => {
       flagAnimateImageRoom.value = false;
-    }, 2000);
+    }, 1000);
   }
 };
 
@@ -244,55 +244,58 @@ onBeforeUnmount(() => {
 
 <style lang="scss" scoped>
 
-@keyframes changeRoom {
+@keyframes changeRoom-v1 {
   0% {
     
-    // filter: blur(250px);
-    // clip-path: polygon(0 0, 100% 0, 100% 18%, 0 18%);
-    clip-path: polygon(0 0, 20% 0, 20% 100%, 0% 100%);
+    filter: blur(250px);
+    clip-path: polygon(0 0, 100% 0, 100% 18%, 0 18%);
 
   }
 
   25% {
-    // filter: blur(180px);
-    // clip-path: polygon(0 0, 100% 0, 100% 52%, 0 18%);
-    clip-path: polygon(40% 0, 20% 0, 20% 100%, 40% 100%);
+    filter: blur(180px);
+    clip-path: polygon(0 0, 100% 0, 100% 52%, 0 18%);
   }
 
   50% {
-    // filter: blur(120px);
-    // clip-path: polygon(0 0, 100% 0, 100% 52%, 0 50%);
+    filter: blur(120px);
+    clip-path: polygon(0 0, 100% 0, 100% 52%, 0 50%);
 
-    clip-path: polygon(40% 0, 60% 0, 60% 100%, 40% 100%);
 
   }
 
   75% {
-    // filter: blur(60px);
-    // clip-path: polygon(0 0, 100% 0, 100% 100%, 0 50%);
-    clip-path: polygon(80% 0, 60% 0, 60% 100%, 80% 100%);
-
-
+    filter: blur(60px);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 50%);
   }
 
   100% {
-    // filter: blur(0px);
-    // clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
-    clip-path: polygon(80% 0, 100% 0, 100% 100%, 80% 100%);
-
-
+    filter: blur(0px);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
   }
 }
 
-// @keyframes changeRoom {
-//   0% { clip-path: polygon(0 0, 20% 0, 20% 100%, 0% 100%); }
-//   20% { clip-path: polygon(40% 0, 20% 0, 20% 100%, 40% 100%); }
-//   40% { clip-path: polygon(40% 0, 60% 0, 60% 100%, 40% 100%); }
-//   60% { clip-path: polygon(80% 0, 60% 0, 60% 100%, 80% 100%); }
-//   80% { clip-path: polygon(80% 0, 100% 0, 60% 100%, 100% 100%); }
-//   100% { clip-path: polygon(80% 0, 100% 0, 60% 100%, 100% 100%); } /* Фиксация */
-// }
+// clip-path: polygon(
+//   0 0,      /* левый верхний угол */
+//   100% 0,   /* правый верхний */
+//   100% 100%,/* правый нижний */
+//   0 100%    /* левый нижний */
+// );
 
+@keyframes changeRoom-v2 {
+  0%   { clip-path: polygon( 0  0, 20%  0, 20% 100%, 0%   100%); }
+  25%  { clip-path: polygon(40% 0, 20%  0, 20% 100%, 40%  100%); }
+  50%  { clip-path: polygon(40% 0, 60%  0, 60% 100%, 40%  100%); }
+  75%  { clip-path: polygon(80% 0, 60%  0, 60% 100%, 80%  100%); }
+  100%  { clip-path: polygon(80% 0, 100% 0, 100% 100%, 80% 100%); }
+}
+
+
+@keyframes changeRoom-v3 {
+
+  0% { clip-path: polygon(80% 0, 100% 0, 100% 100%, 80% 100%); }
+  100%  { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+}
 
 .page {
   position: relative;
@@ -337,11 +340,13 @@ onBeforeUnmount(() => {
   &::after {
     background-image: var(--prev-room-img);
     z-index: -2;
-    display: none;
+    @media (max-width: 1550px) {
+      background-image: var(--portrait-prev-room-img);
+    }
   }
-
+// класс удаляется через 1000мс в setup
   &--animate-img::before {
-    animation: changeRoom 2s steps(1);
+    animation: changeRoom-v2 .5s steps(1), changeRoom-v3 .5s .5s linear;
   }
 
 
