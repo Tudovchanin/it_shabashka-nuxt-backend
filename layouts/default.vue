@@ -48,8 +48,18 @@ const priceDoneProjects = computed(() => {
     .reduce((sum, project) => sum + project.price, 0);
 });
 
-const roomUserImg = ref("loft-2.jpg");
+const prevRoomUserImg =  ref("high-tech.jpeg");
+const roomUserImg = ref("high-tech.jpeg");
 const flagAnimateImageRoom = ref(false);
+
+const roomImgVariables = computed(() => {
+  return {
+    '--room-img': `url(/images/${roomUserImg.value})`,
+    '--portrait-room-img': `url(/images/portrait-${roomUserImg.value})`,
+    '--prev-room-img': `url(/images/${prevRoomUserImg.value})`,
+    '--portrait-prev-room-img': `url(/images/portrait-${prevRoomUserImg.value})`
+  };
+});
 
 function setLocalStorageUserRoomImgName(
   userId: string,
@@ -68,10 +78,12 @@ function setLocalStorageUserRoomImgName(
 
 
 let timerId: number | null = null
+
 const handleChangeRoom = (room: Room) => {
   if (roomUserImg.value === room.img) return;
 
   if (!flagAnimateImageRoom.value) {
+    prevRoomUserImg.value = roomUserImg.value;
     roomUserImg.value = room.img;
     flagAnimateImageRoom.value = true;
 
@@ -83,9 +95,10 @@ const handleChangeRoom = (room: Room) => {
       roomUserImg.value
     );
 
+    // для анимации смены комнаты, добавляем класс с анимацией , что бы она не применялась при инициализации / указываем столько же сколько длится анимация  
     timerId = window.setTimeout(() => {
       flagAnimateImageRoom.value = false;
-    }, 700);
+    }, 2000);
   }
 };
 
@@ -122,9 +135,25 @@ watch(() => route.name, (newNamePage) => {
 
 const refDesc = ref();
 const refMain = ref();
-watch(() => eventStore.getDragover, ((isDragover) => {
-  console.log(isDragover, 'isDragover');
 
+const colorCardDragover = ref('');
+const dragoverEvent = ref(false);
+
+watch(() => eventStore.getDragover, ((isDragoverCount) => {
+  if(isDragoverCount === 0) {
+    
+    dragoverEvent.value = false;
+    return;
+  }
+  dragoverEvent.value = true;
+}));
+
+watch(() => eventStore.getCardIdDragOver, ((cardId) => {
+
+  const projectDragover =  projectsStore.projects.find(project=> project.$id === cardId);
+  if(projectDragover) {
+    colorCardDragover.value = projectDragover.color;
+  }
 }));
 
 
@@ -146,7 +175,7 @@ onBeforeUnmount(() => {
 });
 </script>
 <template>
-  <div ref="refPage" :style="{ '--room-img': `url(/images/${roomUserImg})` }" class="page"
+  <div ref="refPage" :style="roomImgVariables" class="page"
     :class="{ 'page--animate-img': flagAnimateImageRoom }">
     <header class="page__header">
       <div class="x-center width">
@@ -155,8 +184,8 @@ onBeforeUnmount(() => {
     </header>
 
     <main @click="handleClickMainSection" ref="refMain" class="page__main">
-      <button @click.stop="flagChangeRoom = !flagChangeRoom" :aria-label="buttonAriaLabel" class="page__button-room"
-        :class="{ 'page__button-room--reverse': flagChangeRoom }">
+      <button :style="{ '--dragover-color': colorCardDragover }" @click.stop="flagChangeRoom = !flagChangeRoom" :aria-label="buttonAriaLabel" class="page__button-room"
+        :class="{ 'page__button-room--reverse': flagChangeRoom, 'page__button-room--dragover':dragoverEvent }">
         <UiBaseLogoButton tag="div" :reverse="flagChangeRoom" />
       </button>
 
@@ -201,8 +230,7 @@ onBeforeUnmount(() => {
           </template>
 
           <template #footer>
-            <UiBaseButton style="width: 100px" @click="handleLogout" bg-color="red" text-color="black">Выйти
-            </UiBaseButton>
+            <UiBaseButton style="width: 100px; text-transform: uppercase;" @click="handleLogout" bg-color="red" text-color="black">Выйти</UiBaseButton>
           </template>
         </PanelSettingPage>
       </div>
@@ -215,18 +243,56 @@ onBeforeUnmount(() => {
 </template>
 
 <style lang="scss" scoped>
+
 @keyframes changeRoom {
   0% {
-    transform: rotate(-90deg) scale(3);
-    opacity: 0;
-    filter: blur(200px);
+    
+    // filter: blur(250px);
+    // clip-path: polygon(0 0, 100% 0, 100% 18%, 0 18%);
+    clip-path: polygon(0 0, 20% 0, 20% 100%, 0% 100%);
+
+  }
+
+  25% {
+    // filter: blur(180px);
+    // clip-path: polygon(0 0, 100% 0, 100% 52%, 0 18%);
+    clip-path: polygon(40% 0, 20% 0, 20% 100%, 40% 100%);
+  }
+
+  50% {
+    // filter: blur(120px);
+    // clip-path: polygon(0 0, 100% 0, 100% 52%, 0 50%);
+
+    clip-path: polygon(40% 0, 60% 0, 60% 100%, 40% 100%);
+
+  }
+
+  75% {
+    // filter: blur(60px);
+    // clip-path: polygon(0 0, 100% 0, 100% 100%, 0 50%);
+    clip-path: polygon(80% 0, 60% 0, 60% 100%, 80% 100%);
+
+
   }
 
   100% {
-    opacity: 1;
-    filter: blur(0px);
+    // filter: blur(0px);
+    // clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    clip-path: polygon(80% 0, 100% 0, 100% 100%, 80% 100%);
+
+
   }
 }
+
+// @keyframes changeRoom {
+//   0% { clip-path: polygon(0 0, 20% 0, 20% 100%, 0% 100%); }
+//   20% { clip-path: polygon(40% 0, 20% 0, 20% 100%, 40% 100%); }
+//   40% { clip-path: polygon(40% 0, 60% 0, 60% 100%, 40% 100%); }
+//   60% { clip-path: polygon(80% 0, 60% 0, 60% 100%, 80% 100%); }
+//   80% { clip-path: polygon(80% 0, 100% 0, 60% 100%, 100% 100%); }
+//   100% { clip-path: polygon(80% 0, 100% 0, 60% 100%, 100% 100%); } /* Фиксация */
+// }
+
 
 .page {
   position: relative;
@@ -237,34 +303,45 @@ onBeforeUnmount(() => {
   overflow: hidden;
 // что бы на touch устройствах не было  микроскролла
   @media (hover: none) and (pointer: coarse) {
-    // width: 100%;
+    width: 100%;
   }
 
   @media (max-width: 550px) {
     padding-top: 120px;
   }
 
-
-  &::before {
+   &::before, 
+   &::after {
     content: "";
     position: absolute;
     top: 0;
     left: 0;
-    z-index: -1;
     width: 100%;
     height: 100%;
-    background-image: var(--room-img);
-   
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
     @media (hover: none) and (pointer: coarse) {
       background-attachment: fixed;
     }
+   }
+  &::before {
+    background-image: var(--room-img);
+    z-index: -1;
+   
+    @media (max-width: 1550px) {
+      background-image: var(--portrait-room-img);
+    }
+  }
+
+  &::after {
+    background-image: var(--prev-room-img);
+    z-index: -2;
+    display: none;
   }
 
   &--animate-img::before {
-    animation: changeRoom 0.5s ease-in;
+    animation: changeRoom 2s steps(1);
   }
 
 
@@ -277,7 +354,7 @@ onBeforeUnmount(() => {
     padding-right: 20px;
     background-color: rgba(48, 48, 48, 0.98);
     @media (hover: none) and (pointer: coarse) {
-    // width: 100%;
+    width: 100%;
   }
     @media (max-width: 1400px) {
       padding-right: 0px;
@@ -291,7 +368,7 @@ onBeforeUnmount(() => {
 
   &__rooms {
     position: absolute;
-    top: 300px;
+    top: 400px;
     left: 50%;
     transform-origin: left top;
     transform: scaleY(1) translate(-50%, -50%);
@@ -302,11 +379,11 @@ onBeforeUnmount(() => {
     transition: visibility 0.7s, transform 0.5s, filter 0.5s, opacity 0.6s;
 
     @media (max-width: 550px) {
-      top: 260px;
+      top: 350px;
     }
 
     @media (max-width: 380px) {
-      top: 210px;
+      top: 300px;
     }
 
     &--hidden {
@@ -337,11 +414,29 @@ onBeforeUnmount(() => {
 
     @media (max-width: 550px) {}
 
-    &:active {}
-
     &--reverse {
       transform-origin: top right;
       transform: translateX(-75%) rotateY(-180deg);
+    }
+
+    &--dragover {
+      
+   
+      &::before {
+        content: '';
+        position: absolute;
+        width: 100px;
+        height: 100px;
+        left: 50%;
+        top: 50%;
+        z-index: -1;
+        transform: translate(-50%, -50%);
+
+        background: var(--dragover-color);
+        // background-color: blue;
+        animation: logoButton 5s infinite linear;
+
+      }
     }
 
   }
@@ -405,6 +500,10 @@ onBeforeUnmount(() => {
     transform: translateX(100%);
     transition: transform 0.5s;
 
+    @media (max-width: 550px) {
+      width: 90%;
+    }
+
     &--move-left {
       transform: translateX(0);
     }
@@ -415,6 +514,33 @@ onBeforeUnmount(() => {
   &__footer {
     width: 100%;
     background-color: rgb(18, 18, 18);
+  }
+}
+
+@keyframes logoButton {
+
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+    filter: blur(25px);
+  }
+
+  25% {
+    filter: blur(50px);
+  }
+
+  50% {
+    filter: blur(100px);
+    // transform: translate(-250%, -50%)
+  }
+
+  75% {
+    filter: blur(50px);
+    // transform: translate(100%, -50%)
+
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+    filter: blur(25px);
   }
 }
 

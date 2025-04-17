@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { FormCardKanban } from "../forms/CreateProject.vue";
 import { formatDate } from "#imports";
+import { COLOR_TEXT_MAP } from "~/constants/color-mapping.constants";
+import type { ColorKeyTextMap } from "~/constants/color-mapping.constants";
 
 export type CardKanban = FormCardKanban & {
   createdAt: string;
@@ -31,25 +33,6 @@ const cancelClick = () => {
 }
 
 
-
-
-
-
-const COLOR_TEXT_MAP = {
-  'black': "white",
-  'maroon': "white",
-  'linear-gradient(90deg, #e2632c,#fb4955,#ff3286,#fc39be,#d35bf8)': "white",
-  'linear-gradient(90deg, #ee6ef5,#57b9ff)': "black",
-  'linear-gradient(90deg, #29482a,#4e8950,#9fb97f)': "white",
-  'white': "black",
-  'red': "black",
-  'green': "black",
-  'gold': "black",
-  'blue': "black",
-} as const;
-
-
-type ColorKeyTextMap = keyof typeof COLOR_TEXT_MAP;
 
 const getColorText = computed(() => {
   return COLOR_TEXT_MAP[props.color as ColorKeyTextMap] || "inherit";
@@ -106,6 +89,7 @@ const getColorText = computed(() => {
   padding: 15px;
   border-radius: var(--radius-md);
   outline: solid 3px currentColor;
+  box-shadow: 0 0 4px 3px grey;
 
 
 
@@ -153,6 +137,9 @@ const getColorText = computed(() => {
     display: flex;
     justify-content: space-between;
     font-size: 12px;
+    & span:last-child {
+      font-weight: 700;
+    }
   }
 
   &__delete {
@@ -186,9 +173,13 @@ const getColorText = computed(() => {
     border-radius: var(--radius-md);
     outline: solid 3px currentColor;
 
-    background-color: rgb(54, 54, 54);
+    // background-color: rgb(54, 54, 54);
+    background-color: #303131;
+   
     transition: opacity .5s;
-
+    @media (max-width: 290px) {
+      justify-content: flex-end;
+    }
 
     &--hidden {
       opacity: 0;
@@ -201,10 +192,19 @@ const getColorText = computed(() => {
     font-size: 12px;
     color: var(--color-light-50);
     letter-spacing: var(--letter-spacing);
+    @media (max-width: 290px) {
+      font-size: 1px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      opacity: 0;
+    }
   }
 
   &__ui-button {
-   
+    border-radius: var(--radius-sm);
+
+
   &:active {
     transform: scale(.99);
   } 

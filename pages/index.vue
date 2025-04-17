@@ -120,7 +120,8 @@ async function signUp(email: string, password: string, name: string) {
   }
 }
 
-onMounted(async () => {
+
+onBeforeMount (async()=> {
   await authStore.init();
   if (authStore.user.status) {
     visibleForm.value = false;
@@ -128,6 +129,16 @@ onMounted(async () => {
   } else {
     visibleForm.value = true;
   }
+})
+
+onMounted(async () => {
+  // await authStore.init();
+  // if (authStore.user.status) {
+  //   visibleForm.value = false;
+  //   await router.push("/projects");
+  // } else {
+  //   visibleForm.value = true;
+  // }
 });
 </script>
 <template>

@@ -1,6 +1,6 @@
 <script setup lang='ts'>
-
-
+import { COLOR_SHADOW_MAP } from '~/constants/color-mapping.constants';
+import type { ColorKeyShadowMap } from '~/constants/color-mapping.constants';
 type BaseButton = {
   bgColor: string
   textColor: string
@@ -8,25 +8,6 @@ type BaseButton = {
 
 const props = defineProps<BaseButton>();
 
-
-
-
-const COLOR_SHADOW_MAP = {
-  'black': "black",
-  'maroon': "maroon",
-  'linear-gradient(90deg, #e2632c,#fb4955,#ff3286,#fc39be,#d35bf8)': "white",
-  'linear-gradient(90deg, #ee6ef5,#57b9ff)': 'black',
-  'linear-gradient(90deg, #29482a,#4e8950,#9fb97f)': "green",
-
-  'white': "white",
-  'red': "red",
-  'green': "green",
-  'gold': "gold",
-  'blue': "blue",
-} as const;
-
-
-type ColorKeyShadowMap = keyof typeof COLOR_SHADOW_MAP;
 
 const getColorShadow = computed(() => {
   return COLOR_SHADOW_MAP[props.bgColor as ColorKeyShadowMap] || "inherit";

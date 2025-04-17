@@ -13,12 +13,14 @@ type ActiveRoom = {
 
 const rooms = ref<Room[]>([
   { name: "Loft", img: "loft.jpg" },
-  { name: "High tech", img: "high-tech.jpg" },
+  { name: "High tech", img: "high-tech.jpeg" },
   { name: "Scandinavian", img: "scandinavian.jpg" },
-  { name: "Modern", img: "modern.jpg" },
-  { name: "Eco", img: "eco.jpg" },
+  { name: "Modern", img: "modern.jpeg" },
+  { name: "Eco", img: "eco.jpeg" },
   { name: "Country", img: "country.jpg" },
-
+  { name: "Japan", img: "japan.jpeg" },
+  { name: "Classic", img: "classic.jpeg" },
+  { name: "Home", img: "sky.jpeg" },
 ]);
 
 const props = defineProps<ActiveRoom>()

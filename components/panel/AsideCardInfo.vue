@@ -3,6 +3,11 @@ import type { DataCommentAppWrite } from "#imports";
 import { formatDateToRussianLocale, getDaysUntilDeadline } from "#imports";
 import { inputMask } from "~/utils/mask-helpers";
 
+import type { ColorKeyTextMap } from "~/constants/color-mapping.constants";
+import { COLOR_TEXT_MAP } from "~/constants/color-mapping.constants";
+
+
+
 type AsideCardInfo = {
   color?: string;
   id?: string;
@@ -37,44 +42,22 @@ const flagHiddenPanelDeleteComment = ref(true);
 const flagHiddenFormUpdate = ref(true);
 const flagBlur = ref(false);
 
-const refDescriptionTextarea = ref();
 const refDescription = ref();
+
+const refNameProjectInput = ref();
+const refDescriptionTextarea = ref();
 const refInputPhone = ref();
-const refClientEmail = ref();
-const refLink = ref();
+const refClientEmailInput = ref();
+const refLinkInput = ref();
+const refClientNameInput = ref();
 
 const heightDescriptionTextarea = ref("");
 
 // цвет для текста кнопки, в зависимости от цвета карточки
+
+
 const getColorText = computed(() => {
-  switch (props.color) {
-    case "black":
-      return "white";
-
-    case "white":
-      return "black";
-
-    case "red":
-      return "black";
-
-    case "black":
-      return "white";
-
-    case "green":
-      return "black";
-
-    case "gold":
-      return "black";
-
-    case "blue":
-      return "black";
-
-    case "maroon":
-      return "white";
-
-    default:
-      return "inherit";
-  }
+  return COLOR_TEXT_MAP[props.color as ColorKeyTextMap] || "inherit";
 });
 
 const emit = defineEmits(["add-comment", "delete-comment", "update-card"]);
@@ -136,35 +119,53 @@ const emitUpdateCard = () => {
     modelDescription.value = modelDescription.value.replace(/\s+/g, " ").trim();
   }
 
-  if (modelClientEmail.value) {
-    refClientEmail.value.setCustomValidity("");
+  if (modelName.value.length === 0) {
+    refNameProjectInput.value.setCustomValidity("");
+    refNameProjectInput.value.setCustomValidity(
+      "Имя проекта не может быть пустым"
+    );
+    refNameProjectInput.value.reportValidity();
+    return;
+  }
+  if (modelLink.value.length > 254) {
+    refLinkInput.value.setCustomValidity("");
+    refLinkInput.value.setCustomValidity(
+      "Пожалуйста, введите ссылку максимум 254 символов"
+    );
+    refLinkInput.value.reportValidity();
+    return;
+  }
 
-    const isValid = refClientEmail.value.checkValidity();
+  if (modelClient.value.length === 0) {
+    console.log("kl;kl;kjjjjjjjjjjjj", modelClient.value);
+
+    refClientNameInput.value.setCustomValidity("");
+    refClientNameInput.value.setCustomValidity(
+      "Имя клиента не может быть пустым"
+    );
+    refClientNameInput.value.reportValidity();
+    return;
+  }
+  if (modelClientEmail.value) {
+    refClientEmailInput.value.setCustomValidity("");
+
+    const isValid = refClientEmailInput.value.checkValidity();
     if (!isValid) {
       console.log(modelClientEmail.value, "!isValid");
 
-      refClientEmail.value.reportValidity(); // Показывает браузерное сообщение
+      refClientEmailInput.value.reportValidity(); // Показывает браузерное сообщение
       return;
     }
 
     if (modelClientEmail.value.length > 254) {
-      refClientEmail.value.setCustomValidity(
+      refClientEmailInput.value.setCustomValidity(
         "Пожалуйста, введите корректный email (максимум 254 символов)"
       ); // кастомное сообщение
-      refClientEmail.value.reportValidity();
+      refClientEmailInput.value.reportValidity();
       return;
     }
 
-    refClientEmail.value.setCustomValidity("");
-  }
-
-  if (modelLink.value.length > 254) {
-    refLink.value.setCustomValidity("");
-    refLink.value.setCustomValidity(
-      "Пожалуйста, введите ссылку максимум 254 символов"
-    );
-    refLink.value.reportValidity();
-    return;
+    refClientEmailInput.value.setCustomValidity("");
   }
 
   emit("update-card", props.id, {
@@ -489,6 +490,7 @@ onBeforeUnmount(() => {
     <form v-show="!flagHiddenFormUpdate" class="info-project">
       <div class="aside-panel__wrapper-update-input">
         <input
+          ref="refNameProjectInput"
           maxlength="50"
           v-model="modelName"
           type="text"
@@ -521,7 +523,7 @@ onBeforeUnmount(() => {
       />
 
       <input
-        ref="refLink"
+        ref="refLinkInput"
         v-model="modelLink"
         type="url"
         placeholder="ссылка на макет"
@@ -534,16 +536,23 @@ onBeforeUnmount(() => {
         class="info-project__deadline aside-panel__update-input"
       />
 
-      <input
-        v-model="modelClient"
-        type="text"
-        class="info-project__client aside-panel__update-input"
-      />
+      <div class="aside-panel__wrapper-update-input">
+        <input
+          ref="refClientNameInput"
+          maxlength="50"
+          v-model="modelClient"
+          type="text"
+          class="info-project__client aside-panel__update-input"
+        />
+        <div class="aside-panel__update-input-length">
+          {{ 50 - modelClient.length }}
+        </div>
+      </div>
 
       <div class="info-project__contact">
         <div>Email клиента:</div>
         <input
-          ref="refClientEmail"
+          ref="refClientEmailInput"
           v-model="modelClientEmail"
           type="email"
           title="Пожалуйста, введите корректный email (максимум 320 символов)"
@@ -569,7 +578,14 @@ onBeforeUnmount(() => {
           @click="handleVisibleFormComment"
           class="aside-panel__label-left"
         >
-          <div class="aside-panel__label-text">Добавить комментарий</div>
+          <div class="aside-panel__label-text">
+            {{
+              flagHiddenFormAddComment
+                ? "Добавить комментарий"
+                : "Закрыть редактор"
+            }}
+          </div>
+
           <div
             class="aside-panel__label-button"
             :class="{
@@ -589,7 +605,11 @@ onBeforeUnmount(() => {
           @click="handleVisibleFormUpdateCard"
           class="aside-panel__label-right"
         >
-          <div class="aside-panel__label-text">Редактировать карточку</div>
+          <div class="aside-panel__label-text">{{
+              flagHiddenFormUpdate
+                ? "Редактировать карточку"
+                : "Закрыть редактор"
+            }}</div>
           <div
             class="aside-panel__label-button"
             :class="{
@@ -637,7 +657,9 @@ onBeforeUnmount(() => {
     <div class="aside-panel__main-footer">
       <div
         class="aside-panel__panel-delete"
-        :class="{ 'aside-panel__panel-delete--hidden': flagHiddenPanelDeleteComment }"
+        :class="{
+          'aside-panel__panel-delete--hidden': flagHiddenPanelDeleteComment,
+        }"
         :aria-hidden="flagHiddenPanelDeleteComment"
       >
         <div class="aside-panel__panel-delete-title">
@@ -645,7 +667,7 @@ onBeforeUnmount(() => {
         </div>
         <div class="aside-panel__panel-delete-button">
           <UiBaseButton
-          :aria-hidden="flagHiddenPanelDeleteComment"
+            :aria-hidden="flagHiddenPanelDeleteComment"
             aria-label="не удалять комментарий"
             @click.stop="handleCancelDeleteComment"
             text-color="black"
@@ -656,7 +678,7 @@ onBeforeUnmount(() => {
         </div>
         <div class="aside-panel__panel-delete-button">
           <UiBaseButton
-          :aria-hidden="flagHiddenPanelDeleteComment"
+            :aria-hidden="flagHiddenPanelDeleteComment"
             :aria-label="`удалить комментарий ${comment}`"
             @click="emitDeleteComment"
             text-color="white"
@@ -721,17 +743,24 @@ onBeforeUnmount(() => {
   &__name-project {
     font-weight: 700;
     font-size: 22px;
-
-    @media (max-width: 430px) {
-      font-size: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    
+    @media (max-width: 700px) {
+      font-size: 16px;
     }
+    @media (max-width: 500px) {
+      max-width: 400px;
+    }
+
   }
 
   &__description {
     font-size: 16px;
     overflow-wrap: break-word;
 
-    @media (max-width: 430px) {
+    @media (max-width: 700px) {
       font-size: 14px;
     }
   }
@@ -739,7 +768,7 @@ onBeforeUnmount(() => {
   &__price {
     font-size: 16px;
 
-    @media (max-width: 430px) {
+    @media (max-width: 700px) {
       font-size: 14px;
     }
 
@@ -755,9 +784,13 @@ onBeforeUnmount(() => {
     text-overflow: ellipsis;
     max-width: 400px;
 
-    @media (max-width: 430px) {
+    @media (max-width: 700px) {
       font-size: 14px;
     }
+    @media (max-width: 430px) {
+      max-width: 250px;
+    }
+
 
     & span:nth-child(2) {
       font-weight: 700;
@@ -769,7 +802,7 @@ onBeforeUnmount(() => {
     margin-bottom: 20px;
     font-size: 16px;
 
-    @media (max-width: 430px) {
+    @media (max-width: 700px) {
       font-size: 14px;
     }
 
@@ -780,13 +813,13 @@ onBeforeUnmount(() => {
 
   &__client {
     font-size: 20px;
-
-    @media (max-width: 430px) {
+    font-weight: 700;
+    @media (max-width: 700px) {
       font-size: 14px;
     }
 
-    & span:nth-child(2) {
-      font-weight: 700;
+    & span:nth-child(1) {
+      font-weight: 400;
     }
   }
 
@@ -794,7 +827,7 @@ onBeforeUnmount(() => {
     display: grid;
     gap: 5px;
 
-    @media (max-width: 430px) {
+    @media (max-width: 700px) {
       font-size: 14px;
     }
 
@@ -807,7 +840,7 @@ onBeforeUnmount(() => {
     height: 31px;
     font-size: 16px;
 
-    @media (max-width: 430px) {
+    @media (max-width: 700px) {
       font-size: 14px;
     }
   }
@@ -862,7 +895,11 @@ onBeforeUnmount(() => {
     color: var(--color-light-50);
     transition: filter 1s;
     background-color: transparent;
-
+    @media (max-width: 290px) {
+      flex-basis: 100%;
+      // transform: scale(.9) translateX(-5%);
+      // pointer-events: none;
+    }
     &--blur {
       filter: blur(10px);
     }
@@ -876,7 +913,7 @@ onBeforeUnmount(() => {
     justify-content: space-between;
     gap: 20px;
     width: 100%;
-    max-width: 240px;
+    max-width: 250px;
   }
 
   &__days-until-deadline {
@@ -969,32 +1006,50 @@ onBeforeUnmount(() => {
     user-select: none;
 
     @media (max-width: 600px) {
-      // flex-direction: column;
-      // align-items: flex-start;
-      // flex-direction: column-reverse;
       gap: 20px;
+    }
+    @media (max-width: 480px) {
+      justify-content: space-around;
     }
   }
 
   &__label-left,
   &__label-right {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     flex-direction: row-reverse;
+    justify-content: flex-end;
     gap: 10px;
+    min-width: 230px;
     background-color: transparent;
+    background-color: rgba(127, 255, 212, 0.288);
     border: none;
     font-size: inherit;
     color: inherit;
     cursor: pointer;
+    @media (max-width: 700px) {
+      min-width: 200px;
+    }
+
+    @media (max-width: 480px) {
+      min-width: initial;
+      gap: 0;
+    }
+  }
+  &__label-right {
   }
 
   &__label-text {
     text-align: left;
     font-size: 16px;
-    @media (max-width: 600px) {
+
+    @media (max-width: 700px) {
       font-size: 14px;
+    }
+
+    @media (max-width: 480px) {
+      font-size: 0px;
+      opacity: 0;
     }
   }
   &__label-button {
@@ -1095,6 +1150,9 @@ onBeforeUnmount(() => {
     line-height: 1.5;
     position: relative;
     padding-right: 30px;
+    @media (max-width: 700px) {
+      font-size: 14px;
+    }
   }
 
   &__comment-date {
