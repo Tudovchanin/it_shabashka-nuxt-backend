@@ -226,6 +226,7 @@ onMounted(async () => {
   &::before {
     content: "";
     position: fixed;
+    left: 0;
     top: 0;
     z-index: 1;
     width: 100%;
