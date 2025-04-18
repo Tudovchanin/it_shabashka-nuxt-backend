@@ -19,7 +19,7 @@ const deadLineFormatted = computed(() => props.deadline && formatDate(props.dead
 const emit = defineEmits(["delete-card", "click-card"]);
 const emitEventDeleteCard = () => {
   emit("delete-card");
-  hiddenPanelConfirm.value = true;
+  // hiddenPanelConfirm.value = true;
 };
 
 const emitEventClickCard = () => {
@@ -173,7 +173,6 @@ const getColorText = computed(() => {
     border-radius: var(--radius-md);
     outline: solid 3px currentColor;
 
-    // background-color: rgb(54, 54, 54);
     background-color: #303131;
    
     transition: opacity .5s;

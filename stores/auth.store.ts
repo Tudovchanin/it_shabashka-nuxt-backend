@@ -74,13 +74,10 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-
-
   const login = async (email: string, password: string) => {
     console.log(email, password, 'store');
     await account.createEmailPasswordSession(email, password);
   }
-
   const register = async (email: string, password: string, name: string) => {
     await account.create(ID.unique(), email, password, name);
     await login(email, password);
@@ -96,7 +93,6 @@ export const useAuthStore = defineStore('auth', () => {
     const avatar = storage.getFileView(STORAGE_ID, avatarId).href;
     user.value.avatarUrl = avatar;
   }
-
   const createAvatar = async (file: any) => {
 
     const prefs = await account.getPrefs();
@@ -123,7 +119,6 @@ export const useAuthStore = defineStore('auth', () => {
 
 
   };
-
   const deleteAvatar = async (avatarId: string) => {
 
     const response = await storage.deleteFile(

@@ -11,6 +11,7 @@ import {
   VALID_NAME,
   MIN_ONE_CHAR,
 } from "~/components/forms/form.constants";
+import { SectionsFooter } from "#components";
 
 definePageMeta({
   layout: false,
@@ -21,11 +22,13 @@ useHead({
 });
 
 const router = useRouter();
+
 const authStore = useAuthStore();
+const loadStore = useIsLoadingStore();
 
 const flagIsLogin = ref(true);
 const errorMessages = ref<null | FormErrorData>(null);
-const errorSignInSignUp = ref<null | string>(null);
+const error_SignIn_SignUp = ref<null | string>(null);
 
 const validateForm = new ValidateForm();
 const visibleForm = ref(false);
@@ -100,28 +103,34 @@ const handleSubmitSignUp = (e: BaseFormData) => {
 
 async function signIn(email: string, password: string) {
   try {
+    loadStore.set(true);
     await authStore.login(email, password);
     await authStore.init();
-    errorSignInSignUp.value = null;
+   error_SignIn_SignUp.value = null;
     await router.push("/projects");
   } catch (error) {
     console.log(error);
-    errorSignInSignUp.value =
+   error_SignIn_SignUp.value =
       "Неверные учетные данные. Проверьте адрес электронной почты и пароль";
+  } finally {
+    loadStore.set(false)
   }
 }
 async function signUp(email: string, password: string, name: string) {
   try {
+    loadStore.set(true);
     await authStore.register(email, password, name);
     await authStore.init();
     await router.push("/projects");
   } catch (error) {
     console.log(error);
+  } finally {
+    loadStore.set(false);
   }
 }
 
 
-onBeforeMount (async()=> {
+onBeforeMount(async () => {
   await authStore.init();
   if (authStore.user.status) {
     visibleForm.value = false;
@@ -142,79 +151,77 @@ onMounted(async () => {
 });
 </script>
 <template>
-  <div
-    class="entry-page"
-    :class="{ 'entry-page--decor-visible': flagDecorVisible }"
-  >
+  <div class="entry-page" :class="{ 'entry-page--decor-visible': flagDecorVisible }">
+    <div v-if="loadStore.isLoading" class="entry-page__loader">
+      <LoadersAppLoader />
+    </div>
+
     <div class="entry-page__bg-video">
       <video loop autoplay muted src="/public/day_few_clouds.mov"></video>
     </div>
     <header class="entry-page__header">
-      <div class="entry-page__header-logo">
+      <div class="entry-page__header-logo entry-page__header-logo--desktop">
         <UiBaseLogo />
+      </div>
+      <div class="entry-page__header-logo entry-page__header-logo--mobile">
+        <UiBaseLogo size="small" />
       </div>
     </header>
 
     <main class="entry-page__content">
-      <div
-        class="entry-page__wrapper-form"
-        @mouseleave="flagDecorVisible = false"
-        @mouseenter="flagDecorVisible = true"
-      >
-        <div v-show="errorSignInSignUp" class="entry-page__error-sign-in">
-          {{ errorSignInSignUp }}
+      <div class="entry-page__wrapper-form" @mouseleave="flagDecorVisible = false"
+        @mouseenter="flagDecorVisible = true">
+        <div v-show="error_SignIn_SignUp" class="entry-page__error-sign-in">
+          {{error_SignIn_SignUp }}
         </div>
         <div class="entry-page__form" v-if="visibleForm">
           <div class="entry-page__form-tab">
-            <button
-              :disabled="flagIsLogin"
-              type="button"
-              class="button-tab entry-page__tab"
-              @click="
-                flagIsLogin = true;
-                errorMessages = null;
-              "
-            >
+            <button :disabled="flagIsLogin" type="button" class="button-tab entry-page__tab" @click="
+              flagIsLogin = true;
+            errorMessages = null;
+            ">
               Вход
             </button>
-            <button
-              :disabled="!flagIsLogin"
-              type="button"
-              class="button-tab entry-page__tab"
-              @click="
-                flagIsLogin = false;
-                errorMessages = null;
-              "
-            >
+            <button :disabled="!flagIsLogin" type="button" class="button-tab entry-page__tab" @click="
+              flagIsLogin = false;
+            errorMessages = null;
+            error_SignIn_SignUp = null;
+            ">
               Регистрация
             </button>
           </div>
-          <FormsSignForm
-            v-if="flagIsLogin"
-            @sign-in="handleSubmitSignIn"
-            :error_messages="errorMessages"
-            :variant-form="'sign-in'"
-          />
-          <FormsSignForm
-            v-else
-            @sign-up="handleSubmitSignUp"
-            :error_messages="errorMessages"
-            :variant-form="'sign-up'"
-          />
+          <FormsSignForm v-if="flagIsLogin" @sign-in="handleSubmitSignIn" :error_messages="errorMessages"
+            :variant-form="'sign-in'" />
+          <FormsSignForm v-else @sign-up="handleSubmitSignUp" :error_messages="errorMessages"
+            :variant-form="'sign-up'" />
         </div>
       </div>
     </main>
 
-    <footer class="entry-page__footer"></footer>
+    <footer class="entry-page__footer">
+
+      <SectionsFooter />
+
+    </footer>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .entry-page {
+  display: grid;
+  gap: 100px;
   position: relative;
   min-height: 100vh;
-  overflow-x: hidden;
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-top: 20px;
   background-color: black;
+  overflow: hidden;
+
+  @media (max-width: 700px) {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
 
   &::before {
     content: "";
@@ -228,26 +235,39 @@ onMounted(async () => {
     backdrop-filter: blur(12px);
   }
 
+  &__loader {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 200px;
+    z-index: 2000;
+    color: rgb(255, 255, 255);
+  }
+
   &--decor-visible {
     .entry-page__bg-video {
-      clip-path: polygon(
-        0 0,
-        0 50%,
-        30% 50%,
-        0 50%,
-        0 100%,
-        50% 100%,
-        100% 100%,
-        100% 50%,
-        70% 50%,
-        100% 50%,
-        100% 0,
-        50% 0
-      );
+      clip-path: polygon(0 0,
+          0 50%,
+          30% 50%,
+          0 50%,
+          0 100%,
+          50% 100%,
+          100% 100%,
+          100% 50%,
+          70% 50%,
+          100% 50%,
+          100% 0,
+          50% 0);
     }
 
     &::before {
       backdrop-filter: blur(0px);
+    }
+
+    .entry-page__footer {
+      color: black;
     }
   }
 
@@ -258,6 +278,7 @@ onMounted(async () => {
     color: black;
     text-transform: uppercase;
     font-weight: 700;
+    user-select: none;
   }
 
   &__tab:disabled {
@@ -267,32 +288,62 @@ onMounted(async () => {
   }
 
   &__header {
-    position: absolute;
+    position: relative;
     z-index: 1000;
-    left: 10px;
-    top: 10px;
+    // position: absolute;
+    // z-index: 1000;
+    // left: 10px;
+    // top: 10px;
+  }
+
+  &__header-logo {
+
+
+    &--desktop {
+      display: block;
+
+      @media (max-width:450px) {
+        display: none;
+      }
+    }
+
+    &--mobile {
+      display: none;
+
+      @media (max-width:450px) {
+        display: block;
+      }
+    }
+  }
+
+  &__content {
+    position: relative;
+    z-index: 1000;
   }
 
   &__wrapper-form {
-    position: absolute;
-    z-index: 1000;
-    left: 50%;
-    top: 50%;
+    // display: none;
+    // position: absolute;
+    // z-index: 1000;
+    // left: 50%;
+    // top: 50%;
     max-width: 440px;
     width: 100%;
-    padding-left: 20px;
-    padding-right: 20px;
-    transform: translate(-50%, -50%);
+    // padding-left: 20px;
+    // padding-right: 20px;
+    margin-left: auto;
+    margin-right: auto;
+    // transform: translate(-50%, -50%);
 
-    @media (max-width: 700px) {
-      padding-left: 10px;
-      padding-right: 10px;
-    }
+    // @media (max-width: 700px) {
+    //   padding-left: 10px;
+    //   padding-right: 10px;
+    // }
 
     @media (max-height: 600px) {
-      top: 120px;
-      transform: translate(-50%, 0%);
-      padding-bottom: 20px;
+      // top: 120px;
+      // transform: translate(-50%, 0%);
+      // padding-bottom: 20px;
     }
   }
 
@@ -353,27 +404,40 @@ onMounted(async () => {
     top: 0;
     bottom: 0;
     z-index: 0;
-    clip-path: polygon(
-      20% 0%,
-      0% 20%,
-      30% 50%,
-      0% 80%,
-      20% 100%,
-      50% 70%,
-      80% 100%,
-      100% 80%,
-      70% 50%,
-      100% 20%,
-      80% 0%,
-      50% 30%
-    );
+    clip-path: polygon(20% 0%,
+        0% 20%,
+        30% 50%,
+        0% 80%,
+        20% 100%,
+        50% 70%,
+        80% 100%,
+        100% 80%,
+        70% 50%,
+        100% 20%,
+        80% 0%,
+        50% 30%);
     transition: clip-path 0.5s linear;
+
 
     & video {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
+  }
+
+  &__footer {
+    align-self: end;
+    position: relative;
+    z-index: 1000;
+    // align-self: end;
+    // z-index: 1000;
+    // left: 10px;
+    // bottom: 10px;
+    padding-top: 24px;
+    padding-bottom: 24px;
+    color: white;
+
   }
 }
 
@@ -382,5 +446,4 @@ onMounted(async () => {
   cursor: pointer;
 }
 
-// :focus-within  если дочернии элементы получили фокус
-</style>
+// :focus-within  если дочернии элементы получили фокус</style>

@@ -30,7 +30,7 @@ const props = defineProps<UserInfo>()
 <style lang="scss" scoped>
 .user-info {
   display: grid;
-  grid-template-columns: 40px 1fr;
+  grid-template-columns: 50px 1fr;
   gap: 10px;
   width: 100%;
 
@@ -41,10 +41,14 @@ const props = defineProps<UserInfo>()
   }
 
   &__avatar {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     border-radius: 100%;
     overflow: hidden;
+    @media (max-width:550px) {
+      width: 45px;
+      height: 45px;
+    }
     & img {
       object-fit: cover;
     }

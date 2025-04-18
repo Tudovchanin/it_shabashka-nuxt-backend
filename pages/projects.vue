@@ -234,11 +234,23 @@ const gradient_column = [
   "linear-gradient(90deg, rgb(136, 0, 21), rgb(249, 208, 122), rgb(202, 51, 5))",
   "linear-gradient(90deg, #e2632c,#fb4955,#ff3286,#fc39be,#d35bf8)",
   "linear-gradient(90deg, #784b21,#935d2a,#c78a52)",
+
   "linear-gradient(90deg,rgba(0, 0, 0), rgba(35, 11, 16, 0.9), rgba(51, 16, 22, 1), rgba(35, 11, 16), rgba(0, 0, 0))",
   "linear-gradient(180deg, #5c5c5c,#333333,#333333,#000000)",
+
   "linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee 100%) 0 0 / 20px 20px, linear-gradient(45deg, #eee 25%, white 25%, white 75%, #eee 75%, #eee 100%) 10px 10px / 20px 20px",
+
   "linear-gradient(90deg, 	#FFE4C4 50%, rgba(255,0,0,0.6) 50%) 0 0 / 30px 30px, linear-gradient(0deg, transparent 49%, rgba(255,0,0,0.6) 50%) 0 0 / 30px 30px",
-  " linear-gradient(hsla(0, 0%, 100%, 0.3) 1px, transparent 0) 0 0 / 10px 10px,linear-gradient(90deg, hsla(0, 0%, 100%, 0.3) 1px, transparent 0) 0 0 / 10px 10px,linear-gradient(white 2px, transparent 0) 0 0 / 50px 50px, linear-gradient(90deg, white 2px, transparent 0) 0 0 / 50px 50px#58a",
+
+  "repeating-linear-gradient( rgba(255, 248, 240, 0.8), rgba(255, 248, 240, 0.8) 50px, rgba(0, 255, 255, .25) 50px, rgba(0, 255, 255, .25) 100px ), repeating-linear-gradient( 90deg, rgba(0, 255, 255, .25), rgba(0, 255, 255, .25) 50px, rgba(255, 248, 240, 0.9) 50px, rgba(255, 248, 240, 0.9) 100px ), repeating-linear-gradient( 135deg, rgba(255, 248, 240, 0.7), rgba(255, 248, 240, 0.7) 4px, rgba(0, 0, 0, .1) 4px, rgba(0, 0, 0, .1) 8px ), repeating-linear-gradient( 45deg, rgba(255, 248, 240, 0.7), rgba(255, 248, 240, 0.7) 4px, rgba(0, 0, 0, .1) 4px, rgba(0, 0, 0, .1) 8px ), repeating-linear-gradient( rgba(255, 248, 240, 0.9), rgba(255, 248, 240, 0.9) 20px, rgba(100, 250, 250, .2) 20px, rgba(100, 250, 250, .2) 21px, rgba(255, 248, 240, 0.9) 21px, rgba(255, 248, 240, 0.9) 29px, rgba(100, 250, 250, .2) 29px, rgba(100, 250, 250, .2) 30px, rgba(255, 248, 240, 0.9) 30px, rgba(255, 248, 240, 0.9) 50px ), repeating-linear-gradient( 90deg, rgba(255, 248, 240, 0.9), rgba(255, 248, 240, 0.9) 20px, rgba(100, 250, 250, .2) 20px, rgba(100, 250, 250, .2) 21px, rgba(255, 248, 240, 0.9) 21px, rgba(255, 248, 240, 0.9) 29px, rgba(100, 250, 250, .2) 29px, rgba(100, 250, 250, .2) 30px, rgba(255, 248, 240, 0.9) 30px, rgba(255, 248, 240, 0.9) 50px )",
+
+
+  "linear-gradient(90deg, rgba(255,255,255, 0.07) 50%, transparent 50%) 0 0 / 13px,  linear-gradient(90deg, rgba(255,255,255, 0.13) 50%, transparent 50%) 0 0 / 29px,  linear-gradient(90deg, transparent 50%, rgba(255,255,255, 0.17) 50%) 0 0 / 37px,  linear-gradient(90deg, transparent 50%, rgba(255,255,255, 0.19) 50%) 0 0 / 53px, #c00020",
+
+
+  "linear-gradient(30deg, #80c9dd 12%, transparent 12.5%, transparent 87%, #80c9dd 87.5%, #80c9dd) 0 0 / 40px 70px,    linear-gradient(150deg, #80c9dd 12%, transparent 12.5%, transparent 87%, #80c9dd 87.5%, #80c9dd) 0 0 / 40px 70px,    linear-gradient(30deg, #80c9dd 12%, transparent 12.5%, transparent 87%, #80c9dd 87.5%, #80c9dd) 20px 35px / 40px 70px,    linear-gradient(150deg, #80c9dd 12%, transparent 12.5%, transparent 87%, #80c9dd 87.5%, #80c9dd) 20px 35px / 40px 70px,    linear-gradient(60deg, #d5eaf0 25%, transparent 25.5%, transparent 75%, #d5eaf0 75%, #d5eaf0) 0 0 / 40px 70px,    linear-gradient(60deg, #d5eaf0 25%, transparent 25.5%, transparent 75%, #d5eaf0 75%, #d5eaf0) 20px 35px / 40px 70px, #62bbd3",
+
+  "conic-gradient(from  31deg at 80% 65%,  #be5128  121deg,  #ce9248 0% 50%,  #e4c060 0% 301deg,  #db9c4e  0%)"
 ];
 
 // обработчик изменения цвета колонок
@@ -774,7 +786,6 @@ onBeforeMount(() => {
     ? JSON.parse(localStoredColors)
     : columnColors.value;
 
-
   for (const key in kanban.value) {
     if (Object.prototype.hasOwnProperty.call(kanban.value, key)) {
       hiddenColumns.value.push(false);
@@ -787,7 +798,6 @@ onMounted(async () => {
 
   await projectsStore.getProjectsByUser();
   getProjects(projectsStore.projects);
-
 
   refKanban.value.addEventListener("touchstart", handleTouchStart, {
     passive: false,
@@ -825,13 +835,15 @@ onUnmounted(async () => {
 
 <template>
   <div ref="refPageProjects" class="page-project">
+    <div v-if="loadStore.isLoading" class="page-project__loader">
+      <LoadersAppLoader />
+    </div>
     <div @click="handleClickWrapperFormAdd" class="page-project__wrapper-form-add" :class="{
       'page-project__wrapper-form-add--visible': addFormStore.isOpen,
     }">
       <div ref="refFormAdd" class="page-project__form-add project-form">
         <div class="project-form__status">
           {{ STATUS_TRANSLATIONS[statusNewProject] }}
-          <span v-if="loadStore.isLoading" class="project-form__load"></span>
         </div>
         <button class="project-form__close" @click="addFormStore.setOpen(false)">
           <img src="/public/images/icon-close.png" alt="закрыть форму" />
@@ -877,17 +889,17 @@ onUnmounted(async () => {
                 <div class="total-cost">{{ getSumPriceInColumn(key) }} руб</div>
               </div>
               <div class="column-menu__title">Сортировать:</div>
-              <PanelSortByPrice @sort-select="(sortValue: string) => handleEmitSort(sortValue, key)" />
+              <PanelsSelectSort @sort-select="(sortValue: string) => handleEmitSort(sortValue, key)" />
               <div class="column-menu__title">цвет колонки</div>
-              <PanelChangeColor @click-color="(color: string) => handleChangeColorColumn(key, color)"
+              <PanelsChangeColor @click-color="(color: string) => handleChangeColorColumn(key, color)"
                 :colors="colors_column" />
               <div class="column-menu__title">градиент колонки</div>
-              <PanelChangeColor @click-color="(color: string) => handleChangeColorColumn(key, color)"
+              <PanelsChangeColor @click-color="(color: string) => handleChangeColorColumn(key, color)"
                 :colors="gradient_column" />
               <div class="column-menu__title">Сбросить цвет</div>
-              <PanelChangeColor @click-color="(color: string) => handleChangeColorColumn(key, color)"
+              <PanelsChangeColor @click-color="(color: string) => handleChangeColorColumn(key, color)"
                 :colors="color_transparent"><img class="reset-color-img" src="/images/icon-close.png"
-                  alt="сбросить цвет" /></PanelChangeColor>
+                  alt="сбросить цвет" /></PanelsChangeColor>
             </div>
           </Transition>
 
@@ -910,13 +922,13 @@ onUnmounted(async () => {
         <button class="page-project__aside-panel-close" @click="handleHiddenAsidePanel">
           <img src="/public/images/icon-close.png" alt="закрыть боковую панель" />
         </button>
-        <PanelAsideCardInfo v-if="asidePanelData?.$id" :key="asidePanelData?.$id" ref="refPanelAside"
-          @update-card="handleUpdateCard" :color="asidePanelData?.color || 'black'" :id="asidePanelData?.$id"
-          :client="asidePanelData?.client" :client_email="asidePanelData?.client_email"
-          :client_phone="asidePanelData?.client_phone" :name="asidePanelData?.name" :price="asidePanelData?.price"
-          :description="asidePanelData?.description || ''" :comments="asidePanelData?.comments"
-          :link="asidePanelData?.link" :createdAt="asidePanelData?.$createdAt" :deadline="asidePanelData?.deadline"
-          @add-comment="handleAddComment" @delete-comment="handleDeleteComment">
+        <SectionsAsideCardInfo v-if="asidePanelData?.$id" :key="asidePanelData?.$id" ref="refPanelAside"
+          :color="asidePanelData?.color || 'black'" :id="asidePanelData?.$id" :client="asidePanelData?.client"
+          :client_email="asidePanelData?.client_email" :client_phone="asidePanelData?.client_phone"
+          :name="asidePanelData?.name" :price="asidePanelData?.price" :description="asidePanelData?.description || ''"
+          :comments="asidePanelData?.comments" :link="asidePanelData?.link" :createdAt="asidePanelData?.$createdAt"
+          :deadline="asidePanelData?.deadline" @update-card="handleUpdateCard" @add-comment="handleAddComment"
+          @delete-comment="handleDeleteComment">
           <template #card>
             <CardsKanbanCard v-if="asidePanelData?.$id" :color="asidePanelData?.color" :id="asidePanelData?.$id"
               :status="asidePanelData?.status || ProjectStatus.NEW" :client="asidePanelData?.client"
@@ -929,10 +941,10 @@ onUnmounted(async () => {
           <template #color>
             <div style="margin-bottom: 10px">изменить цвет карточки</div>
 
-            <PanelChangeColor @click-color="(color: string) => handleChangeColorCard(asidePanelData?.$id || '', color)"
+            <PanelsChangeColor @click-color="(color: string) => handleChangeColorCard(asidePanelData?.$id || '', color)"
               :colors="colors_card" />
           </template>
-        </PanelAsideCardInfo>
+        </SectionsAsideCardInfo>
       </div>
     </div>
   </div>
@@ -969,8 +981,17 @@ onUnmounted(async () => {
   padding-bottom: 50px;
   padding-right: 20px;
   padding-left: 20px;
-
   scroll-snap-type: x mandatory;
+
+  &__loader {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2000;
+    color: rgb(0, 0, 0);
+    width: 200px;
+  }
 
   &__kanban {
     margin-left: auto;
@@ -1113,16 +1134,6 @@ onUnmounted(async () => {
     background-color: rgb(0, 0, 0);
   }
 
-  &__load {
-    position: absolute;
-    top: 20px;
-    right: 100px;
-    width: 20px;
-    height: 20px;
-    background-color: red;
-    animation: rotate 1s infinite linear;
-  }
-
   &__close {
     position: absolute;
     right: 0;
@@ -1156,8 +1167,9 @@ onUnmounted(async () => {
     position: relative;
     height: 100%;
     scroll-snap-align: start;
+
     &::before {
-      content: '';
+      content: "";
       position: absolute;
       width: 100%;
       height: 100%;
@@ -1205,18 +1217,20 @@ onUnmounted(async () => {
   position: relative;
   display: flex;
   flex-direction: column;
-  // align-items: center;
-  // height: min-content;
-
   max-height: 100%;
-
   padding-top: 20px;
   padding-bottom: 20px;
-
   border-radius: var(--radius-md);
-
   box-shadow: 0 0 20px 1px black;
   transition: max-height var(--timing-animation-min) ease-in;
+  -webkit-user-select: none;
+  /* Для Safari */
+  -moz-user-select: none;
+  /* Для Firefox */
+  -ms-user-select: none;
+  /* Для IE/Edge */
+  user-select: none;
+  /* Стандартный синтаксис */
 
   @media (max-width: 550px) {}
 
@@ -1426,21 +1440,16 @@ onUnmounted(async () => {
 }
 
 .highlight {
- 
   &::before {
-
+    opacity: 0.2;
     background: var(--column-color);
-    opacity: .2;
   }
 }
-
 
 // .kanban:has(.highlight) .kanban__wrapper-column:not(.highlight) {
 //   background-color: rgba(101, 101, 101, 0.513);
 
 // }
-
-
 
 .reset-color-img {
   position: absolute;

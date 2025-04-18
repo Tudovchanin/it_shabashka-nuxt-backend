@@ -15,12 +15,11 @@ export type DataCommentAppWrite = Models.Document & {
 
 export const useCommentsStore = defineStore('comments', () => {
 
-
   const authStore = useAuthStore();
+  const loadStore = useIsLoadingStore();
 
 
   const comments = ref<DataCommentAppWrite[]>([]);
-
   const error = ref<Error | null>(null);
 
   const getCommentsByCard = async (projectId:string) => {
@@ -50,6 +49,7 @@ export const useCommentsStore = defineStore('comments', () => {
 
   const createComment = async (data: {text: string; projectId: string}) => {
     try {
+      loadStore.set(true);
       const response = await DB.createDocument(
         DB_ID,
         DB_COLLECTION_COMMENTS_ID,
@@ -64,27 +64,15 @@ export const useCommentsStore = defineStore('comments', () => {
       console.log('Document created:', response);
     } catch (error: unknown) {
       console.error('Error creating document:', error);
+    } finally {
+      loadStore.set(false);
     }
   };
-
-  // const updateProject = async (projectId: string, data: any) => {
-  //   try {
-  //     const response = await DB.updateDocument(
-  //       DB_ID,
-  //       DB_COLLECTION_PROJECTS_ID,
-  //       projectId,
-  //       data
-  //     );
-  //     console.log('Document updated:', response);
-  //     await getProjectsByUser();
-  //   } catch (error: unknown) {
-  //     console.error('Error updating document:', error);
-  //   }
-  // };
 
   const deleteComment = async (commentId: string) => {
    
     try {
+      loadStore.set(true);
       await DB.deleteDocument(
         DB_ID,
         DB_COLLECTION_COMMENTS_ID,
@@ -93,6 +81,8 @@ export const useCommentsStore = defineStore('comments', () => {
 
     } catch (error: unknown) {
       console.error('Error deleting document:', error);
+    } finally {
+      loadStore.set(false);
     }
   };
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { PanelAppRooms, PanelSettingPage, UiBaseLogoButton } from "#components";
+import { PanelsAppRooms, PanelsSettingPage, SectionsFooter, UiBaseLogoButton } from "#components";
 
-import type { Room } from "~/components/panel/AppRooms.vue";
+import type { Room } from "~/components/panels/AppRooms.vue";
 
 const authStore = useAuthStore();
 const projectsStore = useProjectsStore();
@@ -132,10 +132,6 @@ watch(() => route.name, (newNamePage) => {
 
 })
 
-
-const refDesc = ref();
-const refMain = ref();
-
 const colorCardDragover = ref('');
 const dragoverEvent = ref(false);
 
@@ -177,24 +173,25 @@ onBeforeUnmount(() => {
 <template>
   <div ref="refPage" :style="roomImgVariables" class="page"
     :class="{ 'page--animate-img': flagAnimateImageRoom }">
+
     <header class="page__header">
       <div class="x-center width">
         <SectionsHeader @click-avatar="handleClickAvatar" />
       </div>
     </header>
 
-    <main @click="handleClickMainSection" ref="refMain" class="page__main">
+    <main @click="handleClickMainSection" class="page__main">
       <button :style="{ '--dragover-color': colorCardDragover }" @click.stop="flagChangeRoom = !flagChangeRoom" :aria-label="buttonAriaLabel" class="page__button-room"
         :class="{ 'page__button-room--reverse': flagChangeRoom, 'page__button-room--dragover':dragoverEvent }">
         <UiBaseLogoButton tag="div" :reverse="flagChangeRoom" />
       </button>
 
-      <div ref="refDesc" class="desc x-center" :class="{ 'desc--hidden': flagChangeRoom }">
+      <div class="desc x-center" :class="{ 'desc--hidden': flagChangeRoom }">
         <slot></slot>
       </div>
 
       <div class="page__rooms" :class="{ 'page__rooms--hidden': !flagChangeRoom }">
-        <PanelAppRooms @click-room="handleChangeRoom" :active-room="roomUserImg" />
+        <PanelsAppRooms @click-room="handleChangeRoom" :active-room="roomUserImg" />
       </div>
     </main>
 
@@ -205,7 +202,7 @@ onBeforeUnmount(() => {
       </button>
 
       <div class="page__aside-panel" :class="{ 'page__aside-panel--move-left': !flagMenuUserHidden }">
-        <PanelSettingPage>
+        <PanelsSettingPage>
           <template #header>
             <div class="aside-header decor-line-bottom">
               <BlocksUserInfo title="Учетная запись" :avatar="authStore.user.avatarUrl" :user_name="authStore.user.name"
@@ -232,12 +229,14 @@ onBeforeUnmount(() => {
           <template #footer>
             <UiBaseButton style="width: 100px; text-transform: uppercase;" @click="handleLogout" bg-color="red" text-color="black">Выйти</UiBaseButton>
           </template>
-        </PanelSettingPage>
+        </PanelsSettingPage>
       </div>
     </aside>
 
-    <footer class="page__footer" style="color: wheat; font-size: 30px">
-      <h1>footer</h1>
+    <footer class="page__footer">
+      <div class="x-center width">
+        <SectionsFooter/>
+      </div>
     </footer>
   </div>
 </template>
@@ -365,7 +364,6 @@ onBeforeUnmount(() => {
       padding-right: 0px;
   }
   }
-
 
   &__main {
     position: relative;
@@ -514,10 +512,11 @@ onBeforeUnmount(() => {
     }
   }
 
-
-
   &__footer {
     width: 100%;
+    padding-top: 24px;
+    padding-bottom: 24px;
+    color: white;
     background-color: rgb(18, 18, 18);
   }
 }
@@ -553,8 +552,6 @@ onBeforeUnmount(() => {
   height: max(940px, 100vh);
   overflow-y: hidden;
   transition: visibility 0.6s, opacity 0.5s;
-
-  @media (max-width: 1700px) {}
 
   &--hidden {
     opacity: 0;

@@ -897,8 +897,6 @@ onBeforeUnmount(() => {
     background-color: transparent;
     @media (max-width: 290px) {
       flex-basis: 100%;
-      // transform: scale(.9) translateX(-5%);
-      // pointer-events: none;
     }
     &--blur {
       filter: blur(10px);
@@ -930,13 +928,10 @@ onBeforeUnmount(() => {
 
   &__main-middle {
     position: relative;
-    background-color: red;
-    // display: none;
   }
 
   &__main-footer {
     position: relative;
-    // display: none;
   }
 
   &__button-save {
@@ -1022,7 +1017,6 @@ onBeforeUnmount(() => {
     gap: 10px;
     min-width: 230px;
     background-color: transparent;
-    background-color: rgba(127, 255, 212, 0.288);
     border: none;
     font-size: inherit;
     color: inherit;
@@ -1036,8 +1030,7 @@ onBeforeUnmount(() => {
       gap: 0;
     }
   }
-  &__label-right {
-  }
+ 
 
   &__label-text {
     text-align: left;
@@ -1099,7 +1092,6 @@ onBeforeUnmount(() => {
     display: block;
     max-width: 400px;
     width: 100%;
-    // height: 200px;
     position: absolute;
     top: 50px;
     left: 0;
@@ -1107,19 +1099,16 @@ onBeforeUnmount(() => {
     padding-top: 20px;
     padding-bottom: 20px;
     opacity: 1;
-    transition: opacity var(--timing-animation-min) linear;
+    transition: visibility var(--timing-animation-min) linear, var(--timing-animation-min) linear;
     &--hidden {
       opacity: 0;
       pointer-events: none;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
+      visibility: hidden;
     }
   }
 
   &__form {
     height: 100%;
-    // background-color: var(--main-color);
     border-radius: var(--radius-sm);
   }
 
@@ -1129,11 +1118,10 @@ onBeforeUnmount(() => {
     height: 130px;
     padding: 10px 10px 20px 10px;
     border-radius: var(--radius-sm);
-    outline: solid wheat 2px;
+    outline: solid rgb(255, 255, 255) 2px;
     background-color: var(--main-color);
     color: var(--color-light-50);
     border: none;
-    // outline: none;
     overflow-y: hidden;
     margin-bottom: 20px;
   }
@@ -1238,8 +1226,6 @@ onBeforeUnmount(() => {
     bottom: 0px;
   }
 
-  &__button {
-  }
 }
 
 .days-until-deadline {
