@@ -1,5 +1,5 @@
 
-# IT Shabashka – CRM для фрилансеров нового поколения
+# IT Shabashka – CRM для фрилансеров 
 
 [![Website](https://img.shields.io/badge/ДЕМО-ДОСТУПНО-009688?style=for-the-badge&logo=vercel)](https://itshabashka.ru)
 [![Stack](https://img.shields.io/badge/Nuxt_3-реализация-00C58E?logo=nuxt.js)](https://nuxt.com)
