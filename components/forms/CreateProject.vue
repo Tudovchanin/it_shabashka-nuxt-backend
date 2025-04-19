@@ -84,7 +84,7 @@ function resetForm() {
 const maskStart = 3;
 const maskValue = "+7(___)___-__-__";
 const maskSymbols = [")", "(", "-"];
-const maskHover = true;
+const maskHover = false;
 let removePhoneMask: any = null;
 onMounted(() => {
 
@@ -109,7 +109,7 @@ onBeforeUnmount(() => {
 
     <div class="form-create-project__field">
       <label class="form-create-project__label" for="phone">Телефон клиента</label>
-      <input autocomplete="off" ref="refInput" @keyup="handleKeyUp" id="phone" type="text"
+      <input autocomplete="nope" ref="refInput" @keyup="handleKeyUp" id="phone" type="text"
         pattern="^\+7\(\d{3}\)\d{3}-\d{2}-\d{2}$" placeholder="+7(___)___-__-__"
         title="Введите полный номер в формате: +7(XXX)XXX-XX-XX" class="form-create-project__input" />
     </div>

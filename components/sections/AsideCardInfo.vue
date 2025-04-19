@@ -563,6 +563,7 @@ onBeforeUnmount(() => {
       <div class="info-project__contact">
         <span>Телефон клиента: </span>
         <input
+          autocomplete="nope"
           placeholder="+7(___)___-__-__"
           ref="refInputPhone"
           @keyup="handleKeyUp"
