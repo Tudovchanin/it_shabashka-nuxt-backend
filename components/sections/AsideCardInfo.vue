@@ -1046,9 +1046,6 @@ onBeforeUnmount(() => {
     }
   }
   &__label-button {
-    // display: flex;
-    // justify-content: center;
-    // align-items: center;
     background-color: transparent;
     width: 30px;
     height: 30px;
@@ -1215,17 +1212,21 @@ onBeforeUnmount(() => {
 .form-comments {
   display: flex;
   flex-direction: column;
+  position: relative;
 
-  &__container-text-area {
-    position: relative;
+  &__text-area {
+    padding-right: 20px;
   }
 
   &__length {
     position: absolute;
-    left: 10px;
-    bottom: 0px;
+    right: 0;
+    top: 0px;
+    font-size: 12px;
+    font-weight: 700;
+    color: black;
+    background-color: white;
   }
-
 }
 
 .days-until-deadline {
