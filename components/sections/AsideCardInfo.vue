@@ -32,6 +32,7 @@ const modelLink = ref("");
 const modelDeadLine = ref("");
 const modelClient = ref("");
 const modelClientEmail = ref("");
+// используем для маски телефона, так как модель с маской глючит
 const valueClientPhone = ref("");
 
 const comment = ref<string>("");
@@ -54,7 +55,6 @@ const refClientNameInput = ref();
 const heightDescriptionTextarea = ref("");
 
 // цвет для текста кнопки, в зависимости от цвета карточки
-
 
 const getColorText = computed(() => {
   return COLOR_TEXT_MAP[props.color as ColorKeyTextMap] || "inherit";
@@ -265,71 +265,11 @@ const maskValue = "+7(___)___-__-__";
 const maskSymbols = [")", "(", "-"];
 const maskHover = false;
 
-// function resetModels() {
 
-//   modelName.value = "";
-//   modelDescription.value = "";
-//   modelPrice.value = 0;
-//   modelLink.value = "";
-//   modelDeadLine.value = "";
-//   modelClient.value = "";
-//   modelClientEmail.value = "";
-//   valueClientPhone.value = "";
-//   removePhoneMask();
-// }
-
-// пробрасываем вверх
 defineExpose({
-  // setStateFlagHiddenFormUpdate,
   setStateFlagBlur,
-  // resetModels
 });
 
-// watch(
-//   () => [
-//     props.id,
-//     props.name,
-//     props.description,
-//     props.price,
-//     props.link,
-//     props.deadline,
-//     props.client,
-//     props.client_email,
-//     props.client_phone,
-//   ],
-//   () => {
-//     heightDescriptionTextarea.value = refDescription.value.offsetHeight;
-//     removePhoneMask = inputMask(maskStart, maskValue, maskSymbols, refInputPhone.value, maskHover);
-
-//     if (props.name) {
-//       modelName.value = props.name;
-//     }
-//     if (props.description) {
-//       modelDescription.value = props.description;
-//     }
-//     if (props.price) {
-//       modelPrice.value = props.price;
-//     }
-//     if (props.link) {
-//       modelLink.value = props.link;
-//     }
-
-//     if (props.deadline) {
-//       modelDeadLine.value = props.deadline;
-//     }
-//     if (props.client) {
-//       modelClient.value = props.client;
-//     }
-//     if (props.client_email) {
-//       modelClientEmail.value = props.client_email;
-//     }
-//     if (props.client_phone) {
-
-//       console.log(props.client_phone, 'props.client_phone');
-
-//     }
-//   }
-// );
 
 onMounted(() => {
   console.log("создание маски боковой панели");
