@@ -282,12 +282,6 @@ onBeforeUnmount(() => {
   }
 }
 
-// clip-path: polygon(
-//   0 0,      /* левый верхний угол */
-//   100% 0,   /* правый верхний */
-//   100% 100%,/* правый нижний */
-//   0 100%    /* левый нижний */
-// );
 
 @keyframes changeRoom-v2 {
   0% {
@@ -378,7 +372,7 @@ onBeforeUnmount(() => {
 
   // класс удаляется через 1000мс в setup
   &--animate-img::before {
-    animation: changeRoom-v2 1s steps(1), changeRoom-v3 .5s 1s;
+    animation:  changeRoom-v2 1s step-start, changeRoom-v3 .5s 1s ease-in;
   }
 
 
