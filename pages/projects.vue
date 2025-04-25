@@ -10,7 +10,11 @@ import {
   sortDateStringDesc,
 } from "#imports";
 
-import { COLORS_CARD, GRADIENT_COLUMN, COLORS_COLUMN } from "~/constants/project.constants";
+import {
+  COLORS_CARD,
+  GRADIENT_COLUMN,
+  COLORS_COLUMN,
+} from "~/constants/project.constants";
 
 definePageMeta({
   middleware: "auth",
@@ -34,6 +38,7 @@ const commentsStore = useCommentsStore();
 const loadStore = useIsLoadingStore();
 const searchStore = useSearchStore();
 const eventStore = useEventStore();
+const colorColumnStore = useColumnColor();
 
 // state kanban / project / kanbanOriginal-нужен для восстановления state kanban без перезагрузки
 const projects = ref<DataCardAppWrite[]>([]);
@@ -71,15 +76,6 @@ const stateSortColumn = markRaw<SortColumns>({
     [ProjectStatus.REVISION]: "default",
     [ProjectStatus.DONE]: "default",
   },
-});
-
-// state изменения цвета колонок
-const columnColors = ref<{ [key in TypeProjectStatus]: string }>({
-  [ProjectStatus.NEW]: "",
-  [ProjectStatus.IN_PROGRESS]: "",
-  [ProjectStatus.REVIEW]: "",
-  [ProjectStatus.REVISION]: "",
-  [ProjectStatus.DONE]: "",
 });
 
 // flags
@@ -215,12 +211,7 @@ const gradient_column = GRADIENT_COLUMN;
 
 // обработчик изменения цвета колонок
 const handleChangeColorColumn = (key: TypeProjectStatus, color: string) => {
-  columnColors.value[key] = color;
-
-  localStorage.setItem(
-    `${authStore.user.$id}-columnColors`,
-    JSON.stringify(columnColors.value)
-  );
+  colorColumnStore.saveColor(key, color);
 };
 
 // -------------------------------------------------------------------------
@@ -714,13 +705,7 @@ watch(
 // хуки
 
 onBeforeMount(() => {
-  const localStoredColors = localStorage.getItem(
-    `${authStore.user.$id}-columnColors`
-  );
-
-  columnColors.value = localStoredColors
-    ? JSON.parse(localStoredColors)
-    : columnColors.value;
+  colorColumnStore.loadColor();
 
   for (const key in kanban.value) {
     if (Object.prototype.hasOwnProperty.call(kanban.value, key)) {
@@ -774,47 +759,99 @@ onUnmounted(async () => {
     <div v-if="loadStore.isLoading" class="page-project__loader">
       <LoadersAppLoader />
     </div>
-    <div @click="handleClickWrapperFormAdd" class="page-project__wrapper-form-add" :class="{
-      'page-project__wrapper-form-add--visible': addFormStore.isOpen,
-    }">
+    <div
+      @click="handleClickWrapperFormAdd"
+      class="page-project__wrapper-form-add"
+      :class="{
+        'page-project__wrapper-form-add--visible': addFormStore.isOpen,
+      }"
+    >
       <div ref="refFormAdd" class="page-project__form-add project-form">
         <div class="project-form__status">
           {{ STATUS_TRANSLATIONS[statusNewProject] }}
         </div>
-        <button class="project-form__close" @click="addFormStore.setOpen(false)">
+        <button
+          class="project-form__close"
+          @click="addFormStore.setOpen(false)"
+        >
           <img src="/public/images/icon-close.png" alt="закрыть форму" />
         </button>
 
-        <FormsCreateProject :status="statusNewProject" @change-status="handleChangeStatus"
-          @create-project="handleSubmitCreateCard" />
+        <FormsCreateProject
+          :status="statusNewProject"
+          @change-status="handleChangeStatus"
+          @create-project="handleSubmitCreateCard"
+        />
       </div>
     </div>
 
-    <div @click="handleClickKanban" ref="refKanban" class="page-project__kanban kanban">
-      <div ref="refWrapperColumn" v-for="(column, key, i) in kanban" :key="key"
-        :style="{ '--column-color': columnColors[key] }" class="kanban__wrapper-column" :data-status="key">
-        <div :style="{
-          background: columnColors[key],
-        }" class="kanban-column" :class="{ 'kanban-column--hidden': hiddenColumns[i] }">
-          <div :aria-label="STATUS_TRANSLATIONS[key]" class="kanban-column__title">
+    <div
+      @click="handleClickKanban"
+      ref="refKanban"
+      class="page-project__kanban kanban"
+    >
+      <div
+        ref="refWrapperColumn"
+        v-for="(column, key, i) in kanban"
+        :key="key"
+        :style="{ '--column-color': colorColumnStore.columnColors[key] }"
+        class="kanban__wrapper-column"
+        :data-status="key"
+      >
+        <div
+          :style="{
+            background: colorColumnStore.columnColors[key],
+          }"
+          class="kanban-column"
+          :class="{ 'kanban-column--hidden': hiddenColumns[i] }"
+        >
+          <div
+            :aria-label="STATUS_TRANSLATIONS[key]"
+            class="kanban-column__title"
+          >
             {{ STATUS_TRANSLATIONS[key] }}
           </div>
-          <button aria-hidden="true" @click="handleHiddenColumn(i)" class="kanban-column__toggle-visible">
-            <img src="/images/icon-toggle-column-white.png" alt="кнопка свернуть-развернуть колонку" />
+          <button
+            aria-hidden="true"
+            @click="handleHiddenColumn(i)"
+            class="kanban-column__toggle-visible"
+          >
+            <img
+              src="/images/icon-toggle-column-white.png"
+              alt="кнопка свернуть-развернуть колонку"
+            />
           </button>
-          <button @click="handleClickColumnDots(i)" class="kanban-column__button-open-menu">
+          <button
+            @click="handleClickColumnDots(i)"
+            class="kanban-column__button-open-menu"
+          >
             <img src="/images/icon-1.png" alt="открыть меню колонки" />
           </button>
-          <button @click="handleAddProject(key)" class="kanban-column__add-project">
-            <span><img src="/public/images/icon-2.png" alt="добавить карточку" /></span><span>добавить шабашку</span>
+          <button
+            @click="handleAddProject(key)"
+            class="kanban-column__add-project"
+          >
+            <span
+              ><img
+                src="/public/images/icon-2.png"
+                alt="добавить карточку" /></span
+            ><span>добавить шабашку</span>
           </button>
 
           <Transition name="fade">
-            <div v-show="indexPanelMenu === i" ref="refMenuColumn" class="kanban-column__menu column-menu" :class="{
-              'kanban-column__menu--open': indexPanelMenu === i,
-              'kanban-column__menu--test': i === 0,
-            }">
-              <button @click.stop="indexPanelMenu = -1" class="kanban-column__menu-close">
+            <div
+              v-show="indexPanelMenu === i"
+              ref="refMenuColumn"
+              class="kanban-column__menu column-menu"
+              :class="{
+                'kanban-column__menu--open': indexPanelMenu === i,
+                'kanban-column__menu--test': i === 0,
+              }"
+            >
+              <button
+                @click.stop="indexPanelMenu = -1"
+                class="kanban-column__menu-close"
+              >
                 <img src="/images/icon-close.png" alt="закрыть меню" />
               </button>
               <div class="column-menu__title">
@@ -825,60 +862,119 @@ onUnmounted(async () => {
                 <div class="total-cost">{{ getSumPriceInColumn(key) }} руб</div>
               </div>
               <div class="column-menu__title">Сортировать:</div>
-              <PanelsSelectSort @sort-select="(sortValue: string) => handleEmitSort(sortValue, key)" />
+              <PanelsSelectSort
+                @sort-select="(sortValue: string) => handleEmitSort(sortValue, key)"
+              />
               <div class="column-menu__title">цвет колонки</div>
-              <PanelsChangeColor @click-color="(color: string) => handleChangeColorColumn(key, color)"
-                :colors="colors_column" />
+              <PanelsChangeColor
+                @click-color="(color: string) => handleChangeColorColumn(key, color)"
+                :colors="colors_column"
+              />
               <div class="column-menu__title">градиент колонки</div>
-              <PanelsChangeColor @click-color="(color: string) => handleChangeColorColumn(key, color)"
-                :colors="gradient_column" />
+              <PanelsChangeColor
+                @click-color="(color: string) => handleChangeColorColumn(key, color)"
+                :colors="gradient_column"
+              />
               <div class="column-menu__title">Сбросить цвет</div>
-              <PanelsChangeColor @click-color="(color: string) => handleChangeColorColumn(key, color)"
-                :colors="color_transparent"><img class="reset-color-img" src="/images/icon-close.png"
-                  alt="сбросить цвет" /></PanelsChangeColor>
+              <PanelsChangeColor
+                @click-color="(color: string) => handleChangeColorColumn(key, color)"
+                :colors="color_transparent"
+                ><img
+                  class="reset-color-img"
+                  src="/images/icon-close.png"
+                  alt="сбросить цвет"
+              /></PanelsChangeColor>
             </div>
           </Transition>
 
           <div class="kanban-column__container-cards">
-            <div :style="{ background: project.color }" :data-project-status="key" :data-project-id="project.$id"
-              v-for="(project, i) in column" class="kanban__card" :key="project.$id">
-              <CardsKanbanCard :color="project.color" :id="project.$id" :status="project.status"
-                :client="project.client" :name="project.name" :link="project.link" :price="project.price"
-                :deadline="project.deadline" :createdAt="project.$createdAt" :description="project.description"
-                @click-card="handleClickCard(project)" @delete-card="handleDeleteCard(project)" />
+            <div
+              :style="{ background: project.color }"
+              :data-project-status="key"
+              :data-project-id="project.$id"
+              v-for="(project, i) in column"
+              class="kanban__card"
+              :key="project.$id"
+            >
+              <CardsKanbanCard
+                :color="project.color"
+                :id="project.$id"
+                :status="project.status"
+                :client="project.client"
+                :name="project.name"
+                :link="project.link"
+                :price="project.price"
+                :deadline="project.deadline"
+                :createdAt="project.$createdAt"
+                :description="project.description"
+                @click-card="handleClickCard(project)"
+                @delete-card="handleDeleteCard(project)"
+              />
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div @click="handleClickInAsidePanel" class="page-project__aside-panel"
-      :class="{ 'page-project__aside-panel--visible': asidePanelVisible }">
+    <div
+      @click="handleClickInAsidePanel"
+      class="page-project__aside-panel"
+      :class="{ 'page-project__aside-panel--visible': asidePanelVisible }"
+    >
       <div class="page-project__aside-panel-inner">
-        <button class="page-project__aside-panel-close" @click="handleHiddenAsidePanel">
-          <img src="/public/images/icon-close.png" alt="закрыть боковую панель" />
+        <button
+          class="page-project__aside-panel-close"
+          @click="handleHiddenAsidePanel"
+        >
+          <img
+            src="/public/images/icon-close.png"
+            alt="закрыть боковую панель"
+          />
         </button>
-        <SectionsAsideCardInfo v-if="asidePanelData?.$id" :key="asidePanelData?.$id" ref="refPanelAside"
-          :color="asidePanelData?.color || 'black'" :id="asidePanelData?.$id" :client="asidePanelData?.client"
-          :client_email="asidePanelData?.client_email" :client_phone="asidePanelData?.client_phone"
-          :name="asidePanelData?.name" :price="asidePanelData?.price" :description="asidePanelData?.description || ''"
-          :comments="asidePanelData?.comments" :link="asidePanelData?.link" :createdAt="asidePanelData?.$createdAt"
-          :deadline="asidePanelData?.deadline" @update-card="handleUpdateCard" @add-comment="handleAddComment"
-          @delete-comment="handleDeleteComment">
+        <SectionsAsideCardInfo
+          v-if="asidePanelData?.$id"
+          :key="asidePanelData?.$id"
+          ref="refPanelAside"
+          :color="asidePanelData?.color || 'black'"
+          :id="asidePanelData?.$id"
+          :client="asidePanelData?.client"
+          :client_email="asidePanelData?.client_email"
+          :client_phone="asidePanelData?.client_phone"
+          :name="asidePanelData?.name"
+          :price="asidePanelData?.price"
+          :description="asidePanelData?.description || ''"
+          :comments="asidePanelData?.comments"
+          :link="asidePanelData?.link"
+          :createdAt="asidePanelData?.$createdAt"
+          :deadline="asidePanelData?.deadline"
+          @update-card="handleUpdateCard"
+          @add-comment="handleAddComment"
+          @delete-comment="handleDeleteComment"
+        >
           <template #card>
-            <CardsKanbanCard v-if="asidePanelData?.$id" :color="asidePanelData?.color" :id="asidePanelData?.$id"
-              :status="asidePanelData?.status || ProjectStatus.NEW" :client="asidePanelData?.client"
-              :name="asidePanelData?.name" :price="asidePanelData?.price || 0"
-              :description="asidePanelData?.description" :link="asidePanelData?.link"
-              :deadline="asidePanelData?.deadline" :createdAt="asidePanelData?.$createdAt || '-'"
-              @delete-card="asidePanelData && handleDeleteCard(asidePanelData)" />
+            <CardsKanbanCard
+              v-if="asidePanelData?.$id"
+              :color="asidePanelData?.color"
+              :id="asidePanelData?.$id"
+              :status="asidePanelData?.status || ProjectStatus.NEW"
+              :client="asidePanelData?.client"
+              :name="asidePanelData?.name"
+              :price="asidePanelData?.price || 0"
+              :description="asidePanelData?.description"
+              :link="asidePanelData?.link"
+              :deadline="asidePanelData?.deadline"
+              :createdAt="asidePanelData?.$createdAt || '-'"
+              @delete-card="asidePanelData && handleDeleteCard(asidePanelData)"
+            />
           </template>
 
           <template #color>
             <div style="margin-bottom: 10px">изменить цвет карточки</div>
 
-            <PanelsChangeColor @click-color="(color: string) => handleChangeColorCard(asidePanelData?.$id || '', color)"
-              :colors="colors_card" />
+            <PanelsChangeColor
+              @click-color="(color: string) => handleChangeColorCard(asidePanelData?.$id || '', color)"
+              :colors="colors_card"
+            />
           </template>
         </SectionsAsideCardInfo>
       </div>
@@ -1011,7 +1107,8 @@ onUnmounted(async () => {
       width: 100%;
     }
 
-    @media (max-width: 380px) {}
+    @media (max-width: 380px) {
+    }
   }
 
   &__aside-panel-close {
@@ -1092,7 +1189,8 @@ onUnmounted(async () => {
   height: 100%;
   gap: 20px;
 
-  @media (max-width: 1200px) {}
+  @media (max-width: 1200px) {
+  }
 
   @media (max-width: 550px) {
     grid-template-columns: repeat(5, 270px);
@@ -1157,7 +1255,7 @@ onUnmounted(async () => {
   padding-top: 20px;
   padding-bottom: 20px;
   border-radius: var(--radius-md);
-  background:rgba(255, 255, 255, 0.199);
+  background: rgba(255, 255, 255, 0.199);
   box-shadow: 0 0 20px 1px black;
   transition: max-height var(--timing-animation-min) ease-in;
   -webkit-user-select: none;
@@ -1169,7 +1267,8 @@ onUnmounted(async () => {
   user-select: none;
   /* Стандартный синтаксис */
 
-  @media (max-width: 550px) {}
+  @media (max-width: 550px) {
+  }
 
   &:not(.kanban-column--hidden) {
     .kanban-column__container-cards {
@@ -1293,9 +1392,11 @@ onUnmounted(async () => {
       width: 90vw;
     }
 
-    &--open {}
+    &--open {
+    }
 
-    &--test {}
+    &--test {
+    }
   }
 
   &__menu-close {
@@ -1363,7 +1464,8 @@ onUnmounted(async () => {
   }
 }
 
-.selected-menu {}
+.selected-menu {
+}
 
 .fade-enter-active,
 .fade-leave-active {
