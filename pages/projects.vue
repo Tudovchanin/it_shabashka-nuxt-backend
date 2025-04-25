@@ -1221,6 +1221,7 @@ onUnmounted(async () => {
   padding-top: 20px;
   padding-bottom: 20px;
   border-radius: var(--radius-md);
+  background:rgba(255, 255, 255, 0.199);
   box-shadow: 0 0 20px 1px black;
   transition: max-height var(--timing-animation-min) ease-in;
   -webkit-user-select: none;

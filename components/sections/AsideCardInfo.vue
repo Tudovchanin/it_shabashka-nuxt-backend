@@ -866,7 +866,6 @@ onBeforeUnmount(() => {
   &__img {
     width: 30px;
     height: 30px;
-    background-color: red;
     padding: 2px;
   }
 }

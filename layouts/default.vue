@@ -284,38 +284,19 @@ onBeforeUnmount(() => {
 
 
 @keyframes changeRoom-v2 {
-  0% {
-    clip-path: polygon(0 0, 20% 0, 20% 100%, 0% 100%);
-  }
-
-  25% {
-    clip-path: polygon(40% 0, 20% 0, 20% 100%, 40% 100%);
-  }
-
-  50% {
-    clip-path: polygon(40% 0, 60% 0, 60% 100%, 40% 100%);
-  }
-
-  75% {
-    clip-path: polygon(80% 0, 60% 0, 60% 100%, 80% 100%);
-  }
-
-  100% {
-    clip-path: polygon(80% 0, 100% 0, 100% 100%, 80% 100%);
-  }
+  0% {opacity: 0;}
+  
+  60%   {opacity: 1; clip-path: polygon( 0  0, 20%  0, 20% 100%, 0%   100%); }
+  70%  { clip-path: polygon(40% 0, 20%  0, 20% 100%, 40%  100%); }
+  80%  { clip-path: polygon(40% 0, 60%  0, 60% 100%, 40%  100%); }
+  90%  { clip-path: polygon(80% 0, 60%  0, 60% 100%, 80%  100%); }
+  100%  { clip-path: polygon(80% 0, 100% 0, 100% 100%, 80% 100%); }
 }
-
-
 @keyframes changeRoom-v3 {
-
-  0% {
-    clip-path: polygon(80% 0, 100% 0, 100% 100%, 80% 100%);
-  }
-
-  100% {
-    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
-  }
+  0% { clip-path: polygon(80% 0, 100% 0, 100% 100%, 80% 100%); }
+  100%  { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
 }
+
 
 .page {
   position: relative;
