@@ -1,34 +1,16 @@
 <script setup lang="ts">
 
-
-
 export type Room = {
   name: string;
   img: string;
 };
 
-type ActiveRoom = {
+type PropsRoomsPanel = {
+  rooms: Room[];
   activeRoom?: string
 }
 
-type PropsRoomsPanel = {
-  rooms: Room[];
-  active: ActiveRoom
-}
-
-const rooms = ref<Room[]>([
-  { name: "Loft", img: "loft.jpg" },
-  { name: "High tech", img: "high-tech.jpeg" },
-  { name: "Scandinavian", img: "scandinavian.jpg" },
-  { name: "Modern", img: "modern.jpeg" },
-  { name: "Eco", img: "eco.jpeg" },
-  { name: "Country", img: "country.jpg" },
-  { name: "Japan", img: "japan.jpeg" },
-  { name: "Classic", img: "classic.jpeg" },
-  { name: "Home", img: "sky.jpeg" },
-]);
-
-const props = defineProps<ActiveRoom>()
+const props = defineProps<PropsRoomsPanel>()
 
 
 const emit = defineEmits(['click-room']);
@@ -44,7 +26,7 @@ const emitClickInTheRoom = ((room: Room) => {
     <div class="rooms__container">
       <div v-for="room in rooms" class="room" :key="room.name">
         <button @click="emitClickInTheRoom(room)" aria-label="кнопка выбора комнаты" class="room__button"
-          :class="{ 'room__button--active': props.activeRoom === room.img }">
+          :class="{ 'room__button--active': props.activeRoom === '' }">
           <img :src="`/images/min-${room.img}`" :alt="room.name" />
         </button>
         <div class="room__title">

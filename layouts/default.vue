@@ -169,6 +169,22 @@ const handleClickMainSection = (e: Event) => {
   flagChangeRoom.value = false;
 }
 
+
+
+
+const roomsData = ref<Room[]>([
+  { name: "Loft", img: "loft.jpg" },
+  { name: "High tech", img: "high-tech.jpeg" },
+  { name: "Scandinavian", img: "scandinavian.jpg" },
+  { name: "Modern", img: "modern.jpeg" },
+  { name: "Eco", img: "eco.jpeg" },
+  { name: "Country", img: "country.jpg" },
+  { name: "Japan", img: "japan.jpeg" },
+  { name: "Classic", img: "classic.jpeg" },
+  { name: "Home", img: "sky.jpeg" },
+]);
+
+
 onMounted(() => {
 
 })
@@ -200,7 +216,7 @@ onBeforeUnmount(() => {
       </div>
 
       <div class="page__rooms" :class="{ 'page__rooms--hidden': !flagChangeRoom }">
-        <PanelsRoomsPanel @click-room="handleChangeRoom" :active-room="roomUserImg" />
+        <PanelsRoomsPanel @click-room="handleChangeRoom" :active-room="roomUserImg" :rooms="roomsData" />
       </div>
     </main>
 

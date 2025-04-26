@@ -9,7 +9,6 @@ const emitEvent = () => {
   emit('sort-select', sortData);
 }
 
-// SelectSort.vue
 </script>
 <template>
 
