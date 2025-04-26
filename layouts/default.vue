@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { PanelsAppRooms, PanelsSettingPage, SectionsFooter, UiBaseLogoButton } from "#components";
 
-import type { Room } from "~/components/panels/AppRooms.vue";
+import type { Room } from "~/components/panels/RoomsPanel.vue";
 
 const authStore = useAuthStore();
 const projectsStore = useProjectsStore();
@@ -201,7 +200,7 @@ onBeforeUnmount(() => {
       </div>
 
       <div class="page__rooms" :class="{ 'page__rooms--hidden': !flagChangeRoom }">
-        <PanelsAppRooms @click-room="handleChangeRoom" :active-room="roomUserImg" />
+        <PanelsRoomsPanel @click-room="handleChangeRoom" :active-room="roomUserImg" />
       </div>
     </main>
 
