@@ -11,6 +11,11 @@ type ActiveRoom = {
   activeRoom?: string
 }
 
+type PropsRoomsPanel = {
+  rooms: Room[];
+  active: ActiveRoom
+}
+
 const rooms = ref<Room[]>([
   { name: "Loft", img: "loft.jpg" },
   { name: "High tech", img: "high-tech.jpeg" },

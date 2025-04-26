@@ -1,33 +1,15 @@
 <script lang="ts" setup>
 
-
-
-
 const sort = ref('');
 const emit = defineEmits(['sort-select'])
 
 const emitEvent = () => {
   const sortData = sort.value ? sort.value : 'default:default'
-  console.log(sortData,'emitEvent');
   
   emit('sort-select', sortData);
 }
 
-// const handleClick = () => {
-//   resetSort();
-//   emitEvent();
-// }
-
-
-
-function resetSort() {
-  sort.value = '';
-}
-
-
-
-
-
+// SelectSort.vue
 </script>
 <template>
 
@@ -45,15 +27,14 @@ function resetSort() {
 
 
 <style lang="scss" scoped>
-.panel-sort {
 
+.panel-sort {
   display: flex;
   gap: 20px;
 
   height: 30px;
   justify-content: space-between;
 
-  // background-color: rgba(255, 0, 0, 0.399);
   &__select {
     width: 100%;
     padding-left: 10px;
@@ -66,7 +47,7 @@ function resetSort() {
     outline: none;
 
   }
-
+  // SelectSort.vue
   &__option {
     background-color: black;
     color: white;
