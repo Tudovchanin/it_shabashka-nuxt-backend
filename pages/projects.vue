@@ -865,24 +865,24 @@ onUnmounted(async () => {
                 @sort-select="(sortValue: string) => handleEmitSort(sortValue, key)"
               />
               <div class="column-menu__title">цвет колонки</div>
-              <PanelsChangeColor
+              <PanelsColorsPanel
                 @click-color="(color: string) => handleChangeColorColumn(key, color)"
                 :colors="colors_column"
               />
               <div class="column-menu__title">градиент колонки</div>
-              <PanelsChangeColor
+              <PanelsColorsPanel
                 @click-color="(color: string) => handleChangeColorColumn(key, color)"
                 :colors="gradient_column"
               />
               <div class="column-menu__title">Сбросить цвет</div>
-              <PanelsChangeColor
+              <PanelsColorsPanel
                 @click-color="(color: string) => handleChangeColorColumn(key, color)"
                 :colors="color_transparent"
                 ><img
                   class="reset-color-img"
                   src="/images/icon-close.png"
                   alt="сбросить цвет"
-              /></PanelsChangeColor>
+              /></PanelsColorsPanel>
             </div>
           </Transition>
 
@@ -970,7 +970,7 @@ onUnmounted(async () => {
           <template #color>
             <div style="margin-bottom: 10px">изменить цвет карточки</div>
 
-            <PanelsChangeColor
+            <PanelsColorsPanel
               @click-color="(color: string) => handleChangeColorCard(asidePanelData?.$id || '', color)"
               :colors="colors_card"
             />
