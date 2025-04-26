@@ -31,7 +31,6 @@ type SortColumns = {
 };
 
 // store
-const authStore = useAuthStore();
 const projectsStore = useProjectsStore();
 const addFormStore = useFormAddStore();
 const commentsStore = useCommentsStore();
