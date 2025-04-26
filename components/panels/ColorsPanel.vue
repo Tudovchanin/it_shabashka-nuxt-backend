@@ -12,7 +12,6 @@ const emit = defineEmits(['click-color']);
 const emitClick = (color:string)=> {
   emit('click-color', color)
 }
-// ChangeColor
 </script>
 <template>
 
