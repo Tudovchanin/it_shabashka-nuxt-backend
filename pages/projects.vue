@@ -40,94 +40,43 @@ const eventStore = useEventStore();
 const colorColumnStore = useColumnColor();
 
 // state kanban / project / kanbanOriginal-нужен для восстановления state kanban без перезагрузки
+
 const projects = ref<DataCardAppWrite[]>([]);
-const kanbanOriginal = ref<Kanban>({
-  [ProjectStatus.NEW]: [],
-  [ProjectStatus.IN_PROGRESS]: [],
-  [ProjectStatus.REVIEW]: [],
-  [ProjectStatus.REVISION]: [],
-  [ProjectStatus.DONE]: [],
-});
-const kanban = ref<Kanban>({
-  [ProjectStatus.NEW]: [],
-  [ProjectStatus.IN_PROGRESS]: [],
-  [ProjectStatus.REVIEW]: [],
-  [ProjectStatus.REVISION]: [],
-  [ProjectStatus.DONE]: [],
-});
 
-// state открытие закрытие колонок
-const hiddenColumns = ref<boolean[]>([]);
-
-// state сортировки
-const stateSortColumn = markRaw<SortColumns>({
-  price: {
-    [ProjectStatus.NEW]: "default",
-    [ProjectStatus.IN_PROGRESS]: "default",
-    [ProjectStatus.REVIEW]: "default",
-    [ProjectStatus.REVISION]: "default",
-    [ProjectStatus.DONE]: "default",
-  },
-  deadline: {
-    [ProjectStatus.NEW]: "default",
-    [ProjectStatus.IN_PROGRESS]: "default",
-    [ProjectStatus.REVIEW]: "default",
-    [ProjectStatus.REVISION]: "default",
-    [ProjectStatus.DONE]: "default",
-  },
-});
 
 // flags
-let flagClickCard = false;
-let flagEventSelect = false;
+// let flagClickCard = false;
 
 // ref ссылки на элементы DOM
 const refPageProjects = ref();
-const refKanban = ref();
-const refMenuColumn = ref();
+
 const refPanelAside = ref();
 const refFormAdd = ref();
-const refWrapperColumn = ref();
 
 // -------------------------------------------------------------------------
 
 // CARDS / COLUMNS:
 
-// получение карточек и добавление их в колонки с проверкой markRaw stateSortColumn
+const handleClickCard = (project: DataCardAppWrite) => {
+
+  if (project) {
+    asidePanelData.value = project;
+  
+  }
+  asidePanelVisible.value = true;
+  
+};
+
 
 async function getProjects(arrProjects: DataCardAppWrite[]) {
   projects.value = arrProjects;
-
-  resetKanban();
-  initKanban();
-  applyColumnSorting();
-  const elemActive = document.querySelector(".highlight");
-  if (elemActive) {
-    elemActive.classList.remove("highlight");
-  }
 }
 
-// добавление карточки через форму
-const handleSubmitCreateCard = async (project: FormCardKanban) => {
-  await createProject(project);
-  await getProjects(projectsStore.projects);
-};
 async function createProject(project: FormCardKanban) {
   const dataProject = {
     ...project,
   };
   await projectsStore.createProject(dataProject);
-}
-
-// Удаление карточки
-const handleDeleteCard = async (project: DataCardAppWrite) => {
-  await deleteProject(project);
-  await getProjects(projectsStore.projects);
-  asidePanelVisible.value = false;
-};
-async function deleteProject(project: DataCardAppWrite) {
-  await projectsStore.deleteProject(project.$id);
-  // await getProjects();
 }
 
 // добавление карточки в колонку
@@ -136,84 +85,26 @@ async function addCardInColumn(projectId: string, columnStatus: string) {
   await projectsStore.getProjectsByUser();
   await getProjects(projectsStore.projects);
 }
-
-// сортировка карточек
-const handleEmitSort = (sortValue: string, key: TypeProjectStatus) => {
-  const [nameBySort, direction] = sortValue.split(":");
-  if (direction === "desc") {
-    if (nameBySort === "price") {
-      sortDesc(kanban.value[key], nameBySort);
-      stateSortColumn[nameBySort][key] = "desc";
-      resetStateSortColumn(stateSortColumn.deadline);
-    } else {
-      sortDateStringDesc(kanban.value[key], nameBySort);
-      stateSortColumn[nameBySort][key] = "desc";
-      resetStateSortColumn(stateSortColumn.price);
-    }
-  } else if (direction === "asc") {
-    if (nameBySort === "price") {
-      sortAsc(kanban.value[key], nameBySort);
-      stateSortColumn[nameBySort][key] = "asc";
-      resetStateSortColumn(stateSortColumn.deadline);
-    } else {
-      sortDateStringAsc(kanban.value[key], nameBySort);
-      stateSortColumn[nameBySort][key] = "asc";
-      resetStateSortColumn(stateSortColumn.price);
-    }
-  } else {
-    kanban.value[key] = [];
-    kanban.value[key] = [...kanbanOriginal.value[key]];
-    resetStateSortColumn(stateSortColumn.price);
-    resetStateSortColumn(stateSortColumn.deadline);
-  }
+const handleDeleteProject = async (project: DataCardAppWrite) => {
+  await deleteProject(project);
+  await getProjects(projectsStore.projects);
+  asidePanelVisible.value = false;
 };
 
-// сворачивание колонки
-const handleHiddenColumn = (i: number) => {
-  hiddenColumns.value[i] = !hiddenColumns.value[i];
-};
-
+async function deleteProject(project: DataCardAppWrite) {
+  await projectsStore.deleteProject(project.$id);
+  // await getProjects();
+}
 // -------------------------------------------------------------------------
 
-// ПАНЕЛЬ МЕНЮ
 
-// обработчик клика на kanban(скрывает меню)
-const handleClickKanban = (e: Event) => {
-  const elem = e.target as HTMLElement;
-  if (
-    elem.closest(".kanban-column__menu") ||
-    elem.closest(".kanban-column__button-open-menu")
-  )
-    return;
 
-  indexPanelMenu.value = -1;
-};
 
-// обработчик открытия панели меню(сортировка, изменение цвета)
-const indexPanelMenu = ref(-1);
-const handleClickColumnDots = (i: number) => {
-  if (i === indexPanelMenu.value) {
-    indexPanelMenu.value = -1;
-  } else {
-    indexPanelMenu.value = i;
-  }
-  resetValueMenu();
-  for (let index = 0; index < refMenuColumn.value.length; index++) {
-    resetTransformXY(refMenuColumn.value[index]);
-  }
-};
 
-// цвета
-const color_transparent = ["rgba(255, 255, 255, 0.199)"];
-const colors_column = COLORS_COLUMN;
-const gradient_column = GRADIENT_COLUMN;
 
-// обработчик изменения цвета колонок
-const handleChangeColorColumn = (key: TypeProjectStatus, color: string) => {
-  colorColumnStore.saveColor(key, color);
-};
 
-// -------------------------------------------------------------------------
+
+
 
 // ФОРМА
 
@@ -232,6 +123,13 @@ const handleAddProject = (status: TypeProjectStatus) => {
   addFormStore.setOpen(true);
   statusNewProject.value = status;
 };
+
+// добавление карточки через форму
+const handleSubmitCreateCard = async (project: FormCardKanban) => {
+  await createProject(project);
+  await getProjects(projectsStore.projects);
+};
+
 const handleChangeStatus = (status: TypeProjectStatus) => {
   statusNewProject.value = status;
 };
@@ -245,15 +143,6 @@ const asidePanelData = ref<DataCardAppWrite | null>(null);
 // state боковой панели
 const asidePanelVisible = ref(false);
 
-// обработчик клика на карточку для появления боковой панели
-const handleClickCard = (project: DataCardAppWrite) => {
-  if (!flagClickCard) return;
-  if (project) {
-    asidePanelData.value = project;
-  }
-  asidePanelVisible.value = true;
-  flagClickCard = false;
-};
 
 // клик на боковую панель и ее контейнер
 const handleClickInAsidePanel = (e: Event) => {
@@ -337,330 +226,15 @@ const colors_card = COLORS_CARD;
 
 // DRAG AND DROP:
 
-// state card drag and drop
-let selectedProduct: HTMLElement | null = null;
-let valueTransformX = 0;
-let valueTransformY = 0;
-let touchClientMoveX = 0;
-let touchClientMoveY = 0;
-let clickProductX = 0;
-let clickProductY = 0;
-
-// state menu column drag and drop
-let selectedColumnMenu: HTMLElement | null = null;
-let valueMenuTransformX = 0;
-let prevValueMenuTransformX = 0;
-let clickMenuX = 0;
-
-// .kanban-column__container-cards и scrollYContainerCards, нужны для исправления прыжка карточки по вертикали при dragover,
-//  когда в kanban-column__container-cards появляется вертикальный scroll
-let elemContainerCards: null | HTMLElement = null;
-let scrollYContainerCards = 0;
-
-// переменные, нужны для исправления прыжка карточки по вертикали при dragover,
-// когда появляется горизонтальный scroll в page-project
-let scrollXPageProducts = 0;
 let baseScrollWidthPageProducts = 0;
 
-// таймер handleTouchEnd
-let timerId: number | null = null;
-
-// id перетаскиваемой карточки
-
-let projectIdDragover: string | null = null;
-
-// обработчики drag and drop
-
-function handleTouchStart(e: any) {
-  // карточка
-  if (e.target.closest(".kanban__card")) {
-    selectedProduct = e.target.closest(".kanban__card");
-
-    if (!selectedProduct) return;
-
-    clickProductX = e.type !== "mousedown" ? e.touches[0].clientX : e.clientX;
-    clickProductY = e.type !== "mousedown" ? e.touches[0].clientY : e.clientY;
-
-    flagClickCard = true;
-    projectIdDragover = selectedProduct.getAttribute("data-project-id");
-
-    elemContainerCards = e.target.closest(".kanban-column__container-cards");
-
-    if (!elemContainerCards) return;
-
-    scrollYContainerCards = elemContainerCards.scrollTop;
-  }
-
-  // меню колонки
-  if (e.target.closest(".kanban-column__menu")) {
-    e.target.closest(".panel-sort")
-      ? (flagEventSelect = true)
-      : (flagEventSelect = false);
-
-    selectedColumnMenu = e.target.closest(".kanban-column__menu");
-
-    if (!selectedColumnMenu) return;
-
-    clickMenuX = e.type !== "mousedown" ? e.touches[0].clientX : e.clientX;
-  }
-}
-
-function handleTouchMove(e: any) {
-  if (selectedProduct) {
-    e.preventDefault();
-    indexPanelMenu.value = -1;
-
-    const clientX = e.type !== "mousemove" ? e.touches[0].clientX : e.clientX;
-    const clientY = e.type !== "mousemove" ? e.touches[0].clientY : e.clientY;
-
-    if (
-      clientX + 95 > window.innerWidth &&
-      canScrollRight(refPageProjects.value, baseScrollWidthPageProducts)
-    ) {
-      refPageProjects.value.scrollLeft += 10;
-      scrollXPageProducts += 10;
-    } else if (clientX - 95 < 0 && refPageProjects.value.scrollLeft > 20) {
-      refPageProjects.value.scrollLeft -= 10;
-      scrollXPageProducts -= 10;
-    }
-
-    valueTransformX = clientX - clickProductX + scrollXPageProducts;
-    valueTransformY = clientY - clickProductY - scrollYContainerCards;
-
-    touchClientMoveX = clientX;
-    touchClientMoveY = clientY;
-
-    selectedProduct.style.transform = `translate(${valueTransformX}px, ${valueTransformY}px) rotate(10deg)`;
-
-    selectedProduct.classList.add(`selected-product`);
-
-    flagClickCard = false;
-
-    //удаляем предыдущую  подсветку колонки под карточкой
-    removeHighlighted();
-
-    const hoverDataElem = {
-      x: touchClientMoveX,
-      y: touchClientMoveY,
-      classHover: "highlight",
-      targetClass: "kanban__wrapper-column",
-    };
-
-    // подсветка колонки под карточкой(функция из utils)
-    hoverInElemUnder(hoverDataElem);
-
-    // записываем в store для реализации авто scroll по из default layout
-    eventStore.initDragover();
-    if (projectIdDragover) {
-      eventStore.setCardIdDragOver(projectIdDragover);
-    }
-
-    refPageProjects.value.style.scrollSnapType = "none";
-  }
-
-  if (selectedColumnMenu && !flagEventSelect) {
-    e.preventDefault();
-
-    const clientX = e.type !== "mousemove" ? e.touches[0].clientX : e.clientX;
-
-    valueMenuTransformX = clientX - clickMenuX + prevValueMenuTransformX;
-
-    touchClientMoveX = clientX;
-
-    selectedColumnMenu.style.transform = `translate(${valueMenuTransformX}px, ${0}px)`;
-
-    selectedColumnMenu.classList.add(`selected-menu`);
-  }
-}
-
-function handleTouchEnd() {
-  // записываем в store  drag over
-  eventStore.stopDragover();
-
-  if (selectedColumnMenu) {
-    prevValueMenuTransformX = valueMenuTransformX;
-    selectedColumnMenu.style.transform = `translate(${valueMenuTransformX}px, ${0}px)`;
-    resetElemSelectedMenu();
-    refPageProjects.value.style.scrollSnapType = "x mandatory";
-  }
-
-  if (selectedProduct) {
-    const elementsUnderCard = document.elementsFromPoint(
-      touchClientMoveX,
-      touchClientMoveY
-    );
-    const projectStatus = selectedProduct.getAttribute("data-project-status");
-    let flagUpdateColumn = false;
-    let columnStatus: string | null = null;
-
-    if (elementsUnderCard && projectStatus) {
-      for (let index = 0; index < elementsUnderCard.length; index++) {
-        const elemUnderCard = elementsUnderCard[index];
-        columnStatus = elemUnderCard.getAttribute("data-status") || null;
-        if (columnStatus && projectStatus !== columnStatus) {
-          flagUpdateColumn = true;
-          break;
-        }
-      }
-    }
-
-    if (!flagUpdateColumn) {
-      selectedProduct.style.transform = `translate(${0}px, ${0}px)`;
-      resetElemSelectedCard();
-      resetValueCard();
-      removeHighlighted();
-    } else {
-      const projectId = projectIdDragover;
-      const copySelectElem = selectedProduct;
-
-      selectedProduct.style.transform = `translate(${valueTransformX}px, ${valueTransformY}px)`;
-      resetElemSelectedCard();
-      resetValueCard();
-      copySelectElem.classList.add("card-drop-animation");
-
-      if (columnStatus && projectId) {
-        addCardInColumn(projectId, columnStatus);
-      }
-    }
-
-    flagUpdateColumn = false;
-
-    // добавляем задержку, что бы колонки выравнивались из за x mandatory, когда пройдет 1500мс после начала анимации cardDrop
-    timerId = window.setTimeout(() => {
-      refPageProjects.value.style.scrollSnapType = "x mandatory";
-    }, 1500);
-  }
-
-  projectIdDragover = null;
-}
-
-// Сброс состояния переменных DRAG AND DROP
-function resetValueCard() {
-  valueTransformX = 0;
-  valueTransformY = 0;
-  touchClientMoveX = 0;
-  touchClientMoveY = 0;
-  scrollXPageProducts = 0;
-  scrollYContainerCards = 0;
-}
-function resetElemSelectedCard() {
-  if (!selectedProduct) return;
-  selectedProduct.classList.remove(`selected-product`);
-  selectedProduct = null;
-}
-function resetValueMenu() {
-  valueMenuTransformX = 0;
-  prevValueMenuTransformX = 0;
-}
-function resetElemSelectedMenu() {
-  if (!selectedColumnMenu) return;
-  selectedColumnMenu.classList.remove(`selected-menu`);
-  selectedColumnMenu = null;
-}
 
 // -------------------------------------------------------------------------
-
-// HELPERS:
-
-// добавление в ref kanban и kanbanOriginal данных из ref projects
-function initKanban() {
-  for (let index = 0; index < projects.value.length; index++) {
-    const project = projects.value[index];
-
-    if (project && project.status) {
-      kanban.value[project.status].push(project);
-      kanbanOriginal.value[project.status].push(project);
-    }
-  }
-}
-
-// сброс подсветки
-
-function removeHighlighted() {
-  const elemHighlighted = document.querySelector(".highlight");
-  if (elemHighlighted) {
-    elemHighlighted.classList.remove("highlight");
-  }
-}
-
-// сброс state ref kanban и  ref kanbanOriginal
-function resetKanban() {
-  kanban.value = {
-    [ProjectStatus.NEW]: [],
-    [ProjectStatus.IN_PROGRESS]: [],
-    [ProjectStatus.REVIEW]: [],
-    [ProjectStatus.REVISION]: [],
-    [ProjectStatus.DONE]: [],
-  };
-
-  kanbanOriginal.value = {
-    [ProjectStatus.NEW]: [],
-    [ProjectStatus.IN_PROGRESS]: [],
-    [ProjectStatus.REVIEW]: [],
-    [ProjectStatus.REVISION]: [],
-    [ProjectStatus.DONE]: [],
-  };
-}
-
-// сортировка, приводит к состоянию которое записано в markRaw stateSortColumn
-function applyColumnSorting() {
-  for (const sortName in stateSortColumn) {
-    if (Object.prototype.hasOwnProperty.call(stateSortColumn, sortName)) {
-      for (const columnName in stateSortColumn[sortName]) {
-        if (
-          Object.prototype.hasOwnProperty.call(
-            stateSortColumn[sortName],
-            columnName
-          )
-        ) {
-          const columnData = kanban.value[columnName as TypeProjectStatus];
-          const nameSort = sortName;
-          const direction = stateSortColumn[sortName][columnName];
-
-          if (direction === "default") continue;
-
-          if (direction === "desc") {
-            if (nameSort === "price") {
-              sortDesc(columnData, nameSort);
-            } else {
-              sortDateStringDesc(columnData, nameSort);
-            }
-          } else if (direction === "asc") {
-            if (nameSort === "price") {
-              sortAsc(columnData, nameSort);
-            } else {
-              sortDateStringAsc(columnData, nameSort);
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-// сброс в markRaw stateSortColumn к значению default
-function resetStateSortColumn(obj: { [index: string]: string }) {
-  for (const key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      obj[key] = "default";
-    }
-  }
-}
-
-//  сброс transform
-function resetTransformXY(elem: HTMLElement) {
-  elem.style.transform = `translate(${0}px, ${0}px)`;
-}
-
-// расчет общей стоимости карточек в колонке
-function getSumPriceInColumn(key: TypeProjectStatus): number {
-  const sumPrice = kanban.value[key].reduce((sum, card) => sum + card.price, 0);
-  return sumPrice;
-}
 
 // проверка
 function canScrollRight(element: HTMLElement, scrollWidth: number): boolean {
   const { scrollLeft, clientWidth } = element;
+
   return scrollLeft + clientWidth < scrollWidth;
 }
 
@@ -668,10 +242,11 @@ function canScrollRight(element: HTMLElement, scrollWidth: number): boolean {
 
 // watcher
 
+
 watch(
   () => searchStore.flagSearch,
-  (newFlagSearch) => {
-    if (newFlagSearch) {
+  (search) => {
+    if (search) {
       const nameSearchedCard = searchStore.searchQuery;
       const allCards = projectsStore.projects;
 
@@ -683,6 +258,8 @@ watch(
         getProjects(validCards);
       }
     } else {
+      console.log('watch getProjects(projectsStore.projects);');
+      
       getProjects(projectsStore.projects);
     }
   }
@@ -703,54 +280,43 @@ watch(
 
 // хуки
 
-onBeforeMount(() => {
-  colorColumnStore.loadColor();
-
-  for (const key in kanban.value) {
-    if (Object.prototype.hasOwnProperty.call(kanban.value, key)) {
-      hiddenColumns.value.push(false);
-    }
-  }
+onBeforeMount(async () => {
+  // await projectsStore.getProjectsByUser();
+  // await getProjects(projectsStore.projects);
+  console.log(projects.value,'projects.value onBeforeMount');
+  
 });
 
 onMounted(async () => {
-  baseScrollWidthPageProducts = refPageProjects.value.scrollWidth;
-
   await projectsStore.getProjectsByUser();
-  getProjects(projectsStore.projects);
-
-  refKanban.value.addEventListener("touchstart", handleTouchStart, {
-    passive: false,
-  });
-  refKanban.value.addEventListener("touchmove", handleTouchMove, {
-    passive: false,
-  });
-  refKanban.value.addEventListener("mousedown", handleTouchStart, {
-    passive: false,
-  });
-  refKanban.value.addEventListener("mousemove", handleTouchMove, {
-    passive: false,
-  });
-
-  window.addEventListener("touchend", handleTouchEnd);
-  window.addEventListener("mouseup", handleTouchEnd);
+  await getProjects(projectsStore.projects);
+  console.log(projects.value,'projects.value onMounted');
+  
+  baseScrollWidthPageProducts = refPageProjects.value.scrollWidth;
 });
 
-onUnmounted(async () => {
-  if (refKanban.value) {
-    refKanban.value.removeEventListener("touchstart", handleTouchStart);
-    refKanban.value.removeEventListener("touchmove", handleTouchMove);
-    refKanban.value.removeEventListener("mousedown", handleTouchStart);
-    refKanban.value.removeEventListener("mousemove", handleTouchMove);
+onUnmounted(async () => {});
 
-    window.removeEventListener("touchend", handleTouchEnd);
-    window.removeEventListener("mouseup", handleTouchEnd);
-  }
+const isDraggingAllowed = ref(false);
 
-  if (timerId) {
-    clearInterval(timerId);
+const handleScrollPage = (direction: "left" | "right") => {
+  refPageProjects.value.style.scrollSnapType = "none";
+
+  if (
+    direction === "right" &&
+    canScrollRight(refPageProjects.value, baseScrollWidthPageProducts)
+  ) {
+    isDraggingAllowed.value = true;
+
+    refPageProjects.value.scrollLeft += 10;
+  } else if (direction === "left" && refPageProjects.value.scrollLeft > 20) {
+    isDraggingAllowed.value = true;
+
+    refPageProjects.value.scrollLeft -= 10;
+  } else {
+    isDraggingAllowed.value = false;
   }
-});
+};
 </script>
 
 <template>
@@ -758,6 +324,7 @@ onUnmounted(async () => {
     <div v-if="loadStore.isLoading" class="page-project__loader">
       <LoadersAppLoader />
     </div>
+
     <div
       @click="handleClickWrapperFormAdd"
       class="page-project__wrapper-form-add"
@@ -784,136 +351,16 @@ onUnmounted(async () => {
       </div>
     </div>
 
-    <div
-      @click="handleClickKanban"
-      ref="refKanban"
-      class="page-project__kanban kanban"
-    >
-      <div
-        ref="refWrapperColumn"
-        v-for="(column, key, i) in kanban"
-        :key="key"
-        :style="{ '--column-color': colorColumnStore.columnColors[key] }"
-        class="kanban__wrapper-column"
-        :data-status="key"
-      >
-        <div
-          :style="{
-            background: colorColumnStore.columnColors[key],
-          }"
-          class="kanban-column"
-          :class="{ 'kanban-column--hidden': hiddenColumns[i] }"
-        >
-          <div
-            :aria-label="STATUS_TRANSLATIONS[key]"
-            class="kanban-column__title"
-          >
-            {{ STATUS_TRANSLATIONS[key] }}
-          </div>
-          <button
-            aria-hidden="true"
-            @click="handleHiddenColumn(i)"
-            class="kanban-column__toggle-visible"
-          >
-            <img
-              src="/images/icon-toggle-column-white.png"
-              alt="кнопка свернуть-развернуть колонку"
-            />
-          </button>
-          <button
-            @click="handleClickColumnDots(i)"
-            class="kanban-column__button-open-menu"
-          >
-            <img src="/images/icon-1.png" alt="открыть меню колонки" />
-          </button>
-          <button
-            @click="handleAddProject(key)"
-            class="kanban-column__add-project"
-          >
-            <span
-              ><img
-                src="/public/images/icon-2.png"
-                alt="добавить карточку" /></span
-            ><span>добавить шабашку</span>
-          </button>
-
-          <Transition name="fade">
-            <div
-              v-show="indexPanelMenu === i"
-              ref="refMenuColumn"
-              class="kanban-column__menu column-menu"
-              :class="{
-                'kanban-column__menu--open': indexPanelMenu === i,
-                'kanban-column__menu--test': i === 0,
-              }"
-            >
-              <button
-                @click.stop="indexPanelMenu = -1"
-                class="kanban-column__menu-close"
-              >
-                <img src="/images/icon-close.png" alt="закрыть меню" />
-              </button>
-              <div class="column-menu__title">
-                {{ STATUS_TRANSLATIONS[key] }}
-              </div>
-              <div class="column-menu__title">
-                Общая стоимость карточек в колонке:
-                <div class="total-cost">{{ getSumPriceInColumn(key) }} руб</div>
-              </div>
-              <div class="column-menu__title">Сортировать:</div>
-              <PanelsSelectSort
-                @sort-select="(sortValue: string) => handleEmitSort(sortValue, key)"
-              />
-              <div class="column-menu__title">цвет колонки</div>
-              <PanelsColorsPanel
-                @click-color="(color: string) => handleChangeColorColumn(key, color)"
-                :colors="colors_column"
-              />
-              <div class="column-menu__title">градиент колонки</div>
-              <PanelsColorsPanel
-                @click-color="(color: string) => handleChangeColorColumn(key, color)"
-                :colors="gradient_column"
-              />
-              <div class="column-menu__title">Сбросить цвет</div>
-              <PanelsColorsPanel
-                @click-color="(color: string) => handleChangeColorColumn(key, color)"
-                :colors="color_transparent"
-                ><img
-                  class="reset-color-img"
-                  src="/images/icon-close.png"
-                  alt="сбросить цвет"
-              /></PanelsColorsPanel>
-            </div>
-          </Transition>
-
-          <div class="kanban-column__container-cards">
-            <div
-              :style="{ background: project.color }"
-              :data-project-status="key"
-              :data-project-id="project.$id"
-              v-for="(project, i) in column"
-              class="kanban__card"
-              :key="project.$id"
-            >
-              <CardsKanbanCard
-                :color="project.color"
-                :id="project.$id"
-                :status="project.status"
-                :client="project.client"
-                :name="project.name"
-                :link="project.link"
-                :price="project.price"
-                :deadline="project.deadline"
-                :createdAt="project.$createdAt"
-                :description="project.description"
-                @click-card="handleClickCard(project)"
-                @delete-card="handleDeleteCard(project)"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <KanbanBoard
+     
+      @scroll-page="handleScrollPage"
+      @card-create="handleAddProject"
+      @card-move-to-column="addCardInColumn"
+      @card-delete="handleDeleteProject"
+      @click-card="handleClickCard"
+      :is-dragging-allowed="isDraggingAllowed"
+      :projects="projects"
+    />
 
     <div
       @click="handleClickInAsidePanel"
@@ -930,7 +377,7 @@ onUnmounted(async () => {
             alt="закрыть боковую панель"
           />
         </button>
-        <SectionsAsideCardInfo
+         <SectionsAsideCardInfo
           v-if="asidePanelData?.$id"
           :key="asidePanelData?.$id"
           ref="refPanelAside"
@@ -963,7 +410,7 @@ onUnmounted(async () => {
               :link="asidePanelData?.link"
               :deadline="asidePanelData?.deadline"
               :createdAt="asidePanelData?.$createdAt || '-'"
-              @delete-card="asidePanelData && handleDeleteCard(asidePanelData)"
+              @delete-card="asidePanelData && handleDeleteProject(asidePanelData)"
             />
           </template>
 
@@ -1483,11 +930,6 @@ onUnmounted(async () => {
   }
 }
 
-// .kanban:has(.highlight) .kanban__wrapper-column:not(.highlight) {
-//   background-color: rgba(101, 101, 101, 0.513);
-
-// }
-
 .reset-color-img {
   position: absolute;
   left: 50%;
@@ -1610,5 +1052,3 @@ onUnmounted(async () => {
   }
 }
 </style>
-
-<!-- sotto36623@gmail.com -->
