@@ -137,8 +137,6 @@ const emitUpdateCard = () => {
   }
 
   if (modelClient.value.length === 0) {
-    console.log("kl;kl;kjjjjjjjjjjjj", modelClient.value);
-
     refClientNameInput.value.setCustomValidity("");
     refClientNameInput.value.setCustomValidity(
       "Имя клиента не может быть пустым"
@@ -272,7 +270,6 @@ defineExpose({
 
 
 onMounted(() => {
-  console.log("создание маски боковой панели");
   heightDescriptionTextarea.value = refDescription.value.offsetHeight;
   removePhoneMask = inputMask(
     maskStart,
@@ -284,10 +281,8 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-  console.log("удаление маски боковой панели");
 
   if (removePhoneMask) {
-    console.log("удаляем маску");
     removePhoneMask();
   }
 });
@@ -349,7 +344,7 @@ onBeforeUnmount(() => {
       </div>
 
       <div class="info-project__price">
-        <span>Цена: </span><span>{{ props.price }}</span> р
+        <span>Цена: </span><span>{{ props.price?.toLocaleString('ru-RU') }}</span> р
       </div>
 
       <a

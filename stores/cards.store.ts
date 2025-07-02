@@ -248,32 +248,32 @@ export const useProjectsStore = defineStore('projects', () => {
 
   const getProjectsByUser = async () => {
     error.value = null;
-    try {
-      const response = await DB.listDocuments(
-        DB_ID,
-        DB_COLLECTION_PROJECTS_ID,
-        [
-          Query.equal('userId', authStore.user.$id)
-        ]
-      );
+    // try {
+    //   const response = await DB.listDocuments(
+    //     DB_ID,
+    //     DB_COLLECTION_PROJECTS_ID,
+    //     [
+    //       Query.equal('userId', authStore.user.$id)
+    //     ]
+    //   );
 
-      projects.value = response.documents as DataCardAppWrite[];
-      console.log('Документы пользователя store:', projects.value);
+    //   projects.value = response.documents as DataCardAppWrite[];
+    //   console.log('Документы пользователя store:', projects.value);
 
-    } catch (e: unknown) {
-      if (e instanceof Error) {
-        error.value = e;
-      } else {
-        error.value = new Error(String(error));
-      }
-      console.error('Ошибка при получении документов:', error);
-    } finally {
-    }
+    // } catch (e: unknown) {
+    //   if (e instanceof Error) {
+    //     error.value = e;
+    //   } else {
+    //     error.value = new Error(String(error));
+    //   }
+    //   console.error('Ошибка при получении документов:', error);
+    // } finally {
+    // }
 
     console.log('Запрос на проекты пошел');
     
     
-    // projects.value = dataTest 
+    projects.value = dataTest 
   }
 
   const createProject = async (data: any) => {

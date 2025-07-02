@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ProjectStatus } from "~/stores/cards.store";
 import type { DataCardAppWrite, TypeProjectStatus } from "~/stores/cards.store";
-import type { FormCardKanban } from "~/components/forms/CreateProject.vue";
+
 import { STATUS_TRANSLATIONS } from "~/constants/project.constants";
 import {
   sortAsc,
@@ -11,7 +11,6 @@ import {
 } from "#imports";
 
 import {
-  COLORS_CARD,
   GRADIENT_COLUMN,
   COLORS_COLUMN,
 } from "~/constants/project.constants";
@@ -26,12 +25,6 @@ type SortColumns = {
   };
 };
 
-// store
-const projectsStore = useProjectsStore();
-const addFormStore = useFormAddStore();
-const commentsStore = useCommentsStore();
-const loadStore = useIsLoadingStore();
-const searchStore = useSearchStore();
 const eventStore = useEventStore();
 const colorColumnStore = useColumnColor();
 
@@ -47,8 +40,6 @@ watch(
     refreshKanban();
   }
 );
-
-// state kanban / project / kanbanOriginal-нужен для восстановления state kanban без перезагрузки
 
 type KanbanProps = {
   projects?: DataCardAppWrite[];
@@ -90,21 +81,15 @@ const stateSortColumn = markRaw<SortColumns>({
   },
 });
 
-// flags
-let flagClickCard = false;
-let flagEventSelect = false;
-
 // ref ссылки на элементы DOM
-
 const refKanban = ref();
 const refMenuColumn = ref();
-const refPanelAside = ref();
-const refFormAdd = ref();
 const refWrapperColumn = ref();
 
 
-
-
+// flags
+let flagClickCard = false;
+let flagEventSelect = false;
 
 
 const emit = defineEmits([
@@ -112,8 +97,41 @@ const emit = defineEmits([
   "card-create",
   "card-delete",
   "card-move-to-column",
-  "click-card"
+
+  "card-click",
+  "card-drag-start",
+  "card-drag",
+  "card-drag-end",
 ]);
+
+
+// создание карточки
+const emitCreateCard = (status: TypeProjectStatus) => {
+  emit("card-create", status);
+};
+
+// Удаление карточки
+const emitDeleteCard = async (project: DataCardAppWrite) => {
+  emit("card-delete", project);
+};
+
+// добавление карточки в колонку
+function emitAddCardInColumn(projectId: string, columnStatus: string) {
+  emit("card-move-to-column", projectId, columnStatus);
+}
+
+// обработчик клика на карточку
+const emitClickCard = (project: DataCardAppWrite) => {
+  if (!flagClickCard) return;
+  if (project) {
+    emit('card-click', project);
+  }
+  flagClickCard = false;
+};
+
+
+
+
 
 /**
  * Полностью обновляет состояние канбан-доски:
@@ -132,40 +150,6 @@ const emit = defineEmits([
   applyColumnSorting();
   removeHighlighted();
 }
-
-// создание карточки
-const emitCreateCard = (status: TypeProjectStatus) => {
-  emit("card-create", status);
-};
-
-// Удаление карточки
-const emitDeleteCard = async (project: DataCardAppWrite) => {
-  emit("card-delete", project);
-};
-
-// добавление карточки в колонку
-function emitAddCardInColumn(projectId: string, columnStatus: string) {
-  emit("card-move-to-column", projectId, columnStatus);
-}
-
-
-
-
-
-// добавление карточки через форму
-
-// const handleSubmitCreateCard = async (project: FormCardKanban) => {
-//   await createProject(project);
-//   // await getProjects(projectsStore.projects);
-// };
-
-// async function createProject(project: FormCardKanban) {
-//   const dataProject = {
-//     ...project,
-//   };
-//   await projectsStore.createProject(dataProject);
-// }
-
 
 
 
@@ -254,128 +238,6 @@ const handleChangeColorColumn = (key: TypeProjectStatus, color: string) => {
 
 
 
-
-
-// -------------------------------------------------------------------------
-
-// ФОРМА
-
-// обработчик клика на page-project__wrapper-form-add(закрывает форму)
-const handleClickWrapperFormAdd = (e: Event) => {
-  const elem = e.target as HTMLElement;
-  if (!refFormAdd.value.contains(elem)) {
-    addFormStore.setOpen(false);
-  }
-};
-
-// обработчик изменения статуса формы при нажатии на dots разных колонок
-// const statusNewProject = ref<TypeProjectStatus>("NEW");
-
-
-// const handleChangeStatus = (status: TypeProjectStatus) => {
-//   statusNewProject.value = status;
-// };
-
-// -------------------------------------------------------------------------
-
-//БОКОВАЯ ПАНЕЛЬ:
-
-// данные для вывода в боковой панели
-const asidePanelData = ref<DataCardAppWrite | null>(null);
-// state боковой панели
-const asidePanelVisible = ref(false);
-
-// обработчик клика на карточку для появления боковой панели
-const emitClickCard = (project: DataCardAppWrite) => {
-  if (!flagClickCard) return;
-  if (project) {
-    // asidePanelData.value = project;
-    emit('click-card', project);
-  }
-  // asidePanelVisible.value = true;
-  flagClickCard = false;
-};
-
-// клик на боковую панель и ее контейнер
-const handleClickInAsidePanel = (e: Event) => {
-  if (!e.target) return;
-  const elem = e.target as HTMLElement;
-  if (elem.closest(".page-project__aside-panel-inner")) return;
-
-  handleHiddenAsidePanel();
-};
-
-// обработчик скрытия боковой панели
-const handleHiddenAsidePanel = () => {
-  asidePanelVisible.value = false;
-};
-
-// обработчик добавления комментария
-const handleAddComment = async (comment: string, projectId: string) => {
-  await commentsStore.createComment({ text: comment, projectId: projectId });
-  if (asidePanelData.value) {
-    await commentsStore.getCommentsByCard(projectId);
-    asidePanelData.value.comments = commentsStore.comments;
-  }
-};
-// обработчик удаления комментария
-const handleDeleteComment = async (idComment: string, projectId: string) => {
-  await commentsStore.deleteComment(idComment);
-  if (asidePanelData.value) {
-    await commentsStore.getCommentsByCard(projectId);
-    asidePanelData.value.comments = commentsStore.comments;
-  }
-};
-// обработчик обновления данных карточки(project)
-// const handleUpdateCard = async (
-//   projectId: string,
-//   data: { [key: string]: string }
-// ) => {
-//   try {
-//     await refPanelAside.value.setStateFlagBlur(true);
-//     await projectsStore.updateProject(projectId, data);
-//     await projectsStore.getProjectsByUser();
-//     // await getProjects(projectsStore.projects);
-//     updateCardInAside(projectId);
-//   } catch (error) {
-//     console.log(error);
-//   } finally {
-//     await refPanelAside.value.setStateFlagBlur(false);
-//   }
-// };
-
-// обработчик изменения цвета карточкм
-const handleChangeColorCard = async (projectId: string, color: string) => {
-  if (!projectId) return;
-  await refPanelAside.value.setStateFlagBlur(true);
-
-  try {
-    await projectsStore.updateProject(projectId, { color: color });
-    await projectsStore.getProjectsByUser();
-    // await getProjects(projectsStore.projects);
-    updateCardInAside(projectId);
-    await refPanelAside.value.setStateFlagBlur(true);
-  } catch (error) {
-    console.log(error);
-  } finally {
-    refPanelAside.value.setStateFlagBlur(false);
-  }
-};
-
-// функция helpers, обновляет asidePanelData
-function updateCardInAside(projectId: string) {
-  const updateProject = projectsStore.projects.find(
-    (project) => project.$id === projectId
-  );
-  if (updateProject?.$id) {
-    asidePanelData.value = updateProject as DataCardAppWrite;
-  }
-}
-
-// цвета карточки в боковой панели
-const colors_card = COLORS_CARD;
-// -------------------------------------------------------------------------
-
 // DRAG AND DROP:
 
 // state card drag and drop
@@ -393,26 +255,26 @@ let valueMenuTransformX = 0;
 let prevValueMenuTransformX = 0;
 let clickMenuX = 0;
 
-// .kanban-column__container-cards и scrollYContainerCards, нужны для исправления прыжка карточки по вертикали при dragover,
-//  когда в kanban-column__container-cards появляется вертикальный scroll
+// .kanban-column__container-cards и scrollYContainerCards, нужны для исправления прыжка карточки по вертикали при dragover,когда в kanban-column__container-cards появляется вертикальный scroll
 let elemContainerCards: null | HTMLElement = null;
 let scrollYContainerCards = 0;
 
 // переменные, нужны для исправления прыжка карточки по вертикали при dragover,
 // когда появляется горизонтальный scroll в page-project
 let scrollXPageProducts = 0;
-let baseScrollWidthPageProducts = 0;
 
-// таймер handleTouchEnd
-// let timerId: number | null = null;
+
+function emitScroll(direction: "left" | "right") {
+  emit("scroll-page", direction);
+}
 
 // id перетаскиваемой карточки
-
 let projectIdDragover: string | null = null;
 
 // обработчики drag and drop
 
 function handleTouchStart(e: any) {
+
   // карточка
   if (e.target.closest(".kanban__card")) {
     selectedProduct = e.target.closest(".kanban__card");
@@ -445,27 +307,48 @@ function handleTouchStart(e: any) {
     clickMenuX = e.type !== "mousedown" ? e.touches[0].clientX : e.clientX;
   }
 }
+function canScrollRight(element: HTMLElement, scrollWidth: number): boolean {
+  // console.log(element,'elem', scrollWidth);
+  
+  const { scrollLeft, clientWidth } = element;
+  console.log(scrollLeft, clientWidth);
+  
 
-function emitScroll(direction: "left" | "right") {
-  console.log(direction, "emitScroll");
-
-  emit("scroll-page", direction);
+  return scrollLeft + clientWidth < scrollWidth;
 }
 
+
 function handleTouchMove(e: any) {
+
+
+
   if (selectedProduct) {
     e.preventDefault();
+    
+    emit('card-drag');
     indexPanelMenu.value = -1;
 
     const clientX = e.type !== "mousemove" ? e.touches[0].clientX : e.clientX;
     const clientY = e.type !== "mousemove" ? e.touches[0].clientY : e.clientY;
 
+
+  // console.log(refKanban.value.scrollWidth, 'refKanban.value.scrollWidth', clientX);
+   console.log( canScrollRight(refKanban.value, refKanban.value.scrollWidth ));
+   
+    
     if (clientX + 95 > window.innerWidth) {
+      console.log(clientX, window.innerWidth);
+
       emitScroll("right");
-      if (props.isDraggingAllowed) {
-        scrollXPageProducts += 10;
-      }
+  
+        console.log(props.isDraggingAllowed, 'props.isDraggingAllowed');
+        if (props.isDraggingAllowed) {
+          scrollXPageProducts += 10;
+        }
+        
+  
     } else if (clientX - 95 < 0) {
+      console.log(clientX, window.innerWidth);
       emitScroll("left");
       if (props.isDraggingAllowed) {
         scrollXPageProducts -= 10;
@@ -497,19 +380,21 @@ function handleTouchMove(e: any) {
     // подсветка колонки под карточкой(функция из utils)
     hoverInElemUnder(hoverDataElem);
 
-    // записываем в store для реализации авто scroll по из default layout
+    // записываем в store для реализации эффекта у кнопки смены комнат
     eventStore.initDragover();
+    
     if (projectIdDragover) {
       eventStore.setCardIdDragOver(projectIdDragover);
     }
 
-    // refPageProjects.value.style.scrollSnapType = "none";
   }
 
   if (selectedColumnMenu && !flagEventSelect) {
     e.preventDefault();
 
     const clientX = e.type !== "mousemove" ? e.touches[0].clientX : e.clientX;
+
+  
 
     valueMenuTransformX = clientX - clickMenuX + prevValueMenuTransformX;
 
@@ -572,11 +457,7 @@ function handleTouchEnd() {
     }
 
     flagUpdateColumn = false;
-
-    // добавляем задержку, что бы колонки выравнивались из за x mandatory, когда пройдет 1500мс после начала анимации cardDrop
-    // timerId = window.setTimeout(() => {
-    //   refPageProjects.value.style.scrollSnapType = "x mandatory";
-    // }, 1500);
+    emit('card-drag-end');
   }
 
   projectIdDragover = null;
@@ -706,54 +587,11 @@ function getSumPriceInColumn(key: TypeProjectStatus): number {
   return sumPrice;
 }
 
-// проверка
-// function canScrollRight(element: HTMLElement, scrollWidth: number): boolean {
-//   const { scrollLeft, clientWidth } = element;
-//   return scrollLeft + clientWidth < scrollWidth;
-// }
-
-// -------------------------------------------------------------------------
-
-// watcher
-
-// watch(
-//   () => searchStore.flagSearch,
-//   (newFlagSearch) => {
-//     if (newFlagSearch) {
-//       const nameSearchedCard = searchStore.searchQuery;
-//       const allCards = projectsStore.projects;
-
-//       if (nameSearchedCard.trim().length !== 0) {
-//         const validCards = allCards.filter(
-//           (card) => card.name.toLowerCase() === nameSearchedCard.toLowerCase()
-//         );
-//         if (validCards.length === 0) return;
-//         // getProjects(validCards);
-//       }
-//     } else {
-//       // getProjects(projectsStore.projects);
-//     }
-//   }
-// );
-
-// watch(
-//   () => [asidePanelVisible.value, addFormStore.isOpen],
-//   ([newValueAsidePanelVisible, newValueFormVisible]) => {
-//     if (newValueAsidePanelVisible || newValueFormVisible) {
-//       document.body.style.overflowY = "hidden";
-//     } else {
-//       document.body.style.overflowY = "initial";
-//     }
-//   }
-// );
-
-// -------------------------------------------------------------------------
 
 // хуки
 
-onBeforeMount(async () => {
+onBeforeMount(() => {
   colorColumnStore.loadColor();
-  // await getProjects();
   for (const key in kanban.value) {
     if (Object.prototype.hasOwnProperty.call(kanban.value, key)) {
       hiddenColumns.value.push(false);
@@ -761,11 +599,7 @@ onBeforeMount(async () => {
   }
 });
 
-onMounted(async () => {
-  // baseScrollWidthPageProducts = refPageProjects.value.scrollWidth;
-  // await getProjects();
-  // await projectsStore.getProjectsByUser();
-  console.log(props.projects, "props.projects");
+onMounted(() => {
 
   refKanban.value.addEventListener("touchstart", handleTouchStart, {
     passive: false,
@@ -784,7 +618,7 @@ onMounted(async () => {
   window.addEventListener("mouseup", handleTouchEnd);
 });
 
-onUnmounted(async () => {
+onUnmounted(() => {
   if (refKanban.value) {
     refKanban.value.removeEventListener("touchstart", handleTouchStart);
     refKanban.value.removeEventListener("touchmove", handleTouchMove);
@@ -795,9 +629,7 @@ onUnmounted(async () => {
     window.removeEventListener("mouseup", handleTouchEnd);
   }
 
-  // if (timerId) {
-  //   clearInterval(timerId);
-  // }
+  
 });
 </script>
 
@@ -819,7 +651,7 @@ onUnmounted(async () => {
         :style="{
           background: colorColumnStore.columnColors[key],
         }"
-        class="kanban-column"
+        class="kanban-column kanban__column"
         :class="{ 'kanban-column--hidden': hiddenColumns[i] }"
       >
         <div
@@ -873,7 +705,7 @@ onUnmounted(async () => {
             </div>
             <div class="column-menu__title">
               Общая стоимость карточек в колонке:
-              <div class="total-cost">{{ getSumPriceInColumn(key) }} руб</div>
+              <div class="total-cost">{{ getSumPriceInColumn(key).toLocaleString('ru-RU') }} руб</div>
             </div>
             <div class="column-menu__title">Сортировать:</div>
             <PanelsSortPanel
@@ -901,7 +733,7 @@ onUnmounted(async () => {
           </div>
         </Transition>
 
-        <div class="kanban-column__container-cards">
+        <div class="kanban__container-cards kanban-column__container-cards">
           <div
             :style="{ background: project.color }"
             :data-project-status="key"
@@ -957,17 +789,18 @@ onUnmounted(async () => {
 .kanban {
   display: grid;
   grid-template-columns: repeat(5, 300px);
-  justify-content: center;
-  width: 1580px;
+  
+  // width: 1580px;
+  // width: max-content;
   height: 100%;
   gap: 20px;
+  background-color: red;
 
   @media (max-width: 1200px) {
   }
 
   @media (max-width: 550px) {
-    grid-template-columns: repeat(5, 270px);
-    width: 1430px;
+    // width: 1430px;
   }
 
   &__wrapper-column {
@@ -997,12 +830,19 @@ onUnmounted(async () => {
     }
   }
 
+  &__container-cards {
+    padding-left: 25px;
+    
+  }
+
   &__card {
     position: relative;
-    width: 250px;
+    max-width: 250px;
+    width: 100%;
     border-radius: var(--radius-md);
     margin-bottom: 10px;
     animation: cardAdd 0.2s ease-in;
+    will-change: transform;
 
     -webkit-user-select: none;
     /* Chrome/Safari */
@@ -1027,6 +867,7 @@ onUnmounted(async () => {
   max-height: 100%;
   padding-top: 20px;
   padding-bottom: 20px;
+  
   border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.199);
   box-shadow: 0 0 20px 1px black;
@@ -1078,28 +919,21 @@ onUnmounted(async () => {
     width: 100%;
     max-height: max(650px, 60vh);
     padding-top: 20px;
-    padding-left: 25px;
-    padding-right: 25px;
     scrollbar-width: thin;
     scrollbar-color: rgb(250, 250, 250) black;
 
     @media (max-width: 550px) {
-      padding-left: 10px;
-      padding-right: 10px;
+    
     }
   }
 
   &__title {
     border-radius: var(--radius-sm);
-
     padding-top: 3px;
     padding-bottom: 3px;
-
     margin-left: 10px;
     margin-right: 10px;
-
     background-color: black;
-
     text-align: center;
     font-size: 20px;
     font-weight: 700;
@@ -1232,6 +1066,7 @@ onUnmounted(async () => {
 }
 
 .selected-menu {
+  background-color: transparent;
 }
 
 .highlight {

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import type { Room } from "~/components/panels/RoomsPanel.vue";
 
 const authStore = useAuthStore();
@@ -53,10 +52,10 @@ const flagAnimateImageRoom = ref(false);
 
 const roomImgVariables = computed(() => {
   return {
-    '--room-img': `url(/images/${roomUserImg.value})`,
-    '--portrait-room-img': `url(/images/portrait-${roomUserImg.value})`,
-    '--prev-room-img': `url(/images/${prevRoomUserImg.value})`,
-    '--portrait-prev-room-img': `url(/images/portrait-${prevRoomUserImg.value})`
+    "--room-img": `url(/images/${roomUserImg.value})`,
+    "--portrait-room-img": `url(/images/portrait-${roomUserImg.value})`,
+    "--prev-room-img": `url(/images/${prevRoomUserImg.value})`,
+    "--portrait-prev-room-img": `url(/images/portrait-${prevRoomUserImg.value})`,
   };
 });
 
@@ -66,34 +65,27 @@ function setLocalStorageUserRoomImgName(
   roomImgName: string
 ) {
   if (!pageName.trim() || !roomImgName.trim() || !userId.trim()) return;
-  const dataPageRoomUser: Record<string, string> = {};
 
-  dataPageRoomUser[pageName] = roomImgName;
+  const pageRoomUser: Record<string, string> = {};
 
-  localStorage.setItem(`${userId}-room`, JSON.stringify(dataPageRoomUser));
+  pageRoomUser[pageName] = roomImgName;
+
+  localStorage.setItem(`${userId}-room`, JSON.stringify(pageRoomUser));
 }
 // в локальном хранилище хранится объект по ключу `${userId}-room`, {имя страницы:имя картинки}
 // пример key: 123344567-room  value: {projects: 'loft.jpg'}
 
-
-let timerId: number | null = null
-
-
+let timerId: number | null = null;
 
 // Функция для проверки загрузки изображения
-
-
 
 const handleChangeRoom = async (room: Room) => {
   if (roomUserImg.value === room.img) return;
 
   if (!flagAnimateImageRoom.value) {
-
     prevRoomUserImg.value = roomUserImg.value;
     roomUserImg.value = room.img;
     flagAnimateImageRoom.value = true;
-
-
 
     // записываем localStorage
     setLocalStorageUserRoomImgName(
@@ -102,12 +94,11 @@ const handleChangeRoom = async (room: Room) => {
       roomUserImg.value
     );
 
-    // для анимации смены комнаты, добавляем класс с анимацией , что бы она не применялась при инициализации / указываем столько же сколько длится анимация  
+    // для анимации смены комнаты, добавляем класс с анимацией , что бы она не применялась при инициализации / указываем столько же сколько длится анимация
 
     timerId = window.setTimeout(() => {
       flagAnimateImageRoom.value = false;
-      console.log('анимация удалилась');
-
+      console.log("анимация удалилась");
     }, 2000);
   }
 };
@@ -119,58 +110,64 @@ const buttonAriaLabel = computed(() =>
 );
 
 // Реакция на изменение поиска
-watch(() => searchStore.flagSearch, (initSearch) => {
-  if (initSearch) {
-    flagChangeRoom.value = false;
+watch(
+  () => searchStore.flagSearch,
+  (initSearch) => {
+    if (initSearch) {
+      flagChangeRoom.value = false;
+    }
   }
-})
+);
 
 // Реакция на изменение роута
-watch(() => route.name, (newNamePage) => {
+watch(
+  () => route.name,
+  (newNamePage) => {
+    const userId = authStore.user.$id;
+    const localStoredRoomUser = localStorage.getItem(`${userId}-room`);
 
-  const userId = authStore.user.$id;
-  const localStoredRoomUser = localStorage.getItem(`${userId}-room`);
-
-
-  if (localStoredRoomUser?.trim()) {
-    const roomImgInLocalStorage = JSON.parse(localStoredRoomUser);
-    roomUserImg.value = roomImgInLocalStorage[newNamePage as string];
-  } else {
-    roomUserImg.value = 'high-tech.jpeg';
+    if (localStoredRoomUser?.trim()) {
+      const roomImgInLocalStorage = JSON.parse(localStoredRoomUser);
+      roomUserImg.value = roomImgInLocalStorage[newNamePage as string];
+    } else {
+      roomUserImg.value = "high-tech.jpeg";
+    }
+    
   }
+);
 
-})
-
-const colorCardDragover = ref('');
+const colorCardDragover = ref("");
 const dragoverEvent = ref(false);
 
-watch(() => eventStore.getDragover, ((isDragoverCount) => {
-  if (isDragoverCount === 0) {
-
-    dragoverEvent.value = false;
-    return;
+watch(
+  () => eventStore.getDragover,
+  (isDragoverCount) => {
+    if (isDragoverCount === 0) {
+      dragoverEvent.value = false;
+      return;
+    }
+    dragoverEvent.value = true;
   }
-  dragoverEvent.value = true;
-}));
+);
 
-watch(() => eventStore.getCardIdDragOver, ((cardId) => {
-
-  const projectDragover = projectsStore.projects.find(project => project.$id === cardId);
-  if (projectDragover) {
-    colorCardDragover.value = projectDragover.color;
+watch(
+  () => eventStore.getCardIdDragOver,
+  (cardId) => {
+    const projectDragover = projectsStore.projects.find(
+      (project) => project.$id === cardId
+    );
+    if (projectDragover) {
+      colorCardDragover.value = projectDragover.color;
+    }
   }
-}));
-
+);
 
 const handleClickMainSection = (e: Event) => {
   if (!e.target) return;
   const elem = e.target as HTMLElement;
   if (elem.closest(".page__rooms")) return;
   flagChangeRoom.value = false;
-}
-
-
-
+};
 
 const roomsData = ref<Room[]>([
   { name: "Loft", img: "loft.jpg" },
@@ -184,10 +181,7 @@ const roomsData = ref<Room[]>([
   { name: "Home", img: "sky.jpeg" },
 ]);
 
-
-onMounted(() => {
-
-})
+onMounted(() => {});
 
 onBeforeUnmount(() => {
   if (timerId) {
@@ -196,8 +190,12 @@ onBeforeUnmount(() => {
 });
 </script>
 <template>
-  <div ref="refPage" :style="roomImgVariables" class="page" :class="{ 'page--animate-img': flagAnimateImageRoom }">
-
+  <div
+    ref="refPage"
+    :style="roomImgVariables"
+    class="page"
+    :class="{ 'page--animate-img': flagAnimateImageRoom }"
+  >
     <header class="page__header">
       <div class="x-center width">
         <SectionsHeader @click-avatar="handleClickAvatar" />
@@ -205,9 +203,16 @@ onBeforeUnmount(() => {
     </header>
 
     <main @click="handleClickMainSection" class="page__main">
-      <button :style="{ '--dragover-color': colorCardDragover }" @click.stop="flagChangeRoom = !flagChangeRoom"
-        :aria-label="buttonAriaLabel" class="page__button-room"
-        :class="{ 'page__button-room--reverse': flagChangeRoom, 'page__button-room--dragover': dragoverEvent }">
+      <button
+        :style="{ '--dragover-color': colorCardDragover }"
+        @click.stop="flagChangeRoom = !flagChangeRoom"
+        :aria-label="buttonAriaLabel"
+        class="page__button-room"
+        :class="{
+          'page__button-room--reverse': flagChangeRoom,
+          'page__button-room--dragover': dragoverEvent,
+        }"
+      >
         <UiBaseLogoButton tag="div" :reverse="flagChangeRoom" />
       </button>
 
@@ -215,45 +220,82 @@ onBeforeUnmount(() => {
         <slot></slot>
       </div>
 
-      <div class="page__rooms" :class="{ 'page__rooms--hidden': !flagChangeRoom }">
-        <PanelsRoomsPanel @click-room="handleChangeRoom" :active-room="roomUserImg" :rooms="roomsData" />
+      <div
+        class="page__rooms"
+        :class="{ 'page__rooms--hidden': !flagChangeRoom }"
+      >
+        <PanelsRoomsPanel
+          @click-room="handleChangeRoom"
+          :active-room="roomUserImg"
+          :rooms="roomsData"
+        />
       </div>
     </main>
 
-    <aside @click="closePanelOnOutsideClick" class="page__aside" :class="{ 'page__aside--hidden': flagMenuUserHidden }">
-      <button aria-hidden="true" @click="flagMenuUserHidden = true" class="page__aside-close"
-        :class="{ 'page__aside-close--hidden': flagMenuUserHidden }">
+    <aside
+      @click="closePanelOnOutsideClick"
+      class="page__aside"
+      :class="{ 'page__aside--hidden': flagMenuUserHidden }"
+    >
+      <button
+        aria-hidden="true"
+        @click="flagMenuUserHidden = true"
+        class="page__aside-close"
+        :class="{ 'page__aside-close--hidden': flagMenuUserHidden }"
+      >
         <img src="/images/icon-close.png" alt="закрыть" />
       </button>
 
-      <div class="page__aside-panel" :class="{ 'page__aside-panel--move-left': !flagMenuUserHidden }">
+      <div
+        class="page__aside-panel"
+        :class="{ 'page__aside-panel--move-left': !flagMenuUserHidden }"
+      >
         <PanelsSettingPage>
           <template #header>
             <div class="aside-header decor-line-bottom">
-              <BlocksUserInfo title="Учетная запись" :avatar="authStore.user.avatarUrl" :user_name="authStore.user.name"
-                :user_email="authStore.user.email" />
-              <BlocksProjectsInfo :number_of_projects="projectsStore.projects.length" :ready_projects="readyProjects"
-                :price_all_projects="priceAllProjects" :price_done_projects="priceDoneProjects" />
+              <BlocksUserInfo
+                title="Учетная запись"
+                :avatar="authStore.user.avatarUrl"
+                :user_name="authStore.user.name"
+                :user_email="authStore.user.email"
+              />
+              <BlocksProjectsInfo
+                :number_of_projects="projectsStore.projects.length"
+                :ready_projects="readyProjects"
+                :price_all_projects="priceAllProjects"
+                :price_done_projects="priceDoneProjects"
+              />
             </div>
           </template>
 
           <template #main>
             <div class="decor-line-bottom change-avatar">
-              <button @click="flagAvatarFormHidden = !flagAvatarFormHidden" class="change-avatar__button">
+              <button
+                @click="flagAvatarFormHidden = !flagAvatarFormHidden"
+                class="change-avatar__button"
+              >
                 <div class="change-avatar__button-title">Изменить аватар</div>
                 <div class="change-avatar__button-img" aria-hidden="true">
                   {{ flagAvatarFormHidden ? "&#x271B;" : "&#x2715;" }}
                 </div>
               </button>
-              <div class="change-avatar__form" :class="{ 'change-avatar__form--hidden': flagAvatarFormHidden }">
+              <div
+                class="change-avatar__form"
+                :class="{ 'change-avatar__form--hidden': flagAvatarFormHidden }"
+              >
                 <FormsAvatarChange />
               </div>
             </div>
           </template>
 
           <template #footer>
-            <UiBaseButton style="width: 100px; text-transform: uppercase;" @click="handleLogout" bg-color="red"
-              text-color="black">Выйти</UiBaseButton>
+            <UiBaseButton
+              style="width: 100px; text-transform: uppercase"
+              @click="handleLogout"
+              bg-color="red"
+              text-color="black"
+              >Выйти</UiBaseButton
+            >
           </template>
         </PanelsSettingPage>
       </div>
@@ -282,8 +324,6 @@ onBeforeUnmount(() => {
   50% {
     filter: blur(120px);
     clip-path: polygon(0 0, 100% 0, 100% 52%, 0 50%);
-
-
   }
 
   75% {
@@ -296,29 +336,43 @@ onBeforeUnmount(() => {
     clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
   }
 }
-
-
 @keyframes changeRoom-v2 {
-  0% {opacity: 0;}
-  
-  60%   {opacity: 1; clip-path: polygon( 0  0, 20%  0, 20% 100%, 0%   100%); }
-  70%  { clip-path: polygon(40% 0, 20%  0, 20% 100%, 40%  100%); }
-  80%  { clip-path: polygon(40% 0, 60%  0, 60% 100%, 40%  100%); }
-  90%  { clip-path: polygon(80% 0, 60%  0, 60% 100%, 80%  100%); }
-  100%  { clip-path: polygon(80% 0, 100% 0, 100% 100%, 80% 100%); }
+  0% {
+    opacity: 0;
+  }
+
+  60% {
+    opacity: 1;
+    clip-path: polygon(0 0, 20% 0, 20% 100%, 0% 100%);
+  }
+  70% {
+    clip-path: polygon(40% 0, 20% 0, 20% 100%, 40% 100%);
+  }
+  80% {
+    clip-path: polygon(40% 0, 60% 0, 60% 100%, 40% 100%);
+  }
+  90% {
+    clip-path: polygon(80% 0, 60% 0, 60% 100%, 80% 100%);
+  }
+  100% {
+    clip-path: polygon(80% 0, 100% 0, 100% 100%, 80% 100%);
+  }
 }
 @keyframes changeRoom-v3 {
-  0% { clip-path: polygon(80% 0, 100% 0, 100% 100%, 80% 100%); }
-  100%  { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+  0% {
+    clip-path: polygon(80% 0, 100% 0, 100% 100%, 80% 100%);
+  }
+  100% {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
 }
-
 
 .page {
   position: relative;
   z-index: 1;
   min-height: 100vh;
   width: 100vw;
-  padding-top: 100px;
+  // padding-top: 100px;
   overflow: hidden;
 
   // что бы на touch устройствах не было  микроскролла
@@ -327,7 +381,7 @@ onBeforeUnmount(() => {
   }
 
   @media (max-width: 550px) {
-    padding-top: 120px;
+    // padding-top: 120px;
   }
 
   &::before,
@@ -351,7 +405,6 @@ onBeforeUnmount(() => {
     background-image: var(--room-img);
     z-index: -1;
 
-
     @media (max-width: 1550px) {
       background-image: var(--portrait-room-img);
     }
@@ -366,11 +419,10 @@ onBeforeUnmount(() => {
     }
   }
 
-  // класс удаляется через 1000мс в setup
+  // класс удаляется через 2000мс в setup
   &--animate-img::before {
-    animation:  changeRoom-v2 1s step-start, changeRoom-v3 .5s 1s ease-in;
+    animation: changeRoom-v2 1s step-start, changeRoom-v3 0.5s 1s ease-in;
   }
-
 
   &__header {
     position: fixed;
@@ -396,10 +448,10 @@ onBeforeUnmount(() => {
 
   &__rooms {
     position: absolute;
-    top: 400px;
+    top: 150px;
     left: 50%;
     transform-origin: left top;
-    transform: scaleY(1) translate(-50%, -50%);
+    transform: scaleY(1) translateX(-50%);
     background-color: rgb(0, 0, 0);
     color: white;
     padding: 20px;
@@ -407,15 +459,15 @@ onBeforeUnmount(() => {
     transition: visibility 0.7s, transform 0.5s, filter 0.5s, opacity 0.6s;
 
     @media (max-width: 550px) {
-      top: 350px;
+      top: 180px;
     }
 
     @media (max-width: 380px) {
-      top: 300px;
+      // top: 300px;
     }
 
     &--hidden {
-      transform: scaleY(0.01) translate(-50%, -50%);
+      transform: scaleY(0.01) translateX(-50%);
       filter: blur(200px);
       opacity: 0;
       visibility: hidden;
@@ -429,7 +481,7 @@ onBeforeUnmount(() => {
     align-items: center;
     position: absolute;
     left: 50%;
-    top: -30px;
+    top: 70px;
     z-index: 1;
     width: 80px;
     height: 60px;
@@ -440,7 +492,9 @@ onBeforeUnmount(() => {
     transition: transform 0.5s, filter 0.5s, background-color 0.5s;
     cursor: pointer;
 
-    @media (max-width: 550px) {}
+    @media (max-width: 550px) {
+      top: 100px;
+    }
 
     &--reverse {
       transform-origin: top right;
@@ -448,10 +502,8 @@ onBeforeUnmount(() => {
     }
 
     &--dragover {
-
-
       &::before {
-        content: '';
+        content: "";
         position: absolute;
         width: 100px;
         height: 100px;
@@ -544,7 +596,6 @@ onBeforeUnmount(() => {
 }
 
 @keyframes logoButton {
-
   0% {
     transform: translate(-50%, -50%) rotate(0deg);
     filter: blur(25px);
@@ -562,7 +613,6 @@ onBeforeUnmount(() => {
   75% {
     filter: blur(50px);
     // transform: translate(100%, -50%)
-
   }
 
   100% {
@@ -582,8 +632,6 @@ onBeforeUnmount(() => {
     visibility: hidden;
     pointer-events: none;
   }
-
-
 }
 
 .decor-line-bottom {

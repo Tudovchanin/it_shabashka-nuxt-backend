@@ -6,7 +6,7 @@ body {
   // микро scroll убирает на touch устройствах
   width: 100%;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  overflow-x: hidden;  
+  overflow-x: hidden;
 }
 
 
@@ -27,17 +27,17 @@ body {
 }
 
 
-// /* Для WebKit-браузеров (Chrome, Safari) */
-// ::-webkit-scrollbar {
-//   width: 8px; /* Ширина вертикального скроллбара */
-//   height: 8px; /* Высота горизонтального скроллбара */
-// }
+/* Для WebKit-браузеров (Chrome, Safari) */
+::-webkit-scrollbar {
+  width: 8px; /* Ширина вертикального скроллбара */
+  height: 8px; /* Высота горизонтального скроллбара */
+}
 
-// ::-webkit-scrollbar-thumb {
-//   background-color: darkgrey; /* Цвет скроллбара */
-//   border-radius: 10px; /* Закругление углов */
-// }
+::-webkit-scrollbar-thumb {
+  background-color: darkgrey; /* Цвет скроллбара */
+  border-radius: 10px; /* Закругление углов */
+}
 
-// ::-webkit-scrollbar-track {
-//   background: #f1f1f1; /* Цвет фона скроллбара */
-// }
+::-webkit-scrollbar-track {
+  background: #f1f1f1; /* Цвет фона скроллбара */
+}

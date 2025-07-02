@@ -3,32 +3,12 @@ import { ProjectStatus } from "~/stores/cards.store";
 import type { DataCardAppWrite, TypeProjectStatus } from "~/stores/cards.store";
 import type { FormCardKanban } from "~/components/forms/CreateProject.vue";
 import { STATUS_TRANSLATIONS } from "~/constants/project.constants";
-import {
-  sortAsc,
-  sortDesc,
-  sortDateStringAsc,
-  sortDateStringDesc,
-} from "#imports";
 
-import {
-  COLORS_CARD,
-  GRADIENT_COLUMN,
-  COLORS_COLUMN,
-} from "~/constants/project.constants";
+import { COLORS_CARD } from "~/constants/project.constants";
 
-definePageMeta({
-  middleware: "auth",
-});
-
-// type
-type Kanban = {
-  [key in TypeProjectStatus]: DataCardAppWrite[];
-};
-type SortColumns = {
-  [key: string]: {
-    [key: string]: string;
-  };
-};
+// definePageMeta({
+//   middleware: "auth",
+// });
 
 // store
 const projectsStore = useProjectsStore();
@@ -36,20 +16,13 @@ const addFormStore = useFormAddStore();
 const commentsStore = useCommentsStore();
 const loadStore = useIsLoadingStore();
 const searchStore = useSearchStore();
-const eventStore = useEventStore();
-const colorColumnStore = useColumnColor();
-
-// state kanban / project / kanbanOriginal-нужен для восстановления state kanban без перезагрузки
+// const eventStore = useEventStore();
+// const colorColumnStore = useColumnColor();
 
 const projects = ref<DataCardAppWrite[]>([]);
 
-
-// flags
-// let flagClickCard = false;
-
 // ref ссылки на элементы DOM
 const refPageProjects = ref();
-
 const refPanelAside = ref();
 const refFormAdd = ref();
 
@@ -58,18 +31,14 @@ const refFormAdd = ref();
 // CARDS / COLUMNS:
 
 const handleClickCard = (project: DataCardAppWrite) => {
-
   if (project) {
     asidePanelData.value = project;
-  
   }
   asidePanelVisible.value = true;
-  
 };
 
-
-async function getProjects(arrProjects: DataCardAppWrite[]) {
-  projects.value = arrProjects;
+function setProjects(arrProjects: DataCardAppWrite[]) {
+  projects.value = [...arrProjects];
 }
 
 async function createProject(project: FormCardKanban) {
@@ -83,28 +52,18 @@ async function createProject(project: FormCardKanban) {
 async function addCardInColumn(projectId: string, columnStatus: string) {
   await projectsStore.updateProject(projectId, { status: columnStatus });
   await projectsStore.getProjectsByUser();
-  await getProjects(projectsStore.projects);
+  setProjects(projectsStore.projects);
 }
 const handleDeleteProject = async (project: DataCardAppWrite) => {
   await deleteProject(project);
-  await getProjects(projectsStore.projects);
+  setProjects(projectsStore.projects);
   asidePanelVisible.value = false;
 };
 
 async function deleteProject(project: DataCardAppWrite) {
   await projectsStore.deleteProject(project.$id);
-  // await getProjects();
 }
 // -------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
 
 // ФОРМА
 
@@ -127,7 +86,7 @@ const handleAddProject = (status: TypeProjectStatus) => {
 // добавление карточки через форму
 const handleSubmitCreateCard = async (project: FormCardKanban) => {
   await createProject(project);
-  await getProjects(projectsStore.projects);
+  setProjects(projectsStore.projects);
 };
 
 const handleChangeStatus = (status: TypeProjectStatus) => {
@@ -142,7 +101,6 @@ const handleChangeStatus = (status: TypeProjectStatus) => {
 const asidePanelData = ref<DataCardAppWrite | null>(null);
 // state боковой панели
 const asidePanelVisible = ref(false);
-
 
 // клик на боковую панель и ее контейнер
 const handleClickInAsidePanel = (e: Event) => {
@@ -183,7 +141,7 @@ const handleUpdateCard = async (
     await refPanelAside.value.setStateFlagBlur(true);
     await projectsStore.updateProject(projectId, data);
     await projectsStore.getProjectsByUser();
-    await getProjects(projectsStore.projects);
+    setProjects(projectsStore.projects);
     updateCardInAside(projectId);
   } catch (error) {
     console.log(error);
@@ -200,7 +158,7 @@ const handleChangeColorCard = async (projectId: string, color: string) => {
   try {
     await projectsStore.updateProject(projectId, { color: color });
     await projectsStore.getProjectsByUser();
-    await getProjects(projectsStore.projects);
+    setProjects(projectsStore.projects);
     updateCardInAside(projectId);
     await refPanelAside.value.setStateFlagBlur(true);
   } catch (error) {
@@ -228,20 +186,17 @@ const colors_card = COLORS_CARD;
 
 let baseScrollWidthPageProducts = 0;
 
-
-// -------------------------------------------------------------------------
-
 // проверка
-function canScrollRight(element: HTMLElement, scrollWidth: number): boolean {
+function canScrollRight(element: HTMLElement): boolean {
+  let baseScrollWidthPageProducts = element.scrollWidth;
   const { scrollLeft, clientWidth } = element;
 
-  return scrollLeft + clientWidth < scrollWidth;
+  return scrollLeft + clientWidth < baseScrollWidthPageProducts;
 }
 
 // -------------------------------------------------------------------------
 
 // watcher
-
 
 watch(
   () => searchStore.flagSearch,
@@ -255,12 +210,10 @@ watch(
           (card) => card.name.toLowerCase() === nameSearchedCard.toLowerCase()
         );
         if (validCards.length === 0) return;
-        getProjects(validCards);
+        setProjects(validCards);
       }
     } else {
-      console.log('watch getProjects(projectsStore.projects);');
-      
-      getProjects(projectsStore.projects);
+      setProjects(projectsStore.projects);
     }
   }
 );
@@ -276,36 +229,42 @@ watch(
   }
 );
 
+let timerIdPageScroll: number | null = null;
+
+const handleCardDrag = () => {
+  refPageProjects.value.style.scrollSnapType = "none";
+};
+
+const handleCardDragEnd = () => {
+  // добавляем задержку, что бы колонки выравнивались из за x mandatory, когда пройдет 1500мс после начала анимации cardDrop
+  timerIdPageScroll = window.setTimeout(() => {
+    refPageProjects.value.style.scrollSnapType = "x mandatory";
+  }, 1500);
+};
+
 // -------------------------------------------------------------------------
 
 // хуки
 
 onBeforeMount(async () => {
-  // await projectsStore.getProjectsByUser();
-  // await getProjects(projectsStore.projects);
-  console.log(projects.value,'projects.value onBeforeMount');
-  
-});
-
-onMounted(async () => {
   await projectsStore.getProjectsByUser();
-  await getProjects(projectsStore.projects);
-  console.log(projects.value,'projects.value onMounted');
-  
-  baseScrollWidthPageProducts = refPageProjects.value.scrollWidth;
+  setProjects(projectsStore.projects);
 });
 
-onUnmounted(async () => {});
+onMounted(() => {});
+
+onUnmounted(() => {
+  if (timerIdPageScroll) {
+    clearInterval(timerIdPageScroll);
+  }
+});
 
 const isDraggingAllowed = ref(false);
 
 const handleScrollPage = (direction: "left" | "right") => {
-  refPageProjects.value.style.scrollSnapType = "none";
+  // refPageProjects.value.style.scrollSnapType = "none"
 
-  if (
-    direction === "right" &&
-    canScrollRight(refPageProjects.value, baseScrollWidthPageProducts)
-  ) {
+  if (direction === "right" && canScrollRight(refPageProjects.value)) {
     isDraggingAllowed.value = true;
 
     refPageProjects.value.scrollLeft += 10;
@@ -352,12 +311,13 @@ const handleScrollPage = (direction: "left" | "right") => {
     </div>
 
     <KanbanBoard
-     
       @scroll-page="handleScrollPage"
       @card-create="handleAddProject"
       @card-move-to-column="addCardInColumn"
       @card-delete="handleDeleteProject"
-      @click-card="handleClickCard"
+      @card-click="handleClickCard"
+      @card-drag-end="handleCardDragEnd"
+      @card-drag="handleCardDrag"
       :is-dragging-allowed="isDraggingAllowed"
       :projects="projects"
     />
@@ -377,7 +337,7 @@ const handleScrollPage = (direction: "left" | "right") => {
             alt="закрыть боковую панель"
           />
         </button>
-         <SectionsAsideCardInfo
+        <SectionsAsideCardInfo
           v-if="asidePanelData?.$id"
           :key="asidePanelData?.$id"
           ref="refPanelAside"
@@ -410,7 +370,9 @@ const handleScrollPage = (direction: "left" | "right") => {
               :link="asidePanelData?.link"
               :deadline="asidePanelData?.deadline"
               :createdAt="asidePanelData?.$createdAt || '-'"
-              @delete-card="asidePanelData && handleDeleteProject(asidePanelData)"
+              @delete-card="
+                asidePanelData && handleDeleteProject(asidePanelData)
+              "
             />
           </template>
 
@@ -429,37 +391,23 @@ const handleScrollPage = (direction: "left" | "right") => {
 </template>
 
 <style lang="scss" scoped>
-.column-menu {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  color: var(--color-light-50);
-  padding: 20px;
-  -webkit-user-select: none;
-  /* Chrome/Safari */
-  -moz-user-select: none;
-  /* Firefox */
-  -ms-user-select: none;
-  /* IE/Edge */
-  user-select: none;
-  /* Стандарт  снять выделение*/
-  cursor: grab;
-
-  &:active {
-    cursor: grabbing;
-  }
-}
-
 .page-project {
+  display: grid;
+  justify-items: center;
   position: relative;
   height: 100%;
   overflow-x: auto;
   overflow-y: hidden;
-  padding-top: 50px;
+  padding-top: 150px;
   padding-bottom: 50px;
   padding-right: 20px;
   padding-left: 20px;
   scroll-snap-type: x mandatory;
+  background-color: blue;
+
+  @media (max-width: 550px) {
+    padding-top: 200px;
+  }
 
   &__loader {
     position: fixed;
@@ -469,11 +417,6 @@ const handleScrollPage = (direction: "left" | "right") => {
     z-index: 2000;
     color: rgb(0, 0, 0);
     width: 200px;
-  }
-
-  &__kanban {
-    margin-left: auto;
-    margin-right: auto;
   }
 
   &__wrapper-form-add {
@@ -599,7 +542,6 @@ const handleScrollPage = (direction: "left" | "right") => {
     letter-spacing: 1px;
     font-size: 20px;
     font-weight: 900;
-    // text-shadow: 1px 0 0 red;
   }
 
   &__status {
@@ -625,325 +567,6 @@ const handleScrollPage = (direction: "left" | "right") => {
     padding: 13px 13px 13px 13px;
     cursor: pointer;
   }
-}
-
-.kanban {
-  display: grid;
-  grid-template-columns: repeat(5, 300px);
-  justify-content: center;
-  width: 1580px;
-  height: 100%;
-  gap: 20px;
-
-  @media (max-width: 1200px) {
-  }
-
-  @media (max-width: 550px) {
-    grid-template-columns: repeat(5, 270px);
-    width: 1430px;
-  }
-
-  &__wrapper-column {
-    position: relative;
-    height: 100%;
-    scroll-snap-align: start;
-
-    &::before {
-      content: "";
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      border-radius: var(--radius-md);
-      background: rgba(0, 0, 0, 0.095);
-    }
-  }
-
-  &__wrapper-column:last-child {
-    .column-menu {
-      left: -360px;
-      right: 0;
-
-      @media (max-width: 550px) {
-        right: 0;
-        left: -75vw;
-      }
-    }
-  }
-
-  &__card {
-    position: relative;
-    width: 250px;
-    border-radius: var(--radius-md);
-    margin-bottom: 10px;
-    animation: cardAdd 0.2s ease-in;
-
-    -webkit-user-select: none;
-    /* Chrome/Safari */
-    -moz-user-select: none;
-    /* Firefox */
-    -ms-user-select: none;
-    /* IE/Edge */
-    user-select: none;
-    /* Стандарт  снять выделение*/
-    cursor: pointer;
-
-    &:active {
-      cursor: grabbing;
-    }
-  }
-}
-
-.kanban-column {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  max-height: 100%;
-  padding-top: 20px;
-  padding-bottom: 20px;
-  border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.199);
-  box-shadow: 0 0 20px 1px black;
-  transition: max-height var(--timing-animation-min) ease-in;
-  -webkit-user-select: none;
-  /* Для Safari */
-  -moz-user-select: none;
-  /* Для Firefox */
-  -ms-user-select: none;
-  /* Для IE/Edge */
-  user-select: none;
-  /* Стандартный синтаксис */
-
-  @media (max-width: 550px) {
-  }
-
-  &:not(.kanban-column--hidden) {
-    .kanban-column__container-cards {
-      animation: overflow 0s 0.2s forwards ease-in,
-        scrollVisible 2s ease-in forwards;
-    }
-  }
-
-  &--hidden {
-    overflow: hidden;
-    max-height: 70px;
-
-    .kanban-column__container-cards {
-      scrollbar-color: rgba(250, 250, 250, 0) rgba(0, 0, 0, 0);
-      animation: overflow 0s 0.2s forwards ease-in;
-    }
-
-    .kanban-column__button-open-menu {
-      opacity: 0;
-    }
-
-    .kanban-column__add-project {
-      & span {
-        opacity: 0;
-      }
-    }
-
-    .kanban-column__toggle-visible {
-      transform: rotateX(180deg);
-    }
-  }
-
-  &__container-cards {
-    width: 100%;
-    max-height: max(650px, 60vh);
-    padding-top: 20px;
-    padding-left: 25px;
-    padding-right: 25px;
-    scrollbar-width: thin;
-    scrollbar-color: rgb(250, 250, 250) black;
-
-    @media (max-width: 550px) {
-      padding-left: 10px;
-      padding-right: 10px;
-    }
-  }
-
-  &__title {
-    border-radius: var(--radius-sm);
-
-    padding-top: 3px;
-    padding-bottom: 3px;
-
-    margin-left: 10px;
-    margin-right: 10px;
-
-    background-color: black;
-
-    text-align: center;
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--color-light-50);
-  }
-
-  &__toggle-visible {
-    position: absolute;
-    top: 10px;
-    right: 0px;
-    background-color: transparent;
-    transition: transform var(--timing-animation-min);
-    border: none;
-
-    width: 50px;
-    height: 50px;
-    cursor: pointer;
-
-    & img {
-      width: 30px;
-      height: 30px;
-    }
-  }
-
-  &__button-open-menu {
-    display: flex;
-    justify-content: center;
-    width: 50%;
-    height: 50px;
-    border: none;
-    margin-left: auto;
-    margin-right: auto;
-    background-color: transparent;
-    transition: opacity 1s linear;
-    filter: drop-shadow(0 0 2px white);
-
-    cursor: pointer;
-
-    & img {
-      width: 50px;
-    }
-  }
-
-  &__menu {
-    position: absolute;
-    top: 120px;
-    right: -360px;
-    width: 360px;
-    // left: 0;
-    z-index: 50;
-    border-radius: var(--radius-md);
-    border: solid white 2px;
-    background-color: rgba(0, 0, 0, 0.9);
-    transition: transform var(--timing-animation-min) ease-out;
-
-    @media (max-width: 550px) {
-      width: 75vw;
-      right: -75vw;
-      font-size: 14px;
-    }
-
-    @media (max-width: 400px) {
-      width: 90vw;
-    }
-
-    &--open {
-    }
-
-    &--test {
-    }
-  }
-
-  &__menu-close {
-    position: absolute;
-    cursor: pointer;
-    right: 0;
-    top: 0;
-    background-color: transparent;
-    width: 40px;
-    height: 40px;
-    border: none;
-    padding: 15px;
-  }
-
-  &__add-project {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 20px;
-    height: 50px;
-    padding: 15px;
-    border: none;
-    background-color: transparent;
-    font-weight: 600;
-    letter-spacing: var(--letter-spacing);
-    text-shadow: 0 0 20px white;
-    cursor: pointer;
-
-    & span {
-      display: flex;
-      align-items: center;
-      height: 100%;
-      line-height: 2;
-      opacity: 1;
-      transition: opacity 1s;
-    }
-
-    & span:first-child {
-      filter: drop-shadow(0 0 10px white);
-    }
-  }
-}
-
-.card-drop-animation {
-  position: absolute;
-  animation: cardDrop linear 3s;
-}
-
-.selected-product {
-  position: absolute;
-  z-index: 1000;
-  filter: blur(1px);
-
-  &::before {
-    content: "";
-    position: absolute;
-    z-index: -1;
-    top: -10px;
-    left: -15px;
-    right: 0px;
-    bottom: 0px;
-    background: inherit;
-    border-radius: var(--radius-lg);
-    filter: blur(5px);
-  }
-}
-
-.selected-menu {
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 1s, transform 1s;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-.highlight {
-  &::before {
-    opacity: 0.2;
-    background: var(--column-color);
-  }
-}
-
-.reset-color-img {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 10px;
-  height: 10px;
-}
-
-.total-cost {
-  padding-top: 8px;
-  padding-bottom: 2px;
-  font-weight: 700;
-  border-bottom: solid white 1px;
 }
 
 @keyframes hiddenToVisible {

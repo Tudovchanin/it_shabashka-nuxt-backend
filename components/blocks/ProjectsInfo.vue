@@ -15,7 +15,6 @@ const props = defineProps<ProjectsInfo>()
     <div class="projects-info__title">Мои шабашки:</div>
 
     <div class="projects-info__field">
-      <!-- <div class="projects-info__title">Готово</div> -->
       <div class="projects-info__content">
         <span class="projects-info__img" aria-hidden="true">
           <img src="/images/icon-done.png" alt="готово"></span>
@@ -25,11 +24,11 @@ const props = defineProps<ProjectsInfo>()
         :max="props.number_of_projects || 0"></progress>
     </div>
     <div class="projects-info__field">
-      <!-- <div class="projects-info__title">Общий колым</div> -->
       <div class="projects-info__content">
-        <span class="projects-info__img" aria-hidden="true"><img src="/images/icons-ruble.png"
-            alt="рубль"></span>
-        {{ props.price_done_projects || 0 }} / {{ props.price_all_projects || 0 }} руб
+        <span class="projects-info__img" aria-hidden="true">
+          <img src="/images/icons-ruble.png" alt="рубль">
+        </span>
+        {{ props.price_done_projects?.toLocaleString('ru-RU') || 0 }} / {{ props.price_all_projects?.toLocaleString('ru-RU') || 0 }} руб
       </div>
       <progress class="projects-info__progress" :class="{'projects-info__progress--red': (props.price_done_projects || 0) < (props.price_all_projects || 0)}" :value="props.price_done_projects || 0"
         :max="props.price_all_projects || 0"></progress>

@@ -47,7 +47,7 @@ const getColorText = computed(() => {
     </button>
     <div class="project__client">{{ props.client || "нет клиента" }}</div>
     <div class="project__name">{{ props.name || "нет названия" }}</div>
-    <div class="project__price">{{ props.price }} руб</div>
+    <div class="project__price">{{ props.price.toLocaleString('ru-RU') }} руб</div>
     <div @click.stop v-if="props.link" class="project__link">
       <a target="_blank" rel="noopener noreferrer" :href="props.link">ссылка на макет</a>
     </div>

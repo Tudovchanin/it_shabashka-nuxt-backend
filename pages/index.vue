@@ -1,3 +1,6 @@
+<!-- подключение телефона к пк ip пк  192.168.183.202 в телефоне ввести  http://192.168.183.202:номер порта,
+ в терменале запустить проект командой  (npm run dev -- --host 0.0.0.0)      -->
+
 <script setup lang="ts">
 import type {
   BaseFormData,
@@ -55,6 +58,7 @@ const handleSubmitSignIn = (e: BaseFormData) => {
 
   validateForm.clearStateError();
 };
+
 const handleSubmitSignUp = (e: BaseFormData) => {
   validateForm.isEmailValid(e.email, EMAIL_REGEXP, "Ошибка почта не валидна");
   // validateForm.isPasswordValid(
@@ -131,16 +135,6 @@ async function signUp(email: string, password: string, name: string) {
 
 
 onBeforeMount(async () => {
-  await authStore.init();
-  if (authStore.user.status) {
-    visibleForm.value = false;
-    await router.push("/projects");
-  } else {
-    visibleForm.value = true;
-  }
-})
-
-onMounted(async () => {
   // await authStore.init();
   // if (authStore.user.status) {
   //   visibleForm.value = false;
@@ -148,6 +142,10 @@ onMounted(async () => {
   // } else {
   //   visibleForm.value = true;
   // }
+})
+
+onMounted(async () => {
+ 
 });
 </script>
 <template>
