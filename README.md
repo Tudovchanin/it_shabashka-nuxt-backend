@@ -1,75 +1,31 @@
-# Nuxt Minimal Starter
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
 
-## Setup
 
-Make sure to install dependencies:
+# IT Shabashka – CRM для фрилансеров  
 
-```bash
-# npm
-npm install
+[![Production](https://img.shields.io/badge/PRODUCTION-LIVE-brightgreen?style=for-the-badge&logo=reg.ru)](https://itshabashka.ru)   
+[![Stack](https://img.shields.io/badge/Nuxt_3-Implementation-00C58E?logo=nuxt.js)](https://nuxt.com)   
+[![Backend](https://img.shields.io/badge/Appwrite_Cloud-Infrastructure-F02E65?logo=appwrite)](https://appwrite.io)  
 
-# pnpm
-pnpm install
+**Профессиональное управление клиентами и проектами**  
 
-# yarn
-yarn install
+## 🚀 Тестовый доступ  
+✉️ **Email:** `demo@itshabashka.ru`  
+🔑 **Password:** Test1234  
 
-# bun
-bun install
-```
+Ключевые возможности:  
+✔ Канбан с авторасчетом стоимости  
+✔ Контакты в 1 клик:  
+→ Telegram-чат (по номеру)  
+→ Почта (открывает почтовый клиент)  
+✔ Контроль дедлайнов и платежей  
+✔ Персонализация:  
+- Меняйте цвета колонок и карточек  
+- Настраивайте фон рабочего пространства  
+- Добавляйте ссылки на макеты и ресурсы
 
-## Development Server
 
-Start the development server on `http://localhost:3000`:
+**В дальнейшем будет добавлена доска для организаций.**  
+[DEMO]https://itshabashka.ru/  
 
-```bash
-# npm
-npm run dev
 
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
-```
-
-## Production
-
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
