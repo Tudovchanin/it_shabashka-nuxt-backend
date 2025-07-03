@@ -46,8 +46,8 @@ const priceDoneProjects = computed(() => {
     .reduce((sum, project) => sum + project.price, 0);
 });
 
-const prevRoomUserImg = ref("");
-const roomUserImg = ref("");
+const prevRoomUserImg = ref("high-tech.jpeg");
+const roomUserImg = ref("high-tech.jpeg");
 const flagAnimateImageRoom = ref(false);
 
 const roomImgVariables = computed(() => {

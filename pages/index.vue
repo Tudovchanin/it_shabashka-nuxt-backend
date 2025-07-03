@@ -110,14 +110,14 @@ async function signIn(email: string, password: string) {
     loadStore.set(true);
     await authStore.login(email, password);
     await authStore.init();
-   error_SignIn_SignUp.value = null;
+    error_SignIn_SignUp.value = null;
     await router.push("/projects");
   } catch (error) {
     console.log(error);
-   error_SignIn_SignUp.value =
+    error_SignIn_SignUp.value =
       "Неверные учетные данные. Проверьте адрес электронной почты и пароль";
   } finally {
-    loadStore.set(false)
+    loadStore.set(false);
   }
 }
 async function signUp(email: string, password: string, name: string) {
@@ -133,29 +133,29 @@ async function signUp(email: string, password: string, name: string) {
   }
 }
 
-
 onBeforeMount(async () => {
-  // await authStore.init();
-  // if (authStore.user.status) {
-  //   visibleForm.value = false;
-  //   await router.push("/projects");
-  // } else {
-  //   visibleForm.value = true;
-  // }
-})
-
-onMounted(async () => {
- 
+  await authStore.init();
+  if (authStore.user.status) {
+    visibleForm.value = false;
+    await router.push("/projects");
+  } else {
+    visibleForm.value = true;
+  }
 });
+
+onMounted(async () => {});
 </script>
 <template>
-  <div class="entry-page" :class="{ 'entry-page--decor-visible': flagDecorVisible }">
+  <div
+    class="entry-page"
+    :class="{ 'entry-page--decor-visible': flagDecorVisible }"
+  >
     <div v-if="loadStore.isLoading" class="entry-page__loader">
       <LoadersAppLoader />
     </div>
 
     <div class="entry-page__bg-video">
-      <video loop autoplay muted src="/public/day_few_clouds.mov"></video>
+      <video loop autoplay muted src="/day_scattered_clouds.mp4"></video>
     </div>
     <header class="entry-page__header">
       <div class="entry-page__header-logo entry-page__header-logo--desktop">
@@ -167,39 +167,58 @@ onMounted(async () => {
     </header>
 
     <main class="entry-page__content">
-      <div class="entry-page__wrapper-form" @mouseleave="flagDecorVisible = false"
-        @mouseenter="flagDecorVisible = true">
+      <div
+        class="entry-page__wrapper-form"
+        @mouseleave="flagDecorVisible = false"
+        @mouseenter="flagDecorVisible = true"
+      >
         <div v-show="error_SignIn_SignUp" class="entry-page__error-sign-in">
-          {{error_SignIn_SignUp }}
+          {{ error_SignIn_SignUp }}
         </div>
         <div class="entry-page__form" v-if="visibleForm">
           <div class="entry-page__form-tab">
-            <button :disabled="flagIsLogin" type="button" class="button-tab entry-page__tab" @click="
-              flagIsLogin = true;
-            errorMessages = null;
-            ">
+            <button
+              :disabled="flagIsLogin"
+              type="button"
+              class="button-tab entry-page__tab"
+              @click="
+                flagIsLogin = true;
+                errorMessages = null;
+              "
+            >
               Вход
             </button>
-            <button :disabled="!flagIsLogin" type="button" class="button-tab entry-page__tab" @click="
-              flagIsLogin = false;
-            errorMessages = null;
-            error_SignIn_SignUp = null;
-            ">
+            <button
+              :disabled="!flagIsLogin"
+              type="button"
+              class="button-tab entry-page__tab"
+              @click="
+                flagIsLogin = false;
+                errorMessages = null;
+                error_SignIn_SignUp = null;
+              "
+            >
               Регистрация
             </button>
           </div>
-          <FormsSignForm v-if="flagIsLogin" @sign-in="handleSubmitSignIn" :error_messages="errorMessages"
-            :variant-form="'sign-in'" />
-          <FormsSignForm v-else @sign-up="handleSubmitSignUp" :error_messages="errorMessages"
-            :variant-form="'sign-up'" />
+          <FormsSignForm
+            v-if="flagIsLogin"
+            @sign-in="handleSubmitSignIn"
+            :error_messages="errorMessages"
+            :variant-form="'sign-in'"
+          />
+          <FormsSignForm
+            v-else
+            @sign-up="handleSubmitSignUp"
+            :error_messages="errorMessages"
+            :variant-form="'sign-up'"
+          />
         </div>
       </div>
     </main>
 
     <footer class="entry-page__footer">
-
       <SectionsFooter />
-
     </footer>
   </div>
 </template>
@@ -247,18 +266,20 @@ onMounted(async () => {
 
   &--decor-visible {
     .entry-page__bg-video {
-      clip-path: polygon(0 0,
-          0 50%,
-          30% 50%,
-          0 50%,
-          0 100%,
-          50% 100%,
-          100% 100%,
-          100% 50%,
-          70% 50%,
-          100% 50%,
-          100% 0,
-          50% 0);
+      clip-path: polygon(
+        0 0,
+        0 50%,
+        30% 50%,
+        0 50%,
+        0 100%,
+        50% 100%,
+        100% 100%,
+        100% 50%,
+        70% 50%,
+        100% 50%,
+        100% 0,
+        50% 0
+      );
     }
 
     &::before {
@@ -296,12 +317,10 @@ onMounted(async () => {
   }
 
   &__header-logo {
-
-
     &--desktop {
       display: block;
 
-      @media (max-width:450px) {
+      @media (max-width: 450px) {
         display: none;
       }
     }
@@ -309,7 +328,7 @@ onMounted(async () => {
     &--mobile {
       display: none;
 
-      @media (max-width:450px) {
+      @media (max-width: 450px) {
         display: block;
       }
     }
@@ -403,20 +422,21 @@ onMounted(async () => {
     top: 0;
     bottom: 0;
     z-index: 0;
-    clip-path: polygon(20% 0%,
-        0% 20%,
-        30% 50%,
-        0% 80%,
-        20% 100%,
-        50% 70%,
-        80% 100%,
-        100% 80%,
-        70% 50%,
-        100% 20%,
-        80% 0%,
-        50% 30%);
+    clip-path: polygon(
+      20% 0%,
+      0% 20%,
+      30% 50%,
+      0% 80%,
+      20% 100%,
+      50% 70%,
+      80% 100%,
+      100% 80%,
+      70% 50%,
+      100% 20%,
+      80% 0%,
+      50% 30%
+    );
     transition: clip-path 0.5s linear;
-
 
     & video {
       width: 100%;
@@ -436,7 +456,6 @@ onMounted(async () => {
     padding-top: 24px;
     padding-bottom: 24px;
     color: white;
-
   }
 }
 
@@ -445,4 +464,5 @@ onMounted(async () => {
   cursor: pointer;
 }
 
-// :focus-within  если дочернии элементы получили фокус</style>
+// :focus-within  если дочернии элементы получили фокус
+</style>

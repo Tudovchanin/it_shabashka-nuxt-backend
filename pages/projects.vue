@@ -6,9 +6,9 @@ import { STATUS_TRANSLATIONS } from "~/constants/project.constants";
 
 import { COLORS_CARD } from "~/constants/project.constants";
 
-// definePageMeta({
-//   middleware: "auth",
-// });
+definePageMeta({
+  middleware: "auth",
+});
 
 // store
 const projectsStore = useProjectsStore();
@@ -299,7 +299,7 @@ const handleScrollPage = (direction: "left" | "right") => {
           class="project-form__close"
           @click="addFormStore.setOpen(false)"
         >
-          <img src="/public/images/icon-close.png" alt="закрыть форму" />
+          <img src="/images/icon-close.png" alt="закрыть форму" />
         </button>
 
         <FormsCreateProject
@@ -333,7 +333,7 @@ const handleScrollPage = (direction: "left" | "right") => {
           @click="handleHiddenAsidePanel"
         >
           <img
-            src="/public/images/icon-close.png"
+            src="/images/icon-close.png"
             alt="закрыть боковую панель"
           />
         </button>
@@ -403,7 +403,6 @@ const handleScrollPage = (direction: "left" | "right") => {
   padding-right: 20px;
   padding-left: 20px;
   scroll-snap-type: x mandatory;
-  background-color: blue;
 
   @media (max-width: 550px) {
     padding-top: 200px;
@@ -458,7 +457,6 @@ const handleScrollPage = (direction: "left" | "right") => {
     @media (max-width: 550px) {
       transform: none;
       left: 0;
-      background-color: red;
     }
   }
 

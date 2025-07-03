@@ -794,7 +794,6 @@ onUnmounted(() => {
   // width: max-content;
   height: 100%;
   gap: 20px;
-  background-color: red;
 
   @media (max-width: 1200px) {
   }

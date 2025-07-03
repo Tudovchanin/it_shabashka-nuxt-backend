@@ -1,6 +1,8 @@
 import { ProjectStatus } from "../stores/cards.store";
 
 
+
+
 export const STATUS_TRANSLATIONS = {
   [ProjectStatus.NEW]:"Заказ",
   [ProjectStatus.IN_PROGRESS]:"Кодим",
