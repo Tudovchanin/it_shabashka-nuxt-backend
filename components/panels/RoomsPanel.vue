@@ -22,11 +22,11 @@ const emitClickInTheRoom = ((room: Room) => {
 </script>
 <template>
   <div class="rooms">
-    <div class="rooms__title">Rooms</div>
+    <div class="rooms__title">Rooms {{ props.activeRoom }}</div>
     <div class="rooms__container">
       <div v-for="room in rooms" class="room" :key="room.name">
         <button @click="emitClickInTheRoom(room)" aria-label="кнопка выбора комнаты" class="room__button"
-          :class="{ 'room__button--active': props.activeRoom === '' }">
+          :class="{ 'room__button--active': props.activeRoom === room.img }">
           <img :src="`/images/min-${room.img}`" :alt="room.name" />
         </button>
         <div class="room__title">
