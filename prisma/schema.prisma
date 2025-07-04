@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+generator client {
+  provider        = "prisma-client-js" // Генератор Prisma Client для JavaScript/TypeScript
+  output          = "../generated/prisma" // Папка для сгенерированного клиента
+  previewFeatures = ["prismaSchemaFolder"] // Включает поддержку мультифайловой схемы Prisma (разделение моделей по разным файлам)
+}
+
+datasource db {
+  provider = "mysql" // Тип базы данных — MySQL
+  url      = env("DATABASE_URL") // Строка подключения из переменной окружения
+}
+
+
+model User {
+   id     String   @id @default(cuid())
+  // Первичный ключ (PK), уникальный идентификатор записи
+  // Целочисленный, автоинкрементируется при создании (1, 2, 3, ...)
+
+  email  String  @unique
+  // Уникальное поле с индексом — в таблице не может быть двух одинаковых email
+
+  name   String?
+  // Необязательное поле (может быть null) — имя пользователя
+
+  avatar String? @default("https://example.com/default-avatar.png")
+  // Необязательное поле URL аватара, по умолчанию ссылка на дефолтный аватар
+
+  cards  Card[]  
+  // Связь "один ко многим" — у пользователя может быть много карточек
+}
+
+
+
+enum TypeProjectStatus {
+  NEW
+  IN_PROGRESS
+  REVISION
+  REVIEW
+  DONE
+}
+// Enum — фиксированный набор допустимых значений для статуса проекта
+// Используется в модели Card для поля status
+
+model Card {
+  id           String          @id @default(cuid())
+  // Первичный ключ (PK), уникальный идентификатор записи
+  // Строка, генерируется уникальный CUID (глобально уникален, можно генерировать на клиенте и сервере)
+
+  color        String          @default("black")
+  // Обязательное поле — цвет карточки (например, hex-код)
+
+  name         String
+  // Обязательное поле — название карточки
+
+  price        Float
+  // Обязательное поле — цена или стоимость (число с плавающей точкой)
+
+  status       TypeProjectStatus @default(NEW)
+  // Поле enum для статуса карточки, по умолчанию NEW
+
+  description  String?
+  // Необязательное поле — описание карточки
+
+  client       String
+  // Обязательное поле — имя клиента
+
+  client_email String?
+  // Необязательное поле — email клиента
+
+  client_phone String?
+  // Необязательное поле — телефон клиента
+
+  user         User            @relation(fields: [userId], references: [id])
+  // Внешний ключ — связь с пользователем (владелец карточки)
+  // Поле userId хранит id пользователя, на которого ссылается эта связь
+
+  userId       String
+  // Обязательное поле — id пользователя, владеющего карточкой
+
+  link         String?
+  // Необязательное поле — ссылка (например, на внешний ресурс)
+
+  deadline     DateTime?
+  // Необязательное поле — срок выполнения (дата и время)
+
+  comments     Comment[]
+  // Связь "один ко многим" с комментариями (если есть модель Comment)
+
+  createdAt    DateTime        @default(now())
+  // Дата и время создания записи, по умолчанию текущие
+
+  updatedAt    DateTime        @updatedAt
+  // Дата и время последнего обновления записи, обновляется автоматически при изменении
+}
+
+
+
+
+
+model Comment {
+  id        String   @id @default(cuid())
+  text      String   
+  card      Card     @relation(fields: [cardId], references: [id])
+  cardId    String   // Внешний ключ на карточку (projectId в Appwrite)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
