@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DataCommentAppWrite } from "#imports";
 import { formatDateToRussianLocale, getDaysUntilDeadline } from "#imports";
-import { inputMask } from "~/utils/mask-helpers";
+import { InputMask } from "~/utils/mask-helpers";
 
 import type { ColorKeyTextMap } from "~/constants/color-mapping.constants";
 import { COLOR_TEXT_MAP } from "~/constants/color-mapping.constants";
@@ -193,15 +193,19 @@ const handleVisibleFormUpdateCard = () => {
 
   setStateFlagHiddenFormUpdate(!flagHiddenFormUpdate.value);
   if (!flagHiddenFormUpdate.value) {
-    removePhoneMask();
+    // removePhoneMask();
+    maskPhone?.removeMaskListeners();
+
     refInputPhone.value.value = props.client_phone;
-    removePhoneMask = inputMask(
-      maskStart,
-      maskValue,
-      maskSymbols,
-      refInputPhone.value,
-      maskHover
-    );
+    // removePhoneMask = inputMask(
+    //   maskStart,
+    //   maskValue,
+    //   maskSymbols,
+    //   refInputPhone.value,
+    //   maskHover
+    // );
+    maskPhone = new InputMask(maskStart, mask, maskSymbolsNotReplace, refInputPhone.value);
+    maskPhone.initMask();
     refDescriptionTextarea.value.style.height =
       heightDescriptionTextarea.value + "px";
   }
@@ -256,12 +260,13 @@ function setStateFlagBlur(value: boolean) {
 // -------------------------------------------------------
 
 // маска телефона
-let removePhoneMask: any = null;
+// let removePhoneMask: any = null;
+let maskPhone:null | InputMask = null;
 
 const maskStart = 3;
-const maskValue = "+7(___)___-__-__";
-const maskSymbols = [")", "(", "-"];
-const maskHover = false;
+const mask = "+7(___)___-__-__";
+const maskSymbolsNotReplace = [")", "(", "-"];
+// const maskHover = false;
 
 
 defineExpose({
@@ -271,20 +276,27 @@ defineExpose({
 
 onMounted(() => {
   heightDescriptionTextarea.value = refDescription.value.offsetHeight;
-  removePhoneMask = inputMask(
-    maskStart,
-    maskValue,
-    maskSymbols,
-    refInputPhone.value,
-    maskHover
-  );
+  maskPhone = new InputMask(maskStart, mask, maskSymbolsNotReplace, refInputPhone.value);
+maskPhone.initMask();
+  // removePhoneMask = inputMask(
+  //   maskStart,
+  //   maskValue,
+  //   maskSymbols,
+  //   refInputPhone.value,
+  //   maskHover
+  // );
+
+
 });
 
 onBeforeUnmount(() => {
 
-  if (removePhoneMask) {
-    removePhoneMask();
-  }
+  // if (removePhoneMask) {
+  //   removePhoneMask();
+  // }
+
+  maskPhone?.removeMaskListeners();
+
 });
 </script>
 <template>

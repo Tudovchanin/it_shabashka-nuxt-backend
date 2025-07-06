@@ -6,9 +6,9 @@ import { STATUS_TRANSLATIONS } from "~/constants/project.constants";
 
 import { COLORS_CARD } from "~/constants/project.constants";
 
-definePageMeta({
-  middleware: "auth",
-});
+// definePageMeta({
+//   middleware: "auth",
+// });
 
 // store
 const projectsStore = useProjectsStore();

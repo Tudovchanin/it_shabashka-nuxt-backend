@@ -2,7 +2,7 @@
 import type { DataCardAppWrite, TypeProjectStatus } from "~/stores/cards.store";
 import { ProjectStatus } from "~/stores/cards.store";
 import { STATUS_TRANSLATIONS } from "~/constants/project.constants";
-import { inputMask } from "~/utils/mask-helpers";
+import { InputMask } from "~/utils/mask-helpers";
 
 export type FormCardKanban = Pick<
   DataCardAppWrite,
@@ -51,10 +51,13 @@ const emitCreateProject = (() => {
   }
   emit("create-project", formData.value);
   resetForm();
-  removePhoneMask();
+  // removePhoneMask();
+  maskPhone?.removeMaskListeners;
   // значение инпута в маске
   refInput.value.value = '';
-  removePhoneMask = inputMask(maskStart, maskValue, maskSymbols, refInput.value, maskHover);
+  // removePhoneMask = inputMask(maskStart, maskValue, maskSymbols, refInput.value, maskHover);
+  maskPhone = new InputMask(maskStart, mask, maskSymbolsNotReplace, refInput.value);
+
 
 })
 
@@ -82,19 +85,23 @@ function resetForm() {
 
 //         pattern="^\+7\(\d{3}\)\d{3}-\d{2}-\d{2}$"
 const maskStart = 3;
-const maskValue = "+7(___)___-__-__";
-const maskSymbols = [")", "(", "-"];
-const maskHover = false;
-let removePhoneMask: any = null;
-onMounted(() => {
+const mask = "+7(___)___-__-__";
+const maskSymbolsNotReplace = [")", "(", "-"];
 
-  removePhoneMask = inputMask(maskStart, maskValue, maskSymbols, refInput.value, maskHover);
+let maskPhone:null | InputMask = null;
+
+// let removePhoneMask: any = null;
+onMounted(() => {
+maskPhone = new InputMask(maskStart, mask, maskSymbolsNotReplace, refInput.value);
+maskPhone.initMask();
+  // removePhoneMask = inputMask(maskStart, maskValue, maskSymbols, refInput.value, maskHover);
 
 });
 
 onBeforeUnmount(() => {
 
-  removePhoneMask();
+  // removePhoneMask();
+  maskPhone?.removeMaskListeners();
 })
 </script>
 <template>
