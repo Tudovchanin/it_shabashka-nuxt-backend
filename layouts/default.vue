@@ -450,6 +450,7 @@ onBeforeUnmount(() => {
     position: absolute;
     top: 150px;
     left: 50%;
+    z-index: 1;
     transform-origin: left top;
     transform: scaleY(1) translateX(-50%);
     background-color: rgb(0, 0, 0);
