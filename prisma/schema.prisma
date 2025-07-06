@@ -71,7 +71,7 @@ model Card {
   client_phone String?
   // Необязательное поле — телефон клиента
 
-  user         User            @relation(fields: [userId], references: [id])
+   user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   // Внешний ключ — связь с пользователем (владелец карточки)
   // Поле userId хранит id пользователя, на которого ссылается эта связь
 
@@ -101,7 +101,7 @@ model Card {
 model Comment {
   id        String   @id @default(cuid())
   text      String   
-  card      Card     @relation(fields: [cardId], references: [id])
+ card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
   cardId    String   // Внешний ключ на карточку (projectId в Appwrite)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
