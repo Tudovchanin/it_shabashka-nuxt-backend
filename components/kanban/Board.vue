@@ -263,6 +263,7 @@ function handleTouchStart(e: any) {
 
     if (!selectedProduct) return;
 
+
     clickProductX = e.type !== "mousedown" ? e.touches[0].clientX : e.clientX;
     clickProductY = e.type !== "mousedown" ? e.touches[0].clientY : e.clientY;
 
@@ -290,37 +291,49 @@ function handleTouchStart(e: any) {
   }
 }
 
+
+function canScrollRight(element: HTMLElement): boolean {
+  let baseScrollWidthPageProducts = element.scrollWidth;
+  const { scrollLeft, clientWidth } = element;
+
+  console.log('baseScrollWidthPageProducts', baseScrollWidthPageProducts);
+  console.log('scrollLeft ContainerKanban', scrollLeft);
+  console.log('clientWidth ContainerKanban', clientWidth);
+
+
+
+  return scrollLeft + clientWidth < baseScrollWidthPageProducts;
+}
+
 function handleTouchMove(e: any) {
   if (selectedProduct) {
     e.preventDefault();
-
-    emit("card-drag");
+    refContainerKanban.value.style.scrollSnapType = "none"
+    // emit("card-drag");
     indexPanelMenu.value = -1;
 
     const clientX = e.type !== "mousemove" ? e.touches[0].clientX : e.clientX;
     const clientY = e.type !== "mousemove" ? e.touches[0].clientY : e.clientY;
 
-    // console.log(clientX, 'clientX', window.scrollX);
-
     if (clientX + 95 > window.innerWidth) {
 
       console.log('scroll to the right');
-      
+
       // emitScroll("right");
-      console.log(refContainerKanban.value);
-      
 
-      refContainerKanban.value.scrollLeft += 10;
-      scrollXContainerKanban += 10;
-      // if (props.isDraggingAllowed) {
-      //   scrollXContainerKanban += 10;
-      // }
+      if (canScrollRight(refContainerKanban.value)) {
 
-    } else if (clientX - 95 < 0) {
-      if (props.isDraggingAllowed) {
-        emitScroll("left");
+        refContainerKanban.value.scrollLeft += 10;
+        scrollXContainerKanban += 10;
+      };
+
+    } else if (refContainerKanban.value.scrollLeft > 0 && clientX - 90 < 0) {
+     
+        // emitScroll("left");
+        refContainerKanban.value.scrollLeft -= 10;
+
         scrollXContainerKanban -= 10;
-      }
+      
     }
 
 
@@ -374,6 +387,12 @@ function handleTouchMove(e: any) {
   }
 }
 
+
+
+
+
+
+let timerIdPageScroll: number | null = null;
 function handleTouchEnd() {
   // записываем в store  drag over
   eventStore.stopDragover();
@@ -386,6 +405,11 @@ function handleTouchEnd() {
   }
 
   if (selectedProduct) {
+
+     timerIdPageScroll = window.setTimeout(() => {
+     refContainerKanban.value.style.scrollSnapType = "x mandatory";
+  }, 1500);
+
     const elementsUnderCard = document.elementsFromPoint(
       touchClientMoveX,
       touchClientMoveY
@@ -594,6 +618,9 @@ onUnmounted(() => {
     window.removeEventListener("touchend", handleTouchEnd);
     window.removeEventListener("mouseup", handleTouchEnd);
   }
+  if (timerIdPageScroll) {
+    clearInterval(timerIdPageScroll);
+  }
 });
 </script>
 
@@ -688,6 +715,7 @@ onUnmounted(() => {
     cursor: grabbing;
   }
 }
+
 .container-kanban {
   overflow-x: auto;
   overflow-y: hidden;
@@ -698,12 +726,13 @@ onUnmounted(() => {
   padding-bottom: 50px;
   padding-right: 20px;
   padding-left: 20px;
-  // scroll-snap-type: x mandatory;
+  scroll-snap-type: x mandatory;
 
   @media (max-width: 550px) {
     padding-top: 170px;
   }
 }
+
 .kanban {
   display: grid;
   grid-template-columns: repeat(5, 300px);

@@ -6,9 +6,9 @@ import { STATUS_TRANSLATIONS } from "~/constants/project.constants";
 
 import { COLORS_CARD } from "~/constants/project.constants";
 
-// definePageMeta({
-//   middleware: "auth",
-// });
+definePageMeta({
+  middleware: "auth",
+});
 
 // store
 const projectsStore = useProjectsStore();
@@ -17,7 +17,11 @@ const commentsStore = useCommentsStore();
 const loadStore = useIsLoadingStore();
 const searchStore = useSearchStore();
 
-
+/**
+ * Local state to store the list of project cards.
+ * Data is fetched from the projectsStore and passed to the Kanban component via props.
+ * This approach makes Kanban reusable and independent from specific stores.
+ */
 const projects = ref<DataCardAppWrite[]>([]);
 
 // ref ссылки на элементы DOM
@@ -29,6 +33,8 @@ const refFormAdd = ref();
 
 // CARDS / COLUMNS:
 
+
+// Handle card click event from Board component
 const handleClickCard = (project: DataCardAppWrite) => {
   if (project) {
     asidePanelData.value = project;
@@ -36,32 +42,45 @@ const handleClickCard = (project: DataCardAppWrite) => {
   asidePanelVisible.value = true;
 };
 
-function setProjects(arrProjects: DataCardAppWrite[]) {
-  projects.value = [...arrProjects];
-}
-
-async function createProject(project: FormCardKanban) {
-  const dataProject = {
-    ...project,
-  };
-  await projectsStore.createProject(dataProject);
-}
-
-// добавление карточки в колонку
-async function addCardInColumn(projectId: string, columnStatus: string) {
-  await projectsStore.updateProject(projectId, { status: columnStatus });
-  await projectsStore.getProjectsByUser();
-  setProjects(projectsStore.projects);
-}
+// Delete a project and update the projects list
 const handleDeleteProject = async (project: DataCardAppWrite) => {
   await deleteProject(project);
   setProjects(projectsStore.projects);
   asidePanelVisible.value = false;
 };
 
-async function deleteProject(project: DataCardAppWrite) {
+// Update local projects state with a new array
+const updateLocalProjects = (arrProjects: DataCardAppWrite[])=> {
+  projects.value = [...arrProjects];
+}
+
+// Create a new project via the store
+const createProject = async(project: FormCardKanban) => {
+  const dataProject = {
+    ...project,
+  };
+  await projectsStore.createProject(dataProject);
+}
+
+// Move a card to a different column and refresh projects
+const moveCardToColumn = async(projectId: string, columnStatus: string)=> {
+  await projectsStore.updateProject(projectId, { status: columnStatus });
+  await projectsStore.getProjectsByUser();
+  updateLocalProjects(projectsStore.projects);
+}
+
+// Delete a project by its ID via the store
+const  deleteProject = async(project: DataCardAppWrite)=> {
   await projectsStore.deleteProject(project.$id);
 }
+
+
+
+
+
+
+
+
 // -------------------------------------------------------------------------
 
 // ФОРМА
@@ -85,7 +104,7 @@ const handleAddProject = (status: TypeProjectStatus) => {
 // добавление карточки через форму
 const handleSubmitCreateCard = async (project: FormCardKanban) => {
   await createProject(project);
-  setProjects(projectsStore.projects);
+  updateLocalProjects(projectsStore.projects);
 };
 
 const handleChangeStatus = (status: TypeProjectStatus) => {
@@ -140,7 +159,7 @@ const handleUpdateCard = async (
     await refPanelAside.value.setStateFlagBlur(true);
     await projectsStore.updateProject(projectId, data);
     await projectsStore.getProjectsByUser();
-    setProjects(projectsStore.projects);
+    updateLocalProjects(projectsStore.projects);
     updateCardInAside(projectId);
   } catch (error) {
     console.log(error);
@@ -157,7 +176,7 @@ const handleChangeColorCard = async (projectId: string, color: string) => {
   try {
     await projectsStore.updateProject(projectId, { color: color });
     await projectsStore.getProjectsByUser();
-    setProjects(projectsStore.projects);
+    updateLocalProjects(projectsStore.projects);
     updateCardInAside(projectId);
     await refPanelAside.value.setStateFlagBlur(true);
   } catch (error) {
@@ -181,25 +200,7 @@ function updateCardInAside(projectId: string) {
 const colors_card = COLORS_CARD;
 // -------------------------------------------------------------------------
 
-// DRAG AND DROP:
 
-// let baseScrollWidthPageProducts = 0;
-
-
-
-
-
-
-// проверка ------------------      УБРАТЬ, ЛОГИКА СКРОЛЛА ПЕРЕНЕСЕНА В KANBAN? ПЕРЕНЕСТИ В ПАПКУ   utils
-// function canScrollRight(element: HTMLElement): boolean {
-//   let baseScrollWidthPageProducts = element.scrollWidth;
-//   const { scrollLeft, clientWidth } = element;
-
-
-//   return scrollLeft + clientWidth < baseScrollWidthPageProducts;
-// }
-
-// -------------------------------------------------------------------------
 
 // watcher
 
@@ -234,70 +235,20 @@ watch(
   }
 );
 
-let timerIdPageScroll: number | null = null;
-
-const handleCardDrag = () => {
-  refPageProjects.value.style.scrollSnapType = "none";
-};
-
-const handleCardDragEnd = () => {
-  // добавляем задержку, что бы колонки выравнивались из за x mandatory, когда пройдет 1500мс после начала анимации cardDrop
-  timerIdPageScroll = window.setTimeout(() => {
-    refPageProjects.value.style.scrollSnapType = "x mandatory";
-  }, 1500);
-};
 
 // -------------------------------------------------------------------------
 
 
 
-
-// ------------------      УБРАТЬ, ЛОГИКА СКРОЛЛА ПЕРЕНЕСЕНА В KANBAN
-
-// const isDraggingAllowed = ref(false);
-
-// const handleScrollPage = (direction: "left" | "right") => {
-//   refPageProjects.value.style.scrollSnapType = "none"
-
-  // if (direction === "right" && canScrollRight(refPageProjects.value)) {
-  //   isDraggingAllowed.value = true;
-  //   console.log('скрол вправо');
-
-  //   refPageProjects.value.scrollLeft += 10;
-  // } else if (direction === "left" && refPageProjects.value.scrollLeft > 20) {
-  //   isDraggingAllowed.value = true;
-  //   console.log('скрол влево');
-    
-  //   refPageProjects.value.scrollLeft -= 10;
-  // } else {
-  //   isDraggingAllowed.value = false;
-  // }
-
-//   if (direction === "right") {
-//     console.log('скрол вправо');
-
-//     refPageProjects.value.scrollLeft += 10;
-//   } else if (direction === "left") {
-//     console.log('скрол влево');
-    
-//     refPageProjects.value.scrollLeft -= 10;
-//   } 
-// };
-// ------------------------------------------------------------------
-
-// хуки
+/**
+ * Lifecycle hook: onBeforeMount
+ * Fetches the user's projects from the store before the component is mounted,
+ * then updates the local state with the fetched projects.
+ */
 
 onBeforeMount(async () => {
   await projectsStore.getProjectsByUser();
-  setProjects(projectsStore.projects);
-});
-
-onMounted(() => {});
-
-onUnmounted(() => {
-  if (timerIdPageScroll) {
-    clearInterval(timerIdPageScroll);
-  }
+  updateLocalProjects(projectsStore.projects);
 });
 
 </script>
@@ -338,14 +289,10 @@ onUnmounted(() => {
     </div>
 
     <KanbanBoard
-      @scroll-page="handleScrollPage"
       @card-create="handleAddProject"
-      @card-move-to-column="addCardInColumn"
+      @card-move-to-column="moveCardToColumn"
       @card-delete="handleDeleteProject"
       @card-click="handleClickCard"
-      @card-drag-end="handleCardDragEnd"
-      @card-drag="handleCardDrag"
-      :is-dragging-allowed="isDraggingAllowed"
       :projects="projects"
     />
 
@@ -416,20 +363,8 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 .user-project {
-  // display: grid;
-  // justify-items: center;
   position: relative;
-  // overflow-x: auto;
-  // overflow-y: hidden;
-  // padding-top: 150px;
-  // padding-bottom: 50px;
-  // padding-right: 20px;
-  // padding-left: 20px;
-  // scroll-snap-type: x mandatory;
-
-  // @media (max-width: 550px) {
-  //   padding-top: 200px;
-  // }
+  
 
   &__loader {
     position: fixed;
