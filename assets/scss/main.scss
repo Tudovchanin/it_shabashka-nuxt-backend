@@ -1,5 +1,6 @@
 @use './_variables.css';
 @use './_reset';
+@use './blocks/user-form';
 
 body {
   min-height: 100vh;
@@ -8,7 +9,6 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   overflow-x: hidden;
 }
-
 
 
 .x-center {

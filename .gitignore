@@ -5,6 +5,8 @@
 .nitro
 .cache
 dist
+/generated/prisma/
+pages/privacy-policy.vue
 
 # Node dependencies
 node_modules
@@ -22,5 +24,4 @@ logs
 .env
 .env.*
 !.env.example
-/generated/prisma/
 

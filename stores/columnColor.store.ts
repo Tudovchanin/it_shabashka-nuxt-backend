@@ -1,5 +1,5 @@
 
-import type { DataCardAppWrite, TypeProjectStatus } from "~/stores/cards.store";
+import type { TypeProjectStatus } from "~/stores/cards.store";
 
 
 export const useColumnColor = defineStore('color-column', ()=> {
@@ -25,7 +25,6 @@ const saveColor = (key: TypeProjectStatus, color:string)=> {
 }
 
 const loadColor = ()=> {
-
   const localStoredColors = localStorage.getItem(
     `${authStore.user.$id}-columnColors`
   );

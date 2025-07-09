@@ -20,7 +20,7 @@ const handleClickAvatar = () => {
 const closePanelOnOutsideClick = (e: Event) => {
   if (!e.target) return;
   const elem = e.target as HTMLElement;
-  if (elem.closest(".page__aside-panel")) return;
+  if (elem.closest(".layout__aside-panel")) return;
   flagMenuUserHidden.value = true;
 };
 const handleLogout = async () => {
@@ -165,7 +165,7 @@ watch(
 const handleClickMainSection = (e: Event) => {
   if (!e.target) return;
   const elem = e.target as HTMLElement;
-  if (elem.closest(".page__rooms")) return;
+  if (elem.closest(".layout__rooms")) return;
   flagChangeRoom.value = false;
 };
 
@@ -193,36 +193,36 @@ onBeforeUnmount(() => {
   <div
     ref="refPage"
     :style="roomImgVariables"
-    class="page"
-    :class="{ 'page--animate-img': flagAnimateImageRoom }"
+    class="layout"
+    :class="{ 'layout--animate-img': flagAnimateImageRoom }"
   >
-    <header class="page__header">
-      <div class="x-center width">
-        <SectionsHeader @click-avatar="handleClickAvatar" />
-      </div>
+    <header class="layout__header">
+        <SectionsHeader class="x-center width" @click-avatar="handleClickAvatar" />
     </header>
 
-    <main @click="handleClickMainSection" class="page__main">
-      <button
+    <main @click="handleClickMainSection" class="layout__main">
+       <button
         :style="{ '--dragover-color': colorCardDragover }"
         @click.stop="flagChangeRoom = !flagChangeRoom"
         :aria-label="buttonAriaLabel"
-        class="page__button-room"
+        class="layout__button-room"
         :class="{
-          'page__button-room--reverse': flagChangeRoom,
-          'page__button-room--dragover': dragoverEvent,
+          'layout__button-room--reverse': flagChangeRoom,
+          'layout__button-room--dragover': dragoverEvent,
         }"
       >
         <UiBaseLogoButton tag="div" :reverse="flagChangeRoom" />
-      </button>
+      </button> 
 
-      <div class="desc x-center" :class="{ 'desc--hidden': flagChangeRoom }">
+      <div class="desc" :class="{ 'desc--hidden': flagChangeRoom }">
         <slot></slot>
       </div>
 
+     
+
       <div
-        class="page__rooms"
-        :class="{ 'page__rooms--hidden': !flagChangeRoom }"
+        class="layout__rooms"
+        :class="{ 'layout__rooms--hidden': !flagChangeRoom }"
       >
         <PanelsRoomsPanel
           @click-room="handleChangeRoom"
@@ -234,21 +234,21 @@ onBeforeUnmount(() => {
 
     <aside
       @click="closePanelOnOutsideClick"
-      class="page__aside"
-      :class="{ 'page__aside--hidden': flagMenuUserHidden }"
+      class="layout__aside"
+      :class="{ 'layout__aside--hidden': flagMenuUserHidden }"
     >
       <button
         aria-hidden="true"
         @click="flagMenuUserHidden = true"
-        class="page__aside-close"
-        :class="{ 'page__aside-close--hidden': flagMenuUserHidden }"
+        class="layout__aside-close"
+        :class="{ 'layout__aside-close--hidden': flagMenuUserHidden }"
       >
         <img src="/images/icon-close.png" alt="закрыть" />
       </button>
 
       <div
-        class="page__aside-panel"
-        :class="{ 'page__aside-panel--move-left': !flagMenuUserHidden }"
+        class="layout__aside-panel"
+        :class="{ 'layout__aside-panel--move-left': !flagMenuUserHidden }"
       >
         <PanelsSettingPage>
           <template #header>
@@ -301,15 +301,285 @@ onBeforeUnmount(() => {
       </div>
     </aside>
 
-    <footer class="page__footer">
+    <footer class="layout__footer">
       <div class="x-center width">
         <SectionsFooter />
       </div>
     </footer>
+
+
   </div>
 </template>
 
 <style lang="scss" scoped>
+
+.layout {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+  }
+
+  &::before {
+    z-index: -1;
+    background-image: var(--room-img);
+
+    @media (max-width: 1550px) {
+      background-image: var(--portrait-room-img);
+    }
+  }
+
+  &::after {
+    z-index: -2;
+    background-image: var(--prev-room-img);
+
+    @media (max-width: 1550px) {
+      background-image: var(--portrait-prev-room-img);
+    }
+  }
+
+  // класс удаляется через 2000мс в setup
+  &--animate-img::before {
+    animation: changeRoom-v2 1s step-start, changeRoom-v3 0.5s 1s ease-in;
+  }
+
+  &__header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: var(--z-header);
+    width: 100vw;
+    padding-right: 20px;
+    background-color: rgba(48, 48, 48, 0.98);
+
+    @media (hover: none) and (pointer: coarse) {
+      width: 100%;
+    }
+
+    @media (max-width: 1400px) {
+      padding-right: 0px;
+    }
+  }
+
+  &__main {
+    position: relative;
+    flex-grow: 1;
+  }
+
+  &__rooms {
+    position: absolute;
+    top: 150px;
+    left: 50%;
+    z-index: 1;
+    transform-origin: left top;
+    transform: scaleY(1) translateX(-50%);
+    background-color: rgb(0, 0, 0);
+    color: white;
+    padding: 20px;
+    border: solid 1px white;
+    transition: visibility 0.7s, transform 0.5s, filter 0.5s, opacity 0.6s;
+
+    @media (max-width: 550px) {
+      top: 180px;
+    }
+
+    @media (max-width: 380px) {
+      top: 300px;
+    }
+
+    &--hidden {
+      transform: scaleY(0.01) translateX(-50%);
+      filter: blur(200px);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+  }
+
+  &__button-room {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    left: 50%;
+    top: 70px;
+    z-index: 1;
+    width: 80px;
+    height: 60px;
+    border: none;
+    background-color: transparent;
+    transform-origin: top right;
+    transform: translateX(-50%) rotateY(0deg);
+    transition: transform 0.5s, filter 0.5s, background-color 0.5s;
+    cursor: pointer;
+
+    @media (max-width: 550px) {
+      top: 100px;
+    }
+
+    &--reverse {
+      transform-origin: top right;
+      transform: translateX(-75%) rotateY(-180deg);
+    }
+
+    &--dragover {
+      &::before {
+        content: "";
+        position: absolute;
+        width: 100px;
+        height: 100px;
+        left: 50%;
+        top: 50%;
+        z-index: -1;
+        transform: translate(-50%, -50%);
+        background: var(--dragover-color);
+        animation: logoButton 5s infinite linear;
+      }
+    }
+  }
+
+  &__aside {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100vw;
+    bottom: 0;
+    // z-index: 1000;
+    background-color: rgba(0, 0, 0, 0.452);
+   
+    &--hidden {
+      right: -150%;
+    }
+  }
+
+  &__aside-close {
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 70px;
+    right: 0;
+    z-index: 1;
+    width: 50px;
+    height: 50px;
+    background-color: transparent;
+    opacity: 1;
+    border: none;
+    transition: opacity 1s;
+    cursor: pointer;
+    
+
+    & img {
+      width: 14px;
+      height: 14px;
+      filter: drop-shadow(0px 0px 1px rgba(0, 0, 0, 1));
+    }
+
+    &--hidden {
+      opacity: 0;
+    }
+  }
+
+  &__aside-panel {
+    position: absolute;
+    top: 70px;
+    right: 0;
+    width: 400px;
+    padding: 30px 20px;
+    border-top-left-radius: var(--radius-lg);
+    border-bottom-left-radius: var(--radius-lg);
+    background-color: rgb(255, 255, 255);
+    box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.479);
+    overflow: hidden;
+    transform: translateX(100%);
+    transition: transform 0.5s;
+
+    @media (max-width: 550px) {
+      width: 90%;
+    }
+
+    &--move-left {
+      transform: translateX(0);
+    }
+  }
+
+  &__footer {
+    width: 100%;
+    padding-top: 24px;
+    padding-bottom: 24px;
+    color: white;
+    background-color: rgb(18, 18, 18);
+  }
+}
+
+
+.desc {
+  transition: visibility 0.6s, opacity 0.5s;
+  &--hidden {
+    opacity: 0;
+    overflow: hidden;
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+
+.decor-line-bottom {
+  border-bottom: solid 1px rgb(128, 128, 128);
+  padding-bottom: 10px;
+}
+
+.change-avatar {
+  &__button {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    width: 100%;
+    border: none;
+    font-size: 20px;
+    background-color: transparent;
+    cursor: pointer;
+  }
+
+  &__button-title {
+    font-size: 16px;
+  }
+
+  &__form {
+    max-height: 200px;
+
+    transition: max-height 0.5s, opacity 0.5s linear;
+    overflow: hidden;
+
+    &--hidden {
+      opacity: 0;
+      max-height: 1px;
+    }
+  }
+}
+
+.aside-header {
+  display: grid;
+  gap: 20px;
+}
+
+
+
 @keyframes changeRoom-v1 {
   0% {
     filter: blur(250px);
@@ -366,236 +636,6 @@ onBeforeUnmount(() => {
     clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
   }
 }
-
-.page {
-  position: relative;
-  z-index: 1;
-  min-height: 100vh;
-  width: 100vw;
-  // padding-top: 100px;
-  overflow: hidden;
-
-  // что бы на touch устройствах не было  микроскролла
-  @media (hover: none) and (pointer: coarse) {
-    width: 100%;
-  }
-
-  @media (max-width: 550px) {
-    // padding-top: 120px;
-  }
-
-  &::before,
-  &::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center;
-
-    @media (hover: none) and (pointer: coarse) {
-      background-attachment: fixed;
-    }
-  }
-
-  &::before {
-    background-image: var(--room-img);
-    z-index: -1;
-
-    @media (max-width: 1550px) {
-      background-image: var(--portrait-room-img);
-    }
-  }
-
-  &::after {
-    background-image: var(--prev-room-img);
-    z-index: -2;
-
-    @media (max-width: 1550px) {
-      background-image: var(--portrait-prev-room-img);
-    }
-  }
-
-  // класс удаляется через 2000мс в setup
-  &--animate-img::before {
-    animation: changeRoom-v2 1s step-start, changeRoom-v3 0.5s 1s ease-in;
-  }
-
-  &__header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 500;
-    width: 100vw;
-    padding-right: 20px;
-    background-color: rgba(48, 48, 48, 0.98);
-
-    @media (hover: none) and (pointer: coarse) {
-      width: 100%;
-    }
-
-    @media (max-width: 1400px) {
-      padding-right: 0px;
-    }
-  }
-
-  &__main {
-    position: relative;
-  }
-
-  &__rooms {
-    position: absolute;
-    top: 150px;
-    left: 50%;
-    z-index: 1;
-    transform-origin: left top;
-    transform: scaleY(1) translateX(-50%);
-    background-color: rgb(0, 0, 0);
-    color: white;
-    padding: 20px;
-    border: solid 1px white;
-    transition: visibility 0.7s, transform 0.5s, filter 0.5s, opacity 0.6s;
-
-    @media (max-width: 550px) {
-      top: 180px;
-    }
-
-    @media (max-width: 380px) {
-      // top: 300px;
-    }
-
-    &--hidden {
-      transform: scaleY(0.01) translateX(-50%);
-      filter: blur(200px);
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-    }
-  }
-
-  &__button-room {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: absolute;
-    left: 50%;
-    top: 70px;
-    z-index: 1;
-    width: 80px;
-    height: 60px;
-    border: none;
-    background-color: transparent;
-    transform-origin: top right;
-    transform: translateX(-50%) rotateY(0deg);
-    transition: transform 0.5s, filter 0.5s, background-color 0.5s;
-    cursor: pointer;
-
-    @media (max-width: 550px) {
-      top: 100px;
-    }
-
-    &--reverse {
-      transform-origin: top right;
-      transform: translateX(-75%) rotateY(-180deg);
-    }
-
-    &--dragover {
-      &::before {
-        content: "";
-        position: absolute;
-        width: 100px;
-        height: 100px;
-        left: 50%;
-        top: 50%;
-        z-index: -1;
-        transform: translate(-50%, -50%);
-        background: var(--dragover-color);
-        // background-color: blue;
-        animation: logoButton 5s infinite linear;
-      }
-    }
-  }
-
-  &__aside {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 100vw;
-    bottom: 0;
-    z-index: 1000;
-    background-color: rgba(0, 0, 0, 0.452);
-
-    &--hidden {
-      right: -150%;
-    }
-  }
-
-  &__aside-close {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: absolute;
-    top: 70px;
-    right: 0;
-    z-index: 1;
-    width: 50px;
-    height: 50px;
-    background-color: transparent;
-    opacity: 1;
-    border: none;
-    transition: opacity 1s;
-    cursor: pointer;
-
-    & img {
-      width: 14px;
-      height: 14px;
-      filter: drop-shadow(0px 0px 1px rgba(0, 0, 0, 1));
-    }
-
-    &--hidden {
-      opacity: 0;
-    }
-  }
-
-  &__aside-panel {
-    position: absolute;
-    top: 70px;
-    right: 0;
-
-    width: 400px;
-    padding: 30px 20px;
-
-    border-top-left-radius: var(--radius-lg);
-    border-bottom-left-radius: var(--radius-lg);
-    background-color: rgb(255, 255, 255);
-    box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.479);
-
-    overflow: hidden;
-
-    transform: translateX(100%);
-    transition: transform 0.5s;
-
-    @media (max-width: 550px) {
-      width: 90%;
-    }
-
-    &--move-left {
-      transform: translateX(0);
-    }
-  }
-
-  &__footer {
-    width: 100%;
-    padding-top: 24px;
-    padding-bottom: 24px;
-    color: white;
-    background-color: rgb(18, 18, 18);
-  }
-}
-
 @keyframes logoButton {
   0% {
     transform: translate(-50%, -50%) rotate(0deg);
@@ -622,56 +662,7 @@ onBeforeUnmount(() => {
   }
 }
 
-.desc {
-  height: max(940px, 100vh);
-  overflow-y: hidden;
-  transition: visibility 0.6s, opacity 0.5s;
 
-  &--hidden {
-    opacity: 0;
-    overflow: hidden;
-    visibility: hidden;
-    pointer-events: none;
-  }
-}
 
-.decor-line-bottom {
-  border-bottom: solid 1px rgb(128, 128, 128);
-  padding-bottom: 10px;
-}
 
-.change-avatar {
-  &__button {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-    flex-wrap: wrap;
-    width: 100%;
-    border: none;
-    font-size: 20px;
-    background-color: transparent;
-    cursor: pointer;
-  }
-
-  &__button-title {
-    font-size: 16px;
-  }
-
-  &__form {
-    max-height: 200px;
-
-    transition: max-height 0.5s, opacity 0.5s linear;
-    overflow: hidden;
-
-    &--hidden {
-      opacity: 0;
-      max-height: 1px;
-    }
-  }
-}
-
-.aside-header {
-  display: grid;
-  gap: 20px;
-}
 </style>

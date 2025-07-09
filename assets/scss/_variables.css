@@ -2,7 +2,6 @@
   --color-light-50: rgb(255, 255, 255);
   --color-100: rgba(214, 228, 255, 0.5);
   --color-200: rgba(173, 200, 255, 0.5);
- 
 
   --main-color: black;
   --secondary-color: red;
@@ -15,10 +14,11 @@
 
   --shadow-v1: 0 0 10px 20px rgb(255, 255, 255);
 
-
   --letter-spacing: .08em;
 
 
+  /* z-index */
+  --z-header: 100;
 
    /* --radius-xs: 2px; */
    --radius-sm: 5px;

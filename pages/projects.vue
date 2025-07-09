@@ -16,8 +16,7 @@ const addFormStore = useFormAddStore();
 const commentsStore = useCommentsStore();
 const loadStore = useIsLoadingStore();
 const searchStore = useSearchStore();
-// const eventStore = useEventStore();
-// const colorColumnStore = useColumnColor();
+
 
 const projects = ref<DataCardAppWrite[]>([]);
 
@@ -67,7 +66,7 @@ async function deleteProject(project: DataCardAppWrite) {
 
 // ФОРМА
 
-// обработчик клика на page-project__wrapper-form-add(закрывает форму)
+// обработчик клика на user-project__wrapper-form-add(закрывает форму)
 const handleClickWrapperFormAdd = (e: Event) => {
   const elem = e.target as HTMLElement;
   if (!refFormAdd.value.contains(elem)) {
@@ -106,7 +105,7 @@ const asidePanelVisible = ref(false);
 const handleClickInAsidePanel = (e: Event) => {
   if (!e.target) return;
   const elem = e.target as HTMLElement;
-  if (elem.closest(".page-project__aside-panel-inner")) return;
+  if (elem.closest(".user-project__aside-panel-inner")) return;
 
   handleHiddenAsidePanel();
 };
@@ -184,15 +183,21 @@ const colors_card = COLORS_CARD;
 
 // DRAG AND DROP:
 
-let baseScrollWidthPageProducts = 0;
+// let baseScrollWidthPageProducts = 0;
 
-// проверка
-function canScrollRight(element: HTMLElement): boolean {
-  let baseScrollWidthPageProducts = element.scrollWidth;
-  const { scrollLeft, clientWidth } = element;
 
-  return scrollLeft + clientWidth < baseScrollWidthPageProducts;
-}
+
+
+
+
+// проверка ------------------      УБРАТЬ, ЛОГИКА СКРОЛЛА ПЕРЕНЕСЕНА В KANBAN? ПЕРЕНЕСТИ В ПАПКУ   utils
+// function canScrollRight(element: HTMLElement): boolean {
+//   let baseScrollWidthPageProducts = element.scrollWidth;
+//   const { scrollLeft, clientWidth } = element;
+
+
+//   return scrollLeft + clientWidth < baseScrollWidthPageProducts;
+// }
 
 // -------------------------------------------------------------------------
 
@@ -244,6 +249,42 @@ const handleCardDragEnd = () => {
 
 // -------------------------------------------------------------------------
 
+
+
+
+// ------------------      УБРАТЬ, ЛОГИКА СКРОЛЛА ПЕРЕНЕСЕНА В KANBAN
+
+// const isDraggingAllowed = ref(false);
+
+// const handleScrollPage = (direction: "left" | "right") => {
+//   refPageProjects.value.style.scrollSnapType = "none"
+
+  // if (direction === "right" && canScrollRight(refPageProjects.value)) {
+  //   isDraggingAllowed.value = true;
+  //   console.log('скрол вправо');
+
+  //   refPageProjects.value.scrollLeft += 10;
+  // } else if (direction === "left" && refPageProjects.value.scrollLeft > 20) {
+  //   isDraggingAllowed.value = true;
+  //   console.log('скрол влево');
+    
+  //   refPageProjects.value.scrollLeft -= 10;
+  // } else {
+  //   isDraggingAllowed.value = false;
+  // }
+
+//   if (direction === "right") {
+//     console.log('скрол вправо');
+
+//     refPageProjects.value.scrollLeft += 10;
+//   } else if (direction === "left") {
+//     console.log('скрол влево');
+    
+//     refPageProjects.value.scrollLeft -= 10;
+//   } 
+// };
+// ------------------------------------------------------------------
+
 // хуки
 
 onBeforeMount(async () => {
@@ -259,46 +300,32 @@ onUnmounted(() => {
   }
 });
 
-const isDraggingAllowed = ref(false);
-
-const handleScrollPage = (direction: "left" | "right") => {
-  // refPageProjects.value.style.scrollSnapType = "none"
-
-  if (direction === "right" && canScrollRight(refPageProjects.value)) {
-    isDraggingAllowed.value = true;
-
-    refPageProjects.value.scrollLeft += 10;
-  } else if (direction === "left" && refPageProjects.value.scrollLeft > 20) {
-    isDraggingAllowed.value = true;
-
-    refPageProjects.value.scrollLeft -= 10;
-  } else {
-    isDraggingAllowed.value = false;
-  }
-};
 </script>
 
 <template>
-  <div ref="refPageProjects" class="page-project">
-    <div v-if="loadStore.isLoading" class="page-project__loader">
+  <div ref="refPageProjects" class="user-project">
+    <div v-if="loadStore.isLoading" class="user-project__loader">
       <LoadersAppLoader />
     </div>
 
     <div
       @click="handleClickWrapperFormAdd"
-      class="page-project__wrapper-form-add"
+      class="user-project__container-form"
       :class="{
-        'page-project__wrapper-form-add--visible': addFormStore.isOpen,
+        'user-project__container-form--visible': addFormStore.isOpen,
       }"
     >
-      <div ref="refFormAdd" class="page-project__form-add project-form">
-        <div class="project-form__status">
+      <div
+        ref="refFormAdd"
+        class="user-project__form user-form"
+        :class="{
+          'user-project__form--visible': addFormStore.isOpen,
+        }"
+      >
+        <div class="user-form__status">
           {{ STATUS_TRANSLATIONS[statusNewProject] }}
         </div>
-        <button
-          class="project-form__close"
-          @click="addFormStore.setOpen(false)"
-        >
+        <button class="user-form__close" @click="addFormStore.setOpen(false)">
           <img src="/images/icon-close.png" alt="закрыть форму" />
         </button>
 
@@ -324,18 +351,15 @@ const handleScrollPage = (direction: "left" | "right") => {
 
     <div
       @click="handleClickInAsidePanel"
-      class="page-project__aside-panel"
-      :class="{ 'page-project__aside-panel--visible': asidePanelVisible }"
+      class="user-project__aside-panel"
+      :class="{ 'user-project__aside-panel--visible': asidePanelVisible }"
     >
-      <div class="page-project__aside-panel-inner">
+      <div class="user-project__aside-panel-inner">
         <button
-          class="page-project__aside-panel-close"
+          class="user-project__aside-panel-close"
           @click="handleHiddenAsidePanel"
         >
-          <img
-            src="/images/icon-close.png"
-            alt="закрыть боковую панель"
-          />
+          <img src="/images/icon-close.png" alt="закрыть боковую панель" />
         </button>
         <SectionsAsideCardInfo
           v-if="asidePanelData?.$id"
@@ -391,61 +415,53 @@ const handleScrollPage = (direction: "left" | "right") => {
 </template>
 
 <style lang="scss" scoped>
-.page-project {
-  display: grid;
-  justify-items: center;
+.user-project {
+  // display: grid;
+  // justify-items: center;
   position: relative;
-  height: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding-top: 150px;
-  padding-bottom: 50px;
-  padding-right: 20px;
-  padding-left: 20px;
-  scroll-snap-type: x mandatory;
+  // overflow-x: auto;
+  // overflow-y: hidden;
+  // padding-top: 150px;
+  // padding-bottom: 50px;
+  // padding-right: 20px;
+  // padding-left: 20px;
+  // scroll-snap-type: x mandatory;
 
-  @media (max-width: 550px) {
-    padding-top: 200px;
-  }
+  // @media (max-width: 550px) {
+  //   padding-top: 200px;
+  // }
 
   &__loader {
     position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
     z-index: 2000;
-    color: rgb(0, 0, 0);
     width: 200px;
+    transform: translate(-50%, -50%);
+    color: rgb(0, 0, 0);
   }
 
-  &__wrapper-form-add {
+  &__container-form {
     position: fixed;
     left: 0;
     top: 0;
     right: 0;
     bottom: 0;
     z-index: 1000;
-
     opacity: 0;
     backdrop-filter: blur(5px);
     pointer-events: none;
     animation: visibleToHidden var(--timing-animation-min) forwards;
-
     &--visible {
       overflow-y: auto;
       opacity: 1;
       pointer-events: initial;
       display: block;
       animation: hiddenToVisible var(--timing-animation-min) forwards;
-
-      .page-project__form-add {
-        opacity: 1;
-        filter: blur(0px);
-      }
     }
   }
 
-  &__form-add {
+  &__form {
     position: absolute;
     top: 100px;
     left: 50%;
@@ -453,6 +469,11 @@ const handleScrollPage = (direction: "left" | "right") => {
     opacity: 0;
     filter: blur(2000px);
     transition: filter 0.5s;
+
+    &--visible {
+      opacity: 1;
+      filter: blur(0px);
+    }
 
     @media (max-width: 550px) {
       transform: none;
@@ -469,20 +490,23 @@ const handleScrollPage = (direction: "left" | "right") => {
     bottom: 0;
     left: 0;
     z-index: 1000;
+
     transform: translateX(100%);
-    background-color: rgba(0, 0, 0, 0);
+    background-color: rgba(0, 0, 0, 0.451);
     transition: transform var(--timing-animation-min),
       backdrop-filter var(--timing-animation-min) var(--timing-animation-min);
+    backdrop-filter: blur(10px);
+   
 
     &--visible {
       transform: translateX(0);
-      backdrop-filter: blur(10px);
     }
   }
 
   &__aside-panel-inner {
     position: relative;
     width: 50vw;
+    height: 100vh;
     max-width: 900px;
     padding: 50px 20px 20px 20px;
     overflow-y: auto;
@@ -503,67 +527,16 @@ const handleScrollPage = (direction: "left" | "right") => {
     right: 0;
     top: 0;
     z-index: 100;
+    padding: 15px;
+
     background-color: transparent;
     border: none;
     cursor: pointer;
-    padding: 15px;
 
     & img {
       width: 16px;
       height: 16px;
     }
-  }
-}
-
-.project-form {
-  max-width: 450px;
-  width: 100%;
-  border: solid rgb(255, 255, 255) 2px;
-  border-radius: var(--radius-sm);
-  background-color: rgba(255, 255, 255, 0.5);
-
-  &::before {
-    content: "...";
-    position: absolute;
-    width: 100px;
-    height: 50px;
-    top: -25px;
-    left: 50%;
-    z-index: -1;
-    border: solid rgb(255, 255, 255) 2px;
-    border-radius: 5px 5px 0 0;
-
-    background-color: black;
-    transform: translateX(-50%);
-    color: rgb(255, 255, 255);
-    text-align: center;
-    letter-spacing: 1px;
-    font-size: 20px;
-    font-weight: 900;
-  }
-
-  &__status {
-    padding-top: 10px;
-    padding-bottom: 10px;
-    border-radius: 2px 2px 0 0;
-
-    color: rgb(255, 255, 255);
-    text-align: center;
-    font-weight: 700;
-    background-color: rgb(0, 0, 0);
-  }
-
-  &__close {
-    position: absolute;
-    right: 0;
-    top: 0;
-    z-index: 1;
-    width: 40px;
-    height: 40px;
-    background-color: transparent;
-    border: none;
-    padding: 13px 13px 13px 13px;
-    cursor: pointer;
   }
 }
 
