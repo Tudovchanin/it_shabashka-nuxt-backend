@@ -1,4 +1,4 @@
-import { ProjectStatus } from "../stores/cards.store";
+import { ProjectStatus } from "../stores/projects.store";
 
 
 

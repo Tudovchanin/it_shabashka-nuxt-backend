@@ -1,5 +1,5 @@
 import type { Models } from 'appwrite';
-import { DB_ID, DB_COLLECTION_PROJECTS_ID,DB_COLLECTION_COMMENTS_ID } from '~/constants/app.constants';
+import { DB_ID,DB_COLLECTION_COMMENTS_ID } from '~/constants/app.constants';
 import { Permission, Role, Query } from "appwrite";
 
 
@@ -22,7 +22,7 @@ export const useCommentsStore = defineStore('comments', () => {
   const comments = ref<DataCommentAppWrite[]>([]);
   const error = ref<Error | null>(null);
 
-  const getCommentsByCard = async (projectId:string) => {
+  const getCommentsByProject = async (projectId:string) => {
     error.value = null;
   
     try {
@@ -86,5 +86,5 @@ export const useCommentsStore = defineStore('comments', () => {
     }
   };
 
-  return { createComment, getCommentsByCard, deleteComment, comments};
+  return { createComment, getCommentsByProject, deleteComment, comments};
 });

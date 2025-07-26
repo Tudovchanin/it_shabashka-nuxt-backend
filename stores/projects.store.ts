@@ -14,7 +14,7 @@ import { Permission, Role, Query } from "appwrite";
 
 export type TypeProjectStatus = (typeof ProjectStatus)[keyof typeof ProjectStatus]
 
-export type DataCardAppWrite = Models.Document & {
+export type DataProjectAppWrite = Models.Document & {
   color:string;
   name: string;
   price: number;
@@ -35,7 +35,7 @@ export const useProjectsStore = defineStore('projects', () => {
   const authStore = useAuthStore();
   const loadStore = useIsLoadingStore();
 
-  const projects = ref<DataCardAppWrite[]>([]);
+  const projects = ref<DataProjectAppWrite[]>([]);
  
 
   const error = ref<Error | null>(null);
@@ -67,7 +67,7 @@ export const useProjectsStore = defineStore('projects', () => {
         ]
       );
 
-      projects.value = response.documents as DataCardAppWrite[];
+      projects.value = response.documents as DataProjectAppWrite[];
       console.log('Документы пользователя store:', projects.value);
 
     } catch (e: unknown) {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ProjectStatus } from "~/stores/cards.store";
-import type { DataCardAppWrite, TypeProjectStatus } from "~/stores/cards.store";
-import type { FormCardKanban } from "~/components/forms/CreateProject.vue";
+import { ProjectStatus } from "~/stores/projects.store";
+import type { DataProjectAppWrite, TypeProjectStatus } from "~/stores/projects.store";
+import type { FormProjectKanban } from "~/components/forms/CreateProject.vue";
 import { STATUS_TRANSLATIONS } from "~/constants/project.constants";
 
 import { COLORS_CARD } from "~/constants/project.constants";
@@ -10,7 +10,7 @@ definePageMeta({
   middleware: "auth",
 });
 
-// store
+// Stores
 const projectsStore = useProjectsStore();
 const addFormStore = useFormAddStore();
 const commentsStore = useCommentsStore();
@@ -22,20 +22,20 @@ const searchStore = useSearchStore();
  * Data is fetched from the projectsStore and passed to the Kanban component via props.
  * This approach makes Kanban reusable and independent from specific stores.
  */
-const projects = ref<DataCardAppWrite[]>([]);
+const projects = ref<DataProjectAppWrite[]>([]);
 
-// ref ссылки на элементы DOM
+// Refs to DOM elements
 const refPageProjects = ref();
 const refPanelAside = ref();
 const refFormAdd = ref();
 
 // -------------------------------------------------------------------------
 
-// CARDS / COLUMNS:
+// PROJECTS / COLUMNS
 
 
-// Handle card click event from Board component
-const handleClickCard = (project: DataCardAppWrite) => {
+// Handle project click event from Board component
+const handleClickProject = (project: DataProjectAppWrite) => {
   if (project) {
     asidePanelData.value = project;
   }
@@ -43,34 +43,34 @@ const handleClickCard = (project: DataCardAppWrite) => {
 };
 
 // Delete a project and update the projects list
-const handleDeleteProject = async (project: DataCardAppWrite) => {
+const handleDeleteProject = async (project: DataProjectAppWrite) => {
   await deleteProject(project);
-  setProjects(projectsStore.projects);
+  updateLocalProjects(projectsStore.projects);
   asidePanelVisible.value = false;
 };
 
 // Update local projects state with a new array
-const updateLocalProjects = (arrProjects: DataCardAppWrite[])=> {
+const updateLocalProjects = (arrProjects: DataProjectAppWrite[])=> {
   projects.value = [...arrProjects];
 }
 
 // Create a new project via the store
-const createProject = async(project: FormCardKanban) => {
+const createProject = async(project: FormProjectKanban) => {
   const dataProject = {
     ...project,
   };
   await projectsStore.createProject(dataProject);
 }
 
-// Move a card to a different column and refresh projects
-const moveCardToColumn = async(projectId: string, columnStatus: string)=> {
+// Move a Project to a different column and refresh projects
+const moveProjectToColumn = async(projectId: string, columnStatus: string)=> {
   await projectsStore.updateProject(projectId, { status: columnStatus });
   await projectsStore.getProjectsByUser();
   updateLocalProjects(projectsStore.projects);
 }
 
 // Delete a project by its ID via the store
-const  deleteProject = async(project: DataCardAppWrite)=> {
+const  deleteProject = async(project: DataProjectAppWrite)=> {
   await projectsStore.deleteProject(project.$id);
 }
 
@@ -83,9 +83,9 @@ const  deleteProject = async(project: DataCardAppWrite)=> {
 
 // -------------------------------------------------------------------------
 
-// ФОРМА
+// FORM CREATE PROJECT
 
-// обработчик клика на user-project__wrapper-form-add(закрывает форму)
+// Closess the add project form when clicking outside the form area
 const handleClickWrapperFormAdd = (e: Event) => {
   const elem = e.target as HTMLElement;
   if (!refFormAdd.value.contains(elem)) {
@@ -93,30 +93,47 @@ const handleClickWrapperFormAdd = (e: Event) => {
   }
 };
 
-// обработчик изменения статуса формы при нажатии на dots разных колонок
+// Logic for managing the add project form status when clicking on dots in different columns
 const statusNewProject = ref<TypeProjectStatus>("NEW");
 
-const handleAddProject = (status: TypeProjectStatus) => {
+const openAddProjectForm = () => {
   addFormStore.setOpen(true);
+};
+const setProjectStatus = (status: TypeProjectStatus) => {
   statusNewProject.value = status;
 };
 
-// добавление карточки через форму
-const handleSubmitCreateCard = async (project: FormCardKanban) => {
+const handleOpenAddProjectForm = (status: TypeProjectStatus) => {
+  openAddProjectForm();
+  setProjectStatus(status);
+};
+
+
+
+const handleSubmitCreateProject = async (project: FormProjectKanban) => {
   await createProject(project);
   updateLocalProjects(projectsStore.projects);
 };
 
-const handleChangeStatus = (status: TypeProjectStatus) => {
-  statusNewProject.value = status;
+const handleChangeProjectStatus = (status: TypeProjectStatus) => {
+   setProjectStatus(status)
 };
 
 // -------------------------------------------------------------------------
 
+
+
+
+
+
+
+
+
+
 //БОКОВАЯ ПАНЕЛЬ:
 
 // данные для вывода в боковой панели
-const asidePanelData = ref<DataCardAppWrite | null>(null);
+const asidePanelData = ref<DataProjectAppWrite | null>(null);
 // state боковой панели
 const asidePanelVisible = ref(false);
 
@@ -138,7 +155,7 @@ const handleHiddenAsidePanel = () => {
 const handleAddComment = async (comment: string, projectId: string) => {
   await commentsStore.createComment({ text: comment, projectId: projectId });
   if (asidePanelData.value) {
-    await commentsStore.getCommentsByCard(projectId);
+    await commentsStore.getCommentsByProject(projectId);
     asidePanelData.value.comments = commentsStore.comments;
   }
 };
@@ -146,12 +163,12 @@ const handleAddComment = async (comment: string, projectId: string) => {
 const handleDeleteComment = async (idComment: string, projectId: string) => {
   await commentsStore.deleteComment(idComment);
   if (asidePanelData.value) {
-    await commentsStore.getCommentsByCard(projectId);
+    await commentsStore.getCommentsByProject(projectId);
     asidePanelData.value.comments = commentsStore.comments;
   }
 };
 // обработчик обновления данных карточки(project)
-const handleUpdateCard = async (
+const handleUpdateProject = async (
   projectId: string,
   data: { [key: string]: string }
 ) => {
@@ -160,7 +177,7 @@ const handleUpdateCard = async (
     await projectsStore.updateProject(projectId, data);
     await projectsStore.getProjectsByUser();
     updateLocalProjects(projectsStore.projects);
-    updateCardInAside(projectId);
+    updateProjectInAside(projectId);
   } catch (error) {
     console.log(error);
   } finally {
@@ -169,7 +186,7 @@ const handleUpdateCard = async (
 };
 
 // обработчик изменения цвета карточкм
-const handleChangeColorCard = async (projectId: string, color: string) => {
+const handleChangeColorProject = async (projectId: string, color: string) => {
   if (!projectId) return;
   await refPanelAside.value.setStateFlagBlur(true);
 
@@ -177,7 +194,7 @@ const handleChangeColorCard = async (projectId: string, color: string) => {
     await projectsStore.updateProject(projectId, { color: color });
     await projectsStore.getProjectsByUser();
     updateLocalProjects(projectsStore.projects);
-    updateCardInAside(projectId);
+    updateProjectInAside(projectId);
     await refPanelAside.value.setStateFlagBlur(true);
   } catch (error) {
     console.log(error);
@@ -187,17 +204,17 @@ const handleChangeColorCard = async (projectId: string, color: string) => {
 };
 
 // функция helpers, обновляет asidePanelData
-function updateCardInAside(projectId: string) {
+function updateProjectInAside(projectId: string) {
   const updateProject = projectsStore.projects.find(
     (project) => project.$id === projectId
   );
   if (updateProject?.$id) {
-    asidePanelData.value = updateProject as DataCardAppWrite;
+    asidePanelData.value = updateProject as DataProjectAppWrite;
   }
 }
 
 // цвета карточки в боковой панели
-const colors_card = COLORS_CARD;
+const colors_project = COLORS_CARD;
 // -------------------------------------------------------------------------
 
 
@@ -208,18 +225,18 @@ watch(
   () => searchStore.flagSearch,
   (search) => {
     if (search) {
-      const nameSearchedCard = searchStore.searchQuery;
-      const allCards = projectsStore.projects;
+      const nameSearchedProject = searchStore.searchQuery;
+      const allProjects = projectsStore.projects;
 
-      if (nameSearchedCard.trim().length !== 0) {
-        const validCards = allCards.filter(
-          (card) => card.name.toLowerCase() === nameSearchedCard.toLowerCase()
+      if (nameSearchedProject.trim().length !== 0) {
+        const validProjects = allProjects.filter(
+          (project) => project.name.toLowerCase() === nameSearchedProject.toLowerCase()
         );
-        if (validCards.length === 0) return;
-        setProjects(validCards);
+        if (validProjects.length === 0) return;
+        updateLocalProjects(validProjects);
       }
     } else {
-      setProjects(projectsStore.projects);
+      updateLocalProjects(projectsStore.projects);
     }
   }
 );
@@ -282,17 +299,17 @@ onBeforeMount(async () => {
 
         <FormsCreateProject
           :status="statusNewProject"
-          @change-status="handleChangeStatus"
-          @create-project="handleSubmitCreateCard"
+          @change-status="handleChangeProjectStatus"
+          @create-project="handleSubmitCreateProject"
         />
       </div>
     </div>
 
     <KanbanBoard
-      @card-create="handleAddProject"
-      @card-move-to-column="moveCardToColumn"
+      @card-create="handleOpenAddProjectForm"
+      @card-move-to-column="moveProjectToColumn"
       @card-delete="handleDeleteProject"
-      @card-click="handleClickCard"
+      @card-click="handleClickProject"
       :projects="projects"
     />
 
@@ -324,7 +341,7 @@ onBeforeMount(async () => {
           :link="asidePanelData?.link"
           :createdAt="asidePanelData?.$createdAt"
           :deadline="asidePanelData?.deadline"
-          @update-card="handleUpdateCard"
+          @update-card="handleUpdateProject"
           @add-comment="handleAddComment"
           @delete-comment="handleDeleteComment"
         >
@@ -351,8 +368,8 @@ onBeforeMount(async () => {
             <div style="margin-bottom: 10px">изменить цвет карточки</div>
 
             <PanelsColorsPanel
-              @click-color="(color: string) => handleChangeColorCard(asidePanelData?.$id || '', color)"
-              :colors="colors_card"
+              @click-color="(color: string) => handleChangeColorProject(asidePanelData?.$id || '', color)"
+              :colors="colors_project"
             />
           </template>
         </SectionsAsideCardInfo>

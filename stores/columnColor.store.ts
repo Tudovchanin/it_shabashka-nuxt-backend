@@ -1,5 +1,5 @@
 
-import type { TypeProjectStatus } from "~/stores/cards.store";
+import type { TypeProjectStatus } from "~/stores/projects.store";
 
 
 export const useColumnColor = defineStore('color-column', ()=> {

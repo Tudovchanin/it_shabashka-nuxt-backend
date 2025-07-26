@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ProjectStatus } from "~/stores/cards.store";
-import type { DataCardAppWrite, TypeProjectStatus } from "~/stores/cards.store";
+import { ProjectStatus } from "~/stores/projects.store";
+import type {DataProjectAppWrite, TypeProjectStatus } from "~/stores/projects.store";
 
 import { STATUS_TRANSLATIONS } from "~/constants/project.constants";
 import {
@@ -14,7 +14,7 @@ import { GRADIENT_COLUMN, COLORS_COLUMN } from "~/constants/project.constants";
 
 // type
 type Kanban = {
-  [key in TypeProjectStatus]: DataCardAppWrite[];
+  [key in TypeProjectStatus]: DataProjectAppWrite[];
 };
 type SortColumns = {
   [key: string]: {
@@ -38,7 +38,7 @@ watch(
 );
 
 type KanbanProps = {
-  projects?: DataCardAppWrite[];
+  projects?: DataProjectAppWrite[];
   isDraggingAllowed?: boolean;
 };
 const kanbanOriginal = ref<Kanban>({
@@ -111,7 +111,7 @@ const emitCreateCard = (status: TypeProjectStatus) => {
 };
 
 // Удаление карточки
-const emitDeleteCard = async (project: DataCardAppWrite) => {
+const emitDeleteCard = async (project: DataProjectAppWrite) => {
   emit("card-delete", project);
 };
 
@@ -121,7 +121,7 @@ function emitAddCardInColumn(projectId: string, columnStatus: string) {
 }
 
 // обработчик клика на карточку
-const emitClickCard = (project: DataCardAppWrite) => {
+const emitClickCard = (project: DataProjectAppWrite) => {
   if (!flagClickCard) return;
   if (project) {
     emit("card-click", project);

@@ -1,5 +1,5 @@
 
-import type { TypeProjectStatus } from "./cards.store";
+import type { TypeProjectStatus } from "./projects.store";
 
 export const useFormAddStore = defineStore('isOpen', () => {
   const isOpen = ref(false);

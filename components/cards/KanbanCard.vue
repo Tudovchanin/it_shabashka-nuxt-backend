@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { FormCardKanban } from "../forms/CreateProject.vue";
+import type { FormProjectKanban } from "../forms/CreateProject.vue";
 import { formatDate } from "#imports";
 import { COLOR_TEXT_MAP } from "~/constants/color-mapping.constants";
 import type { ColorKeyTextMap } from "~/constants/color-mapping.constants";
 
-export type CardKanban = FormCardKanban & {
+export type CardKanban = FormProjectKanban & {
   createdAt: string;
   id: string;
   color: string;
@@ -24,8 +24,6 @@ const emitEventDeleteCard = () => {
 
 const emitEventClickCard = () => {
   emit("click-card");
-  console.log('click card');
-
 };
 
 const cancelClick = () => {
@@ -41,36 +39,36 @@ const getColorText = computed(() => {
 
 </script>
 <template>
-  <div :style="{ 'background': props.color, 'color': getColorText }" @click="emitEventClickCard" class="project">
-    <button @click.stop="hiddenPanelConfirm = false" class="project__delete">
+  <div :style="{ 'background': props.color, 'color': getColorText }" @click="emitEventClickCard" class="card">
+    <button @click.stop="hiddenPanelConfirm = false" class="card__delete">
       <img src="/images/icon-close.png" alt="удалить карточку">
     </button>
-    <div class="project__client">{{ props.client || "нет клиента" }}</div>
-    <div class="project__name">{{ props.name || "нет названия" }}</div>
-    <div class="project__price">{{ props.price.toLocaleString('ru-RU') }} руб</div>
-    <div @click.stop v-if="props.link" class="project__link">
+    <div class="card__client">{{ props.client || "нет клиента" }}</div>
+    <div class="card__name">{{ props.name || "нет названия" }}</div>
+    <div class="card__price">{{ props.price.toLocaleString('ru-RU') }} руб</div>
+    <div @click.stop v-if="props.link" class="card__link">
       <a target="_blank" rel="noopener noreferrer" :href="props.link">ссылка на макет</a>
     </div>
-    <div v-if="props.createdAt" class="project__date-add">
+    <div v-if="props.createdAt" class="card__date-add">
       <span>добавлен</span><span>{{ createdAtFormatted }}</span>
     </div>
-    <div class="project__deadline" v-if="props.deadline">
+    <div class="card__deadline" v-if="props.deadline">
       <span>сделать до</span> <span>{{ deadLineFormatted }}</span>
     </div>
-    <div class="project__deadline" v-else>
+    <div class="card__deadline" v-else>
       <span>сделать до</span><span>-</span>
     </div>
-    <div :aria-hidden="hiddenPanelConfirm" class="project__delete-confirm"
-      :class="{ 'project__delete-confirm--hidden': hiddenPanelConfirm }">
-      <p class="project__confirm-text">
+    <div :aria-hidden="hiddenPanelConfirm" class="card__delete-confirm"
+      :class="{ 'card__delete-confirm--hidden': hiddenPanelConfirm }">
+      <p class="card__confirm-text">
         Вы уверены, что хотите удалить эту карточку?
       </p>
-      <div class="project__ui-button">
+      <div class="card__ui-button">
         <UiBaseButton @click.stop="emitEventDeleteCard" text-color="white" bg-color="red">
           Delete
         </UiBaseButton>
       </div>
-      <div class="project__ui-button">
+      <div class="card__ui-button">
         <UiBaseButton @click.stop="cancelClick" text-color="black" bg-color="white">
           Cancel
         </UiBaseButton>
@@ -80,7 +78,7 @@ const getColorText = computed(() => {
 </template>
 
 <style lang="scss" scoped>
-.project {
+.card {
   display: grid;
   gap: 5px;
   position: relative;

@@ -1,22 +1,33 @@
 <script setup lang="ts">
-import type { DataCardAppWrite, TypeProjectStatus } from "~/stores/cards.store";
-import { ProjectStatus } from "~/stores/cards.store";
+import type {
+  DataProjectAppWrite,
+  TypeProjectStatus,
+} from "~/stores/projects.store";
+import { ProjectStatus } from "~/stores/projects.store";
 import { STATUS_TRANSLATIONS } from "~/constants/project.constants";
 import { InputMask } from "~/utils/mask-helpers";
 
-export type FormCardKanban = Pick<
-  DataCardAppWrite,
-  "name" | "price" | "status" | "description" | "client" | "link" | "deadline" | "client_email" | "client_phone"
+export type FormProjectKanban = Pick<
+  DataProjectAppWrite,
+  | "name"
+  | "price"
+  | "status"
+  | "description"
+  | "client"
+  | "link"
+  | "deadline"
+  | "client_email"
+  | "client_phone"
 >;
 
 const props = defineProps<{
   status?: TypeProjectStatus;
 }>();
 
-const formData = ref<FormCardKanban>({
+const formData = ref<FormProjectKanban>({
   client: "",
-  client_phone: '',
-  client_email: '',
+  client_phone: "",
+  client_email: "",
   name: "",
   price: 0,
   link: "",
@@ -38,34 +49,35 @@ watch(
 
 const emit = defineEmits(["create-project", "change-status"]);
 
-const emitChangeStatus = (() => {
+const emitChangeStatus = () => {
   emit("change-status", formData.value.status);
-});
+};
 
-const emitCreateProject = (() => {
+const emitCreateProject = () => {
   if (formData.value.description) {
-
     formData.value.description = formData.value.description
-      .replace(/\s+/g, ' ')
-      .trim()
+      .replace(/\s+/g, " ")
+      .trim();
   }
   emit("create-project", formData.value);
   resetForm();
   // removePhoneMask();
   maskPhone?.removeMaskListeners;
   // значение инпута в маске
-  refInput.value.value = '';
+  refInput.value.value = "";
   // removePhoneMask = inputMask(maskStart, maskValue, maskSymbols, refInput.value, maskHover);
-  maskPhone = new InputMask(maskStart, mask, maskSymbolsNotReplace, refInput.value);
-
-
-})
+  maskPhone = new InputMask(
+    maskStart,
+    mask,
+    maskSymbolsNotReplace,
+    refInput.value
+  );
+};
 
 // для маски нужно использовать события, v-model глючит
-const handleKeyUp = ((e: any) => {
-  formData.value.client_phone = e.target.value
-})
-
+const handleKeyUp = (e: any) => {
+  formData.value.client_phone = e.target.value;
+};
 
 function resetForm() {
   formData.value = {
@@ -79,8 +91,6 @@ function resetForm() {
     link: "",
     deadline: "",
   };
-
-
 }
 
 //         pattern="^\+7\(\d{3}\)\d{3}-\d{2}-\d{2}$"
@@ -88,79 +98,153 @@ const maskStart = 3;
 const mask = "+7(___)___-__-__";
 const maskSymbolsNotReplace = [")", "(", "-"];
 
-let maskPhone:null | InputMask = null;
+let maskPhone: null | InputMask = null;
 
 // let removePhoneMask: any = null;
 onMounted(() => {
-maskPhone = new InputMask(maskStart, mask, maskSymbolsNotReplace, refInput.value);
-maskPhone.initMask();
+  maskPhone = new InputMask(
+    maskStart,
+    mask,
+    maskSymbolsNotReplace,
+    refInput.value
+  );
+  maskPhone.initMask();
   // removePhoneMask = inputMask(maskStart, maskValue, maskSymbols, refInput.value, maskHover);
-
 });
 
 onBeforeUnmount(() => {
-
   // removePhoneMask();
   maskPhone?.removeMaskListeners();
-})
+});
 </script>
 <template>
   <form @submit.prevent="emitCreateProject" class="form-create-project">
     <div class="form-create-project__field">
-      <label class="form-create-project__label" for="client">Клиент <span class="required-asterisk"
-          aria-hidden="true">*</span></label>
-      <input maxlength="50" v-model="formData.client" id="client" type="text" pattern="^[\p{L}\p{N}\- ]{1,50}$"
+      <label class="form-create-project__label" for="client"
+        >Клиент
+        <span class="required-asterisk" aria-hidden="true">*</span></label
+      >
+      <input
+        maxlength="50"
+        v-model="formData.client"
+        id="client"
+        type="text"
+        pattern="^.{1,50}$"
+        title="Не более 50 символов"
+        placeholder="Имя/Компания (до 50 симв.)"
+        class="form-create-project__input"
+        required
+      />
+    </div>
+
+    <div class="form-create-project__field">
+      <label class="form-create-project__label" for="phone"
+        >Телефон клиента</label
+      >
+      <input
+        autocomplete="nope"
+        ref="refInput"
+        @keyup="handleKeyUp"
+        id="phone"
+        type="text"
+        pattern="^\+7\(\d{3}\)\d{3}-\d{2}-\d{2}$"
+        placeholder="+7(___)___-__-__"
+        title="Введите полный номер в формате: +7(XXX)XXX-XX-XX"
+        class="form-create-project__input"
+      />
+    </div>
+
+    <div class="form-create-project__field">
+      <label class="form-create-project__label" for="email"
+        >Email клиента</label
+      >
+      <input
+        v-model="formData.client_email"
+        id="email"
+        type="email"
+        placeholder="example@domain.com"
+        class="form-create-project__input"
+        pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        title="Введите корректный email адрес"
+      />
+    </div>
+
+    <div class="form-create-project__field">
+      <label class="form-create-project__label" for="project"
+        >Название шабашки
+        <span class="required-asterisk" aria-hidden="true">*</span></label
+      >
+      <input
+        v-model="formData.name"
+        id="project"
+        type="text"
+        pattern="^[\p{L}\p{N}\- ]{1,50}$"
         title="Можно использовать буквы, цифры, пробелы и тире (макс. 50 символов)"
-        placeholder="Имя/Компания (до 50 симв.)" class="form-create-project__input" required />
-    </div>
-
-    <div class="form-create-project__field">
-      <label class="form-create-project__label" for="phone">Телефон клиента</label>
-      <input autocomplete="nope" ref="refInput" @keyup="handleKeyUp" id="phone" type="text"
-        pattern="^\+7\(\d{3}\)\d{3}-\d{2}-\d{2}$" placeholder="+7(___)___-__-__"
-        title="Введите полный номер в формате: +7(XXX)XXX-XX-XX" class="form-create-project__input" />
-    </div>
-
-    <div class="form-create-project__field">
-      <label class="form-create-project__label" for="email">Email клиента</label>
-      <input v-model="formData.client_email" id="email" type="email" placeholder="example@domain.com"
-        class="form-create-project__input" pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-        title="Введите корректный email адрес" />
-    </div>
-
-    <div class="form-create-project__field">
-      <label class="form-create-project__label" for="project">Название шабашки
-        <span class="required-asterisk" aria-hidden="true">*</span></label>
-      <input v-model="formData.name" id="project" type="text" pattern="^[\p{L}\p{N}\- ]{1,50}$"
-        title="Можно использовать буквы, цифры, пробелы и тире (макс. 50 символов)" placeholder="до 50 символов"
-        class="form-create-project__input" required />
+        placeholder="до 50 символов"
+        class="form-create-project__input"
+        required
+      />
     </div>
     <div class="form-create-project__field">
       <label class="form-create-project__label" for="price">Цена шабашки</label>
-      <input v-model="formData.price" id="price" placeholder="0" type="number" max="100000000" min="0"
-        class="form-create-project__input" />
+      <input
+        v-model="formData.price"
+        id="price"
+        placeholder="0"
+        type="number"
+        max="100000000"
+        min="0"
+        class="form-create-project__input"
+      />
     </div>
     <div class="form-create-project__field">
-      <label class="form-create-project__label" for="link">Ссылка на макет</label>
-      <input v-model="formData.link" id="link" pattern="https://.*" placeholder="https://example.com"
-        title="Введите корректный URL, начинающийся с https://" type="url" class="form-create-project__input" />
+      <label class="form-create-project__label" for="link"
+        >Ссылка на макет</label
+      >
+      <input
+        v-model="formData.link"
+        id="link"
+        pattern="https://.*"
+        placeholder="https://example.com"
+        title="Введите корректный URL, начинающийся с https://"
+        type="url"
+        class="form-create-project__input"
+      />
     </div>
     <div class="form-create-project__field">
       <label class="form-create-project__label" for="date">Дедлайн</label>
-      <input v-model="formData.deadline" id="date" type="date" class="form-create-project__input" />
+      <input
+        v-model="formData.deadline"
+        id="date"
+        type="date"
+        class="form-create-project__input"
+      />
     </div>
     <div class="form-create-project__field">
-      <label class="form-create-project__label" for="status">Статус шабашки</label>
-      <select @change="emitChangeStatus" v-model="formData.status" id="status" class="form-create-project__input">
+      <label class="form-create-project__label" for="status"
+        >Статус шабашки</label
+      >
+      <select
+        @change="emitChangeStatus"
+        v-model="formData.status"
+        id="status"
+        class="form-create-project__input"
+      >
         <option :key="status" v-for="status in ProjectStatus" :value="status">
           {{ STATUS_TRANSLATIONS[status] }}
         </option>
       </select>
     </div>
     <div class="form-create-project__field description">
-      <label class="form-create-project__label description__label">Описание шабашки</label>
-      <textarea maxlength="200" placeholder="описание не больше 200 символов" v-model="formData.description"
-        class="description__text-area form-create-project__input"></textarea>
+      <label class="form-create-project__label description__label"
+        >Описание шабашки</label
+      >
+      <textarea
+        maxlength="200"
+        placeholder="описание не больше 200 символов"
+        v-model="formData.description"
+        class="description__text-area form-create-project__input"
+      ></textarea>
       <div class="form-create-project__label description__length">
         {{ 200 - (formData.description ? formData.description.length : 0) }}
       </div>
@@ -174,7 +258,8 @@ onBeforeUnmount(() => {
 .form-create-project {
   width: 100%;
   padding: 15px 25px;
-// background-color: red;
+
+  // background-color: red;
   @media (max-width: 550px) {
     padding: 12px 20px;
   }
@@ -190,9 +275,10 @@ onBeforeUnmount(() => {
     font-size: 14px;
     font-weight: 700;
     letter-spacing: var(--letter-spacing);
+
     @media (max-width: 550px) {
-    font-size: 12px;
-  }
+      font-size: 12px;
+    }
   }
 
   &__input {
@@ -204,9 +290,10 @@ onBeforeUnmount(() => {
     background-color: rgb(0, 0, 0);
     color: rgb(255, 255, 255, 0.5);
     font-size: 14px;
+
     @media (max-width: 550px) {
-    font-size: 12px;
-  }
+      font-size: 12px;
+    }
 
     &::placeholder {
       color: rgba(255, 255, 255, 0.5);
@@ -216,7 +303,6 @@ onBeforeUnmount(() => {
       opacity: 1;
       color: white;
     }
-
   }
 
   &__button {
@@ -224,7 +310,7 @@ onBeforeUnmount(() => {
     height: 40px;
     position: relative;
     z-index: 1;
-    
+
     background-color: rgb(0, 0, 0);
     border: none;
     border-radius: var(--radius-input);
@@ -237,8 +323,8 @@ onBeforeUnmount(() => {
     cursor: pointer;
 
     @media (max-width: 550px) {
-    font-size: 12px;
-  }
+      font-size: 12px;
+    }
 
     @media (hover: hover) {
       &:hover {
@@ -290,7 +376,6 @@ input[type="date"] {
   cursor: pointer;
 }
 
-
 /* Стиль для кнопки календаря */
 input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(1);
@@ -304,6 +389,5 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 input:-webkit-autofill {
   -webkit-box-shadow: 0 0 0 500px rgb(0, 0, 0) inset;
   -webkit-text-fill-color: rgb(255, 255, 255, 0.5);
-  ;
 }
 </style>
