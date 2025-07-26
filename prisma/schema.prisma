@@ -2,8 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 generator client {
   provider        = "prisma-client-js" // Генератор Prisma Client для JavaScript/TypeScript
-  output          = "../generated/prisma" // Папка для сгенерированного клиента
-  previewFeatures = ["prismaSchemaFolder"] // Включает поддержку мультифайловой схемы Prisma (разделение моделей по разным файлам)
+  output          = "../node_modules/.prisma/client" // Папка для сгенерированного клиента
 }
 
 datasource db {
@@ -13,17 +12,17 @@ datasource db {
 
 
 model User {
-   id     String   @id @default(cuid())
+   id    String   @id @default(cuid())
   // Первичный ключ (PK), уникальный идентификатор записи
   // Целочисленный, автоинкрементируется при создании (1, 2, 3, ...)
-
+  password String
   email  String  @unique
   // Уникальное поле с индексом — в таблице не может быть двух одинаковых email
 
   name   String?
   // Необязательное поле (может быть null) — имя пользователя
 
-  avatar String? @default("https://example.com/default-avatar.png")
+  avatar String? @default("/avatar-default.png")
   // Необязательное поле URL аватара, по умолчанию ссылка на дефолтный аватар
 
   cards  Card[]  

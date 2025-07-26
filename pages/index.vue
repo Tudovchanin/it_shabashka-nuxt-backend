@@ -120,6 +120,7 @@ async function signIn(email: string, password: string) {
     loadStore.set(false);
   }
 }
+
 async function signUp(email: string, password: string, name: string) {
   try {
     loadStore.set(true);

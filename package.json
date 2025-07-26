@@ -14,11 +14,13 @@
     "@pinia/nuxt": "^0.10.1",
     "@prisma/nuxt": "^0.3.0",
     "appwrite": "^14.0.1",
+    "bcrypt": "^6.0.0",
     "nuxt": "^3.15.4",
     "vue": "latest",
     "vue-router": "latest"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "sass": "^1.85.1"
   },
   "overrides": {
