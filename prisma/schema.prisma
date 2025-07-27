@@ -11,6 +11,9 @@ datasource db {
 }
 
 
+
+
+
 model User {
    id    String   @id @default(cuid())
   // Первичный ключ (PK), уникальный идентификатор записи
@@ -27,7 +30,32 @@ model User {
 
   cards  Card[]  
   // Связь "один ко многим" — у пользователя может быть много карточек
+  refreshToken RefreshToken?  // один или ноль токенов (опционально)
 }
+
+
+model RefreshToken {
+  id        String   @id @default(cuid()) 
+  // Идентификатор токена, уникальный, генерируется автоматически функцией cuid()
+
+  token     String   @unique 
+  // Строка — собственно сам refresh токен, уникальный (чтобы не было дубликатов)
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade) 
+  // Связь с пользователем. Prisma связывает эту модель с таблицей User.
+  // Поле userId — внешний ключ к User.id.
+  // onDelete: Cascade — если пользователь удаляется, его токены тоже удаляются.
+
+  userId    String @unique
+  // Хранит id пользователя (внешний ключ)
+
+  expiresAt DateTime 
+  // Время, когда токен истекает — можно ограничить срок жизни refresh токена.
+
+  createdAt DateTime @default(now()) 
+  // Когда токен был создан. Значение по умолчанию — текущая дата и время.
+}
+
 
 
 
@@ -100,7 +128,7 @@ model Card {
 model Comment {
   id        String   @id @default(cuid())
   text      String   
- card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
   cardId    String   // Внешний ключ на карточку (projectId в Appwrite)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

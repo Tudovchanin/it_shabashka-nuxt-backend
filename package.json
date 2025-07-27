@@ -13,8 +13,10 @@
   "dependencies": {
     "@pinia/nuxt": "^0.10.1",
     "@prisma/nuxt": "^0.3.0",
+    "@types/jsonwebtoken": "^9.0.10",
     "appwrite": "^14.0.1",
     "bcrypt": "^6.0.0",
+    "jsonwebtoken": "^9.0.2",
     "nuxt": "^3.15.4",
     "vue": "latest",
     "vue-router": "latest"
