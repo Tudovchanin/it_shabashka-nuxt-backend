@@ -5,13 +5,13 @@ import bcrypt from "bcrypt";
 type CreateUserParams = {
   email: string;
   hashedPassword: string;
-  name?: string;
+  name: string;
   avatar?: string;
 };
 
 
 export type UserUpdateInput = {
-  name?: string | null;
+  name?: string;
   email?: string;
   avatar?: string | null;
   password?: string;

@@ -1,137 +1,133 @@
-
-import { STORAGE_ID } from "~/constants/app.constants"
-
-type AppwriteUser = {
-  $id: string
-  email: string
-  name: string
-  status: boolean
-}
-
-// Тип состояния пользователя с аватаркой
-type AuthStore = AppwriteUser & {
-  avatarUrl: string
-  avatarId: string
-}
-
-const defaultValue: AuthStore = {
-  $id: '',
-  email: '',
-  name: '',
+type User = {
+  id: string;
+  email: string;
+  name: string;
+  status: boolean;
+  avatar: string | null;
+};
+const defaultValue: User = {
+  id: "",
+  email: "",
+  name: "",
   status: false,
-  avatarUrl: '',
-  avatarId: '',
-}
+  avatar: "",
+};
 
-const defaultAvatarId = '67efcb7b000f144d1d94'
-
-export const useAuthStore = defineStore('auth', () => {
-
+export const useAuthStore = defineStore("auth", () => {
   const user = ref(defaultValue);
+  const accessToken = ref("");
+  const errorMessage = ref<string | null>(null);
 
   const init = async () => {
+    errorMessage.value = null;
     try {
+      const data = await $fetch("/api/auth/refresh-token", {
+        method: "POST",
+        credentials: "include", // ключевой момент для отправки httpOnly cookie
+      });
 
-      // Получение текущего пользователя
-      const userData = await account.get();
-
-      // Получение пользовательских предпочтений
-      const prefs = await account.getPrefs();
-
-
-      // Создание объекта пользователя с аватаркой
-      user.value = {
-        $id: userData.$id,
-        email: userData.email,
-        name: userData.name,
-        status: userData.status,
-        avatarUrl: '',
-        avatarId: ''
-      };
-
-      // проверка предпочтений пользователя
-      if (!prefs['avatarId']) {
-        getAvatar(defaultAvatarId);
+      if (data?.accessToken && data.user) {
+        accessToken.value = data.accessToken;
+        user.value = { ...data.user, status: true };
       } else {
-        getAvatar(prefs['avatarId']);
+        errorMessage.value = "Не удалось войти";
+        resetAuth();
       }
-
-
-      if (!prefs['avatarId']) {
-        await getAvatar(defaultAvatarId);
-
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        errorMessage.value = error.message;
       } else {
-        await getAvatar(prefs['avatarId']);
-
+        errorMessage.value = "Неизвестная ошибка сервера";
       }
-
-    } catch (e: unknown) {
-
-      user.value = defaultValue;
-    } finally {
-      console.log(user.value);
-      
+      resetAuth();
     }
-  }
-
-  const login = async (email: string, password: string) => {
-    console.log(email, password, 'store');
-    await account.createEmailPasswordSession(email, password);
-  }
-  const register = async (email: string, password: string, name: string) => {
-    await account.create(ID.unique(), email, password, name);
-    await login(email, password);
-  }
-  const logout = async () => {
-    await account.deleteSession("current");
-    user.value = defaultValue;
-  }
-
-
-
-  const getAvatar = async (avatarId: string) => {
-    const avatar = storage.getFileView(STORAGE_ID, avatarId).href;
-    user.value.avatarUrl = avatar;
-  }
-  const createAvatar = async (file: any) => {
-
-    const prefs = await account.getPrefs();
-
-    if (prefs['avatarId']) {
-      deleteAvatar(prefs['avatarId']);
-    }
-
-
-    const response = await storage.createFile(
-      STORAGE_ID,
-      ID.unique(),
-      file
-    );
-
-    const avatarId = response.$id;
-
-    if (avatarId) {
-      await account.updatePrefs({ 'avatarId': response.$id });
-      console.log('установили аватар')
-      getAvatar(avatarId);
-    }
-
-
-
   };
-  const deleteAvatar = async (avatarId: string) => {
+  const register = async (email: string, password: string, name: string) => {
+    errorMessage.value = null;
 
-    const response = await storage.deleteFile(
-      STORAGE_ID,
-      avatarId
-    );
-    console.log('удалена аватарка', response);
+    try {
+      const data = await $fetch("/api/auth/register", {
+        method: "POST",
+        body: { email, password, name },
+      });
 
+      if (data.accessToken && data.user) {
+        accessToken.value = data.accessToken;
+        user.value = { ...data.user, status: true };
+      } else {
+        errorMessage.value = "Не удалось зарегистрироваться";
+        resetAuth();
+        throw new Error("Не удалось зарегистрироваться");
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        errorMessage.value = error.message;
+        throw error;
+      } else {
+        errorMessage.value = "Неизвестная ошибка сервера";
+        resetAuth();
+        throw new Error("Неизвестная ошибка сервера");
+      }
+    }
+  };
+  const login = async (email: string, password: string) => {
+    errorMessage.value = null;
 
-  }
+    try {
+      const data = await $fetch("/api/auth/login", {
+        method: "POST",
+        body: { email, password },
+      });
 
+      if (data?.accessToken && data?.user) {
+        accessToken.value = data.accessToken;
+        user.value = { ...data.user, status: true };
+      } else {
+        errorMessage.value = "Не удалось войти";
+        resetAuth();
+        throw new Error("Не удалось войти");
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        errorMessage.value = error.message;
+        throw error;
+      } else {
+        errorMessage.value = "Неизвестная ошибка сервера";
+        resetAuth();
+        throw new Error("Неизвестная ошибка сервера");
+      }
+    }
+  };
+  const logout = async () => {
+    try {
+      errorMessage.value = null;
+      const data = await $fetch("/api/auth/logout", {
+        method: "POST",
+      });
+      resetAuth();
+      return data;
+    } catch (error) {
+      if (error instanceof Error) {
+        errorMessage.value = error.message;
+        throw error;
+      } else {
+        errorMessage.value = "Неизвестная ошибка сервера";
+        throw new Error("Неизвестная ошибка сервера");
+      }
+    }
+  };
+
+  const resetAuth = () => {
+    user.value = defaultValue;
+    accessToken.value = "";
+  };
 
   return {
-    init, login, register, logout, user, createAvatar
-  }
-})
+    init,
+    login,
+    register,
+    logout,
+    user,
+    errorMessage,
+  };
+});

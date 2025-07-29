@@ -8,7 +8,7 @@ export default defineEventHandler(async (e) => {
   const refreshToken = getCookie(e, 'refreshToken');
 
   if (!refreshToken) {
-    throw createError({ statusCode: 400, statusMessage: 'Refresh token отсутствует' });
+    throw createError({ statusCode: 400, message: 'Refresh token отсутствует' });
   }
   
      
@@ -19,7 +19,7 @@ if (typeof payload === 'string') {
 
   throw createError({
     statusCode: 401,
-    statusMessage: 'Неверный формат токена',
+    message: 'Неверный формат токена',
   });
 }
     const userId = payload.id || payload.sub;
@@ -33,7 +33,7 @@ if (typeof payload === 'string') {
     return { message: 'Успешный выход из системы' };
     
    } catch (error) {
-    throw createError({ statusCode: 401, statusMessage: 'Некорректный refresh token' });
+    throw createError({ statusCode: 401, message: 'Некорректный refresh token' });
    }
 
 });

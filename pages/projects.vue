@@ -264,8 +264,8 @@ watch(
  */
 
 onBeforeMount(async () => {
-  await projectsStore.getProjectsByUser();
-  updateLocalProjects(projectsStore.projects);
+  // await projectsStore.getProjectsByUser();
+  // updateLocalProjects(projectsStore.projects);
 });
 
 </script>

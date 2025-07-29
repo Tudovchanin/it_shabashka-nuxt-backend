@@ -22,7 +22,7 @@ model User {
   email  String  @unique
   // Уникальное поле с индексом — в таблице не может быть двух одинаковых email
 
-  name   String?
+  name   String
   // Необязательное поле (может быть null) — имя пользователя
 
   avatar String? @default("/avatar-default.png")

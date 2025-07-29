@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { AudioRadio } from "#components";
 import type { Room } from "~/components/panels/RoomsPanel.vue";
 
 const authStore = useAuthStore();
@@ -89,7 +90,7 @@ const handleChangeRoom = async (room: Room) => {
 
     // записываем localStorage
     setLocalStorageUserRoomImgName(
-      authStore.user.$id,
+      authStore.user.id,
       route.name as string,
       roomUserImg.value
     );
@@ -123,7 +124,7 @@ watch(
 watch(
   () => route.name,
   (newNamePage) => {
-    const userId = authStore.user.$id;
+    const userId = authStore.user.id;
     const localStoredRoomUser = localStorage.getItem(`${userId}-room`);
 
     if (localStoredRoomUser?.trim()) {
@@ -154,7 +155,7 @@ watch(
   () => eventStore.getCardIdDragOver,
   (cardId) => {
     const projectDragover = projectsStore.projects.find(
-      (project) => project.$id === cardId
+      (project) => project.id === cardId
     );
     if (projectDragover) {
       colorCardDragover.value = projectDragover.color;
@@ -213,7 +214,7 @@ onBeforeUnmount(() => {
       >
         <UiBaseLogoButton tag="div" :reverse="flagChangeRoom" />
       </button> 
-
+     
       <div class="desc" :class="{ 'desc--hidden': flagChangeRoom }">
         <slot></slot>
       </div>
@@ -223,7 +224,7 @@ onBeforeUnmount(() => {
       <div
         class="layout__rooms"
         :class="{ 'layout__rooms--hidden': !flagChangeRoom }"
-      >
+      > <AudioRadio/>
         <PanelsRoomsPanel
           @click-room="handleChangeRoom"
           :active-room="roomUserImg"
@@ -255,7 +256,7 @@ onBeforeUnmount(() => {
             <div class="aside-header decor-line-bottom">
               <BlocksUserInfo
                 title="Учетная запись"
-                :avatar="authStore.user.avatarUrl"
+                :avatar="authStore.user.avatar || '/avatar-default.png'"
                 :user_name="authStore.user.name"
                 :user_email="authStore.user.email"
               />
@@ -319,6 +320,13 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+
+  &__radio {
+    position: absolute;
+    z-index: 1;
+    top: 50px;
+    border: solid 1px;
+  }
 
   &::before,
   &::after {

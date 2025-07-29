@@ -13,14 +13,14 @@ export default defineEventHandler(async (e) => {
     if (!authorization) {
       throw createError({
         statusCode: 401,
-        statusMessage: "Требуется авторизация",
+        message: "Требуется авторизация",
       });
     }
 
     if (!authorization.startsWith("Bearer ")) {
       throw createError({
         statusCode: 401,
-        statusMessage: "Неверный формат авторизации",
+        message: "Неверный формат авторизации",
       });
     }
 
@@ -29,13 +29,13 @@ export default defineEventHandler(async (e) => {
     try {
       const payload = verifyAccessToken(accessToken);
       if (typeof payload === "string") {
-        throw createError({ statusCode: 401, statusMessage: "Неверный токен" });
+        throw createError({ statusCode: 401, message: "Неверный токен" });
       }
       const userId = payload.id || payload.sub;
       if (!userId) {
         throw createError({
           statusCode: 401,
-          statusMessage: "В токене не найден userId",
+          message: "В токене не найден userId",
         });
       }
 
@@ -43,7 +43,7 @@ export default defineEventHandler(async (e) => {
       if (!user) {
         throw createError({
           statusCode: 401,
-          statusMessage: "Пользователь не найден",
+          message: "Пользователь не найден",
         });
       }
 
@@ -52,19 +52,28 @@ export default defineEventHandler(async (e) => {
 
       const updateData: Record<string, any> = {};
 
-      if (name !== undefined) updateData.name = name;
+      if (name !== undefined) {
+        if (typeof name !== "string" || name.trim() === "") {
+          throw createError({
+            statusCode: 400,
+            message: "Имя не может быть пустым",
+          });
+        }
+        updateData.name = name.trim();
+
+      } 
       // Проверяем email: если пришёл — он обязателен и не может быть пустым, и должен проходить базовую проверку формата
       if (email !== undefined) {
         if (typeof email !== "string" || email.trim() === "") {
           throw createError({
             statusCode: 400,
-            statusMessage: "Email не может быть пустым",
+            message: "Email не может быть пустым",
           });
         }
         if (!emailRegex.test(email)) {
           throw createError({
             statusCode: 400,
-            statusMessage: "Некорректный формат email",
+            message: "Некорректный формат email",
           });
         }
         updateData.email = email.trim();
@@ -79,10 +88,20 @@ export default defineEventHandler(async (e) => {
         if (!currentPassword || !newPassword) {
           throw createError({
             statusCode: 400,
-            statusMessage:
+            message:
               "Для изменения пароля необходимо указать текущий и новый пароль",
           });
         }
+        if (newPassword.trim().length < 8) {
+          throw createError({
+            statusCode: 400,
+            message:
+              "Пароль не должен быть меньше 8 символов",
+          });
+        }
+
+
+
 
         const isPasswordValid = await comparePassword(
           currentPassword,
@@ -92,7 +111,7 @@ export default defineEventHandler(async (e) => {
         if (!isPasswordValid) {
           throw createError({
             statusCode: 400,
-            statusMessage: "Текущий пароль неверен",
+            message: "Текущий пароль неверен",
           });
         }
 
@@ -101,7 +120,7 @@ export default defineEventHandler(async (e) => {
       }
 
       if (Object.keys(updateData).length === 0) {
-        throw createError({ statusCode: 400, statusMessage: 'Нет данных для обновления' });
+        throw createError({ statusCode: 400, message: 'Нет данных для обновления' });
       }
 
       const updatedUser = await updateUser(userId, updateData);
@@ -117,7 +136,7 @@ export default defineEventHandler(async (e) => {
       
       throw createError({
         statusCode: error.statusCode || 500,
-        statusMessage: error.statusMessage || 'Внутренняя ошибка сервера',
+        message: error.message || 'Внутренняя ошибка сервера',
       });
     }
   }

@@ -10,9 +10,9 @@ type HomeForm = {
 const props = defineProps<HomeForm>();
 
 
-const emailRef = ref("");
-const passwordRef = ref("");
-const nameRef = ref('');
+const emailRef = ref("test@gmail.com");
+const passwordRef = ref("12345678");
+const nameRef = ref('test');
 
 const emit = defineEmits(["sign-in", "sign-up"]);
 

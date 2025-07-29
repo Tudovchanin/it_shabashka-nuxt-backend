@@ -7,8 +7,8 @@ export default defineEventHandler(async (e) => {
   const body = await readBody(e);
   const { email, password, name, avatar } = body;
 
-  if (!email || !password) {
-    throw createError({ statusCode: 400, statusMessage: "Email и пароль обязательны" });
+  if (!email || !password || !name) {
+    throw createError({ statusCode: 400, message: "Заполните все поля формы" });
   }
 
   if (password.length < 8) {
@@ -21,7 +21,7 @@ export default defineEventHandler(async (e) => {
 
     const userExists = await getUserByEmail(email);
     if (userExists) {
-      throw createError({ statusCode: 409, statusMessage: "Пользователь с таким email уже существует" });
+      throw createError({ statusCode: 409, message: "Пользователь с таким email уже существует" });
     }
 
     const hashedPassword = await hashPassword(password);
@@ -46,7 +46,7 @@ export default defineEventHandler(async (e) => {
         accessToken,
       };
     } else {
-      throw createError({ statusCode: 500, statusMessage: "Не удалось создать пользователя" });
+      throw createError({ statusCode: 500, message: "Не удалось создать пользователя" });
     }
 
   } catch (error) {
@@ -54,15 +54,15 @@ export default defineEventHandler(async (e) => {
       typeof error === 'object' &&
       error !== null &&
       'statusCode' in error &&
-      'statusMessage' in error
+      'message' in error
     ) {
       throw error;
     }
 
     if (error instanceof Error) {
-      throw createError({ statusCode: 500, statusMessage: error.message });
+      throw createError({ statusCode: 500, message: error.message });
     }
 
-    throw createError({ statusCode: 500, statusMessage: (error as Error).message || 'Внутренняя ошибка сервера' });
+    throw createError({ statusCode: 500, message: (error as Error).message || 'Внутренняя ошибка сервера' });
   }
 });

@@ -38,6 +38,7 @@ watch(
   <div class="header-content">
 
     <UiBaseLogo size="small" />
+    
 
     <div @keyup.enter="handleClickButtonSearch" class="header-content__search">
       <UiBaseSearchInput ref="refInputSearch" placeholder="искать карточку по названию" max-length="50"
@@ -50,7 +51,7 @@ watch(
     </div>
 
     <div role="button" @click="emitClickInAvatar" class="header-content__user-ava">
-      <img v-if="authStore.user.avatarUrl" :src="`${authStore.user.avatarUrl}`" alt="avatar images" />
+      <img v-if="authStore.user.avatar" :src="`${authStore.user.avatar}`" alt="avatar images" />
     </div>
 
 

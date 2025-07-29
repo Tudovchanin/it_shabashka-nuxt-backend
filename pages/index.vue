@@ -31,10 +31,10 @@ const loadStore = useIsLoadingStore();
 
 const flagIsLogin = ref(true);
 const errorMessages = ref<null | FormErrorData>(null);
-const error_SignIn_SignUp = ref<null | string>(null);
+const errorMessage = ref<null | string>(null);
 
 const validateForm = new ValidateForm();
-const visibleForm = ref(false);
+const visibleForm = ref(true);
 
 const flagDecorVisible = ref(false);
 
@@ -109,13 +109,11 @@ async function signIn(email: string, password: string) {
   try {
     loadStore.set(true);
     await authStore.login(email, password);
-    await authStore.init();
-    error_SignIn_SignUp.value = null;
+    errorMessage.value = null;
     await router.push("/projects");
   } catch (error) {
     console.log(error);
-    error_SignIn_SignUp.value =
-      "Неверные учетные данные. Проверьте адрес электронной почты и пароль";
+    errorMessage.value = "Неверные учетные данные. Проверьте адрес электронной почты и пароль";
   } finally {
     loadStore.set(false);
   }
@@ -125,7 +123,6 @@ async function signUp(email: string, password: string, name: string) {
   try {
     loadStore.set(true);
     await authStore.register(email, password, name);
-    await authStore.init();
     await router.push("/projects");
   } catch (error) {
     console.log(error);
@@ -134,13 +131,17 @@ async function signUp(email: string, password: string, name: string) {
   }
 }
 
+
 onBeforeMount(async () => {
   await authStore.init();
+
+  console.log(authStore.user.status,'onBeforeMount');
+  
   if (authStore.user.status) {
-    visibleForm.value = false;
+    // visibleForm.value = false;
     await router.push("/projects");
   } else {
-    visibleForm.value = true;
+    // visibleForm.value = true;
   }
 });
 
@@ -173,8 +174,8 @@ onMounted(async () => {});
         @mouseleave="flagDecorVisible = false"
         @mouseenter="flagDecorVisible = true"
       >
-        <div v-show="error_SignIn_SignUp" class="entry-page__error-sign-in">
-          {{ error_SignIn_SignUp }}
+        <div v-show="errorMessage" class="entry-page__error-sign-in">
+          {{ errorMessage }}
         </div>
         <div class="entry-page__form" v-if="visibleForm">
           <div class="entry-page__form-tab">
@@ -196,7 +197,7 @@ onMounted(async () => {});
               @click="
                 flagIsLogin = false;
                 errorMessages = null;
-                error_SignIn_SignUp = null;
+                errorMessage = null;
               "
             >
               Регистрация
@@ -311,10 +312,6 @@ onMounted(async () => {});
   &__header {
     position: relative;
     z-index: 1000;
-    // position: absolute;
-    // z-index: 1000;
-    // left: 10px;
-    // top: 10px;
   }
 
   &__header-logo {
@@ -341,28 +338,12 @@ onMounted(async () => {});
   }
 
   &__wrapper-form {
-    // display: none;
-    // position: absolute;
-    // z-index: 1000;
-    // left: 50%;
-    // top: 50%;
     max-width: 440px;
     width: 100%;
-    // padding-left: 20px;
-    // padding-right: 20px;
     margin-left: auto;
     margin-right: auto;
-    // transform: translate(-50%, -50%);
-
-    // @media (max-width: 700px) {
-    //   padding-left: 10px;
-    //   padding-right: 10px;
-    // }
-
     @media (max-height: 600px) {
-      // top: 120px;
-      // transform: translate(-50%, 0%);
-      // padding-bottom: 20px;
+   
     }
   }
 
@@ -450,10 +431,6 @@ onMounted(async () => {});
     align-self: end;
     position: relative;
     z-index: 1000;
-    // align-self: end;
-    // z-index: 1000;
-    // left: 10px;
-    // bottom: 10px;
     padding-top: 24px;
     padding-bottom: 24px;
     color: white;
@@ -465,5 +442,4 @@ onMounted(async () => {});
   cursor: pointer;
 }
 
-// :focus-within  если дочернии элементы получили фокус
 </style>
