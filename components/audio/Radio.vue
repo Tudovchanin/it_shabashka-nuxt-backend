@@ -20,7 +20,7 @@ onMounted(() => {
     ['https://nashe1.hostingradio.ru/nashe-256','Наше радио','nashe'],
     ['https://pub0101.101.ru/stream/air/aac/64/100','Авторадио','avtoradio'],
     ['https://pub0202.101.ru:8443/stream/air/aac/64/99','Радио Energy','nrj'],
-    ['https://radiopotok2.online/http://online.kissfm.ua/KissFM_HD','Kiss FM','kissfm']
+ 
   ];
 
 
@@ -47,7 +47,9 @@ onMounted(() => {
 }
 
 #rad_play_btn {
-  border: solid 2px rgb(238, 238, 238);
+  display: block;
+  padding: 2px;
+  background-color: rgb(176, 176, 177);
   border-radius: 50%;
 }
 
