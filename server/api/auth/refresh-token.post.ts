@@ -12,7 +12,6 @@ export default defineEventHandler(async (e)=> {
   try {
 
     const payload = verifyRefreshToken(refreshToken);
-    console.log(payload, 'payload');
 
 
     if (typeof payload === 'string') {
@@ -21,14 +20,12 @@ export default defineEventHandler(async (e)=> {
 
     const userId = payload.id || payload.sub;
 
-    console.log(userId, 'id user');
     
     if (!userId) {
       throw createError({ statusCode: 401, message: 'В токене не найден userId' });
     }
 
     const tokenRecord = await getRefreshToken(userId);
-    console.log(tokenRecord, 'token record');
     
 
     if(!tokenRecord || tokenRecord.token !== refreshToken)  {
@@ -54,6 +51,7 @@ export default defineEventHandler(async (e)=> {
       httpOnly: true,
       maxAge: 60 * 60 * 24 * 7
     });
+    
     const { password, ...userSafe } = user;
 
   return {

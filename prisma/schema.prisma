@@ -25,10 +25,10 @@ model User {
   name   String
   // Необязательное поле (может быть null) — имя пользователя
 
-  avatar String? @default("/avatar-default.png")
+  avatar String? @default("/images/avatar-default.png")
   // Необязательное поле URL аватара, по умолчанию ссылка на дефолтный аватар
 
-  cards  Card[]  
+  cards  Project[]  
   // Связь "один ко многим" — у пользователя может быть много карточек
   refreshToken RefreshToken?  // один или ноль токенов (опционально)
 }
@@ -69,7 +69,7 @@ enum TypeProjectStatus {
 // Enum — фиксированный набор допустимых значений для статуса проекта
 // Используется в модели Card для поля status
 
-model Card {
+model Project {
   id           String          @id @default(cuid())
   // Первичный ключ (PK), уникальный идентификатор записи
   // Строка, генерируется уникальный CUID (глобально уникален, можно генерировать на клиенте и сервере)
@@ -128,7 +128,7 @@ model Card {
 model Comment {
   id        String   @id @default(cuid())
   text      String   
-  card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  card      Project     @relation(fields: [cardId], references: [id], onDelete: Cascade)
   cardId    String   // Внешний ключ на карточку (projectId в Appwrite)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

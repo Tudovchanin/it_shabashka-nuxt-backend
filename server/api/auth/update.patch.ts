@@ -6,39 +6,21 @@ import {
   updateUser,
 } from "~/server/services/auth";
 
+import { createAccessToken } from "~/server/utils/jwt";
+import { authenticate, getUserIdFromPayload } from "~/server/utils/auth";
+
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export default defineEventHandler(async (e) => {
   {
-    const authorization = getRequestHeader(e, "authorization");
-    if (!authorization) {
-      throw createError({
-        statusCode: 401,
-        message: "Требуется авторизация",
-      });
-    }
+    
 
-    if (!authorization.startsWith("Bearer ")) {
-      throw createError({
-        statusCode: 401,
-        message: "Неверный формат авторизации",
-      });
-    }
-
-    const accessToken = authorization.slice(7);
+    let accessToken = authenticate(e);
 
     try {
       const payload = verifyAccessToken(accessToken);
-      if (typeof payload === "string") {
-        throw createError({ statusCode: 401, message: "Неверный токен" });
-      }
-      const userId = payload.id || payload.sub;
-      if (!userId) {
-        throw createError({
-          statusCode: 401,
-          message: "В токене не найден userId",
-        });
-      }
-
+      const userId = getUserIdFromPayload (payload);
+      
+      
       const user = await getUserById(userId);
       if (!user) {
         throw createError({
@@ -50,7 +32,10 @@ export default defineEventHandler(async (e) => {
       const body = await readBody(e);
       const { name, email, currentPassword, newPassword, avatar } = body;
 
-      const updateData: Record<string, any> = {};
+      console.log(body, 'BODY');
+      
+
+      const updateData: Record<string, string> = {};
 
       if (name !== undefined) {
         if (typeof name !== "string" || name.trim() === "") {
@@ -78,10 +63,9 @@ export default defineEventHandler(async (e) => {
         }
         updateData.email = email.trim();
       }
-      if (avatar !== undefined) updateData.avatar = avatar;
-
-
-
+      if (avatar !== undefined) {
+           updateData.avatar = avatar;
+        }
 
       if (newPassword !== undefined || currentPassword !== undefined) {
 
@@ -123,13 +107,16 @@ export default defineEventHandler(async (e) => {
         throw createError({ statusCode: 400, message: 'Нет данных для обновления' });
       }
 
-      const updatedUser = await updateUser(userId, updateData);
+      const userUpdate = await updateUser(userId, updateData);
+       accessToken = createAccessToken({ id: userUpdate.id, email: userUpdate.email });
 
       // Не возвращаем пароль клиенту
-      const { password, ...userSafe } = updatedUser;
+      const { password, ...userSafe } = userUpdate;
       return {
         message: newPassword ? 'Данные пользователя обновлены, пароль изменён' : 'Данные пользователя обновлены',
         user: userSafe,
+        token: accessToken
+     
       };
 
     } catch (error:any) {

@@ -5,6 +5,9 @@ import type { FormProjectKanban } from "~/components/forms/CreateProject.vue";
 import { STATUS_TRANSLATIONS } from "~/constants/project.constants";
 
 import { COLORS_CARD } from "~/constants/project.constants";
+import { useAuthStore } from "../stores/auth.store";
+
+const router = useRouter();
 
 definePageMeta({
   middleware: "auth",
@@ -268,6 +271,51 @@ onBeforeMount(async () => {
   // updateLocalProjects(projectsStore.projects);
 });
 
+
+// del acc
+
+const authStore = useAuthStore();
+
+const handleClickDelete = async() => {
+  console.log('удалить аккаунт');
+
+  try {
+    const response = await authStore.deleteAccount();
+    console.log(response, 'delete user account');
+    await router.push("/");
+    
+  } catch (error) {
+    console.log(error);
+    
+  }
+  
+}
+
+
+const updateData = reactive({
+  name: '',
+  email: '',
+  newPassword: '',
+  currentPassword: ''
+})
+
+const handleClickUpdate = async() => {
+  console.log(updateData);
+
+  try {
+    const response = await authStore.updateAccount(updateData);
+
+    console.log(response);
+    
+  } catch (error:any) {
+    
+      console.error(error);
+      
+    
+  }
+  
+}
+
 </script>
 
 <template>
@@ -275,6 +323,27 @@ onBeforeMount(async () => {
     <div v-if="loadStore.isLoading" class="user-project__loader">
       <LoadersAppLoader />
     </div>
+    <button @click="handleClickDelete" style="padding: 20px 40px; margin: 200px; background-color: red; cursor: pointer;">DELETE ACCOUNT</button>
+
+    <form  style="display: grid; gap: 20px; color: red;" submit="handleUpdate">
+      <label for="name">
+        Name
+        <input v-model="updateData.name" id="name" type="text">
+      </label>
+      <label for="email">
+        Email
+        <input v-model="updateData.email" id="email" type="text">
+      </label>
+      <label for="newPassword">
+        NewPassword
+        <input v-model="updateData.newPassword" id="newPassword" type="text">
+      </label>
+      <label for="currentPassword">
+        Current Password
+        <input v-model="updateData.currentPassword" id="currentPassword" type="text">
+      </label>
+      <button @click="handleClickUpdate" type="button" style="width: 100px; cursor: pointer;">Обновить</button>
+    </form>
 
     <div
       @click="handleClickWrapperFormAdd"
@@ -306,6 +375,7 @@ onBeforeMount(async () => {
     </div>
 
     <KanbanBoard
+      style="display: none;"
       @card-create="handleOpenAddProjectForm"
       @card-move-to-column="moveProjectToColumn"
       @card-delete="handleDeleteProject"

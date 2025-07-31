@@ -9,7 +9,9 @@ export default defineNuxtConfig({
     jwtAccessSecret: process.env.JWT_ACCESS_SECRET,
     jwtRefreshSecret: process.env.JWT_REFRESH_SECRET,
     public: {
-      // публичные переменные 
+      APPWRITE_STORAGE_ID: process.env.APPWRITE_STORAGE_ID,
+      APPWRITE_APP_ID: process.env.APPWRITE_APP_ID
+
     }
   }
 })

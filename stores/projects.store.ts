@@ -1,7 +1,6 @@
 import type { Models } from 'appwrite';
 import type { DataCommentAppWrite } from './comments.store';
-import { DB_ID, DB_COLLECTION_PROJECTS_ID } from '~/constants/app.constants';
-import { Permission, Role, Query } from "appwrite";
+
 
 
  export const ProjectStatus = {
@@ -58,87 +57,87 @@ export const useProjectsStore = defineStore('projects', () => {
     return;
   }
 
-    try {
-      const response = await DB.listDocuments(
-        DB_ID,
-        DB_COLLECTION_PROJECTS_ID,
-        [
-          Query.equal('userId', authStore.user.$id)
-        ]
-      );
+    // try {
+    //   const response = await DB.listDocuments(
+    //     DB_ID,
+    //     DB_COLLECTION_PROJECTS_ID,
+    //     [
+    //       Query.equal('userId', authStore.user.$id)
+    //     ]
+    //   );
 
-      projects.value = response.documents as DataProjectAppWrite[];
-      console.log('Документы пользователя store:', projects.value);
+    //   projects.value = response.documents as DataProjectAppWrite[];
+    //   console.log('Документы пользователя store:', projects.value);
 
-    } catch (e: unknown) {
-      if (e instanceof Error) {
-        error.value = e;
-      } else {
-        error.value = new Error(String(error));
-      }
-      console.error('Ошибка при получении документов:', error);
-    }
+    // } catch (e: unknown) {
+    //   if (e instanceof Error) {
+    //     error.value = e;
+    //   } else {
+    //     error.value = new Error(String(error));
+    //   }
+    //   console.error('Ошибка при получении документов:', error);
+    // }
   
   }
 
   const createProject = async (data: any) => {
     loadStore.set(true);
-    try {
-      const response = await DB.createDocument(
-        DB_ID,
-        DB_COLLECTION_PROJECTS_ID,
-        ID.unique(),
-        { ...data, userId: authStore.user.$id },
-        [
-          Permission.read(Role.user(authStore.user.$id)),
-          Permission.update(Role.user(authStore.user.$id)),
-          Permission.delete(Role.user(authStore.user.$id))
-        ]
-      );
-      console.log('Document created:', response);
+    // try {
+    //   const response = await DB.createDocument(
+    //     DB_ID,
+    //     DB_COLLECTION_PROJECTS_ID,
+    //     ID.unique(),
+    //     { ...data, userId: authStore.user.$id },
+    //     [
+    //       Permission.read(Role.user(authStore.user.$id)),
+    //       Permission.update(Role.user(authStore.user.$id)),
+    //       Permission.delete(Role.user(authStore.user.$id))
+    //     ]
+    //   );
+    //   console.log('Document created:', response);
 
-      await getProjectsByUser(); 
+    //   await getProjectsByUser(); 
       
-    } catch (error: unknown) {
-      console.error('Error creating document:', error);
-    } finally {
-    loadStore.set(false)
-    }
+    // } catch (error: unknown) {
+    //   console.error('Error creating document:', error);
+    // } finally {
+    // loadStore.set(false)
+    // }
   };
 
   const updateProject = async (projectId: string, data: any) => {
     loadStore.set(true);
-    try {
-      const response = await DB.updateDocument(
-        DB_ID,
-        DB_COLLECTION_PROJECTS_ID,
-        projectId,
-        data
-      );
-      console.log('Document updated:', response);
-      await getProjectsByUser();
-    } catch (error: unknown) {
-      console.error('Error updating document:', error);
-    } finally {
-      loadStore.set(false);
-    }
+    // try {
+    //   const response = await DB.updateDocument(
+    //     DB_ID,
+    //     DB_COLLECTION_PROJECTS_ID,
+    //     projectId,
+    //     data
+    //   );
+    //   console.log('Document updated:', response);
+    //   await getProjectsByUser();
+    // } catch (error: unknown) {
+    //   console.error('Error updating document:', error);
+    // } finally {
+    //   loadStore.set(false);
+    // }
   };
 
   const deleteProject = async (projectId: string) => {
     loadStore.set(true);
-    try {
-      await DB.deleteDocument(
-        DB_ID,
-        DB_COLLECTION_PROJECTS_ID,
-        projectId
-      );
-      console.log('Document deleted');
-      await getProjectsByUser(); 
-    } catch (error: unknown) {
-      console.error('Error deleting document:', error);
-    } finally {
-      loadStore.set(false);
-    }
+    // try {
+    //   await DB.deleteDocument(
+    //     DB_ID,
+    //     DB_COLLECTION_PROJECTS_ID,
+    //     projectId
+    //   );
+    //   console.log('Document deleted');
+    //   await getProjectsByUser(); 
+    // } catch (error: unknown) {
+    //   console.error('Error deleting document:', error);
+    // } finally {
+    //   loadStore.set(false);
+    // }
   };
 
   return { projects, error, getProjectsByUser, createProject, updateProject, deleteProject };

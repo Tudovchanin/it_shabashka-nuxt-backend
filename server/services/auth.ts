@@ -13,7 +13,7 @@ type CreateUserParams = {
 export type UserUpdateInput = {
   name?: string;
   email?: string;
-  avatar?: string | null;
+  avatar?: string;
   password?: string;
 }
 
@@ -71,7 +71,7 @@ export async function updateUser(
 ): Promise<{
   id: string;
   email: string;
-  name: string | null;
+  name: string;
   avatar: string | null;
   password: string;
 }> {

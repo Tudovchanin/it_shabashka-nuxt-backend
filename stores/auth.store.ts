@@ -1,19 +1,69 @@
+
+
+import { useAppConstants } from '~/constants/app.constants';
+import { useAppwriteClient } from '~/composables/useAppwriteClient';
+
+
 type User = {
   id: string;
   email: string;
   name: string;
   status: boolean;
-  avatar: string | null;
+  avatar: string;
+};
+
+export type UpdateAccount = {
+  name?: string;
+  email?: string;
+  newPassword?: string;
+  currentPassword?: string;
+  avatar?:string;
 };
 const defaultValue: User = {
   id: "",
   email: "",
   name: "",
   status: false,
-  avatar: "",
+  avatar: "/images/avatar-default.png",
 };
 
+// utils/errorHandler.ts
+
+export function handleFetchError(
+  error: unknown,
+  setErrorMessage: (msg: string) => void
+): void {
+  if (error && typeof error === "object") {
+
+    if (
+      error &&
+      typeof error === 'object' &&
+      'data' in error &&
+      error.data &&
+      typeof error.data === 'object' &&
+      'message' in error.data &&
+      typeof error.data.message === 'string' &&
+      error.data.message.length > 0
+    ) {
+      setErrorMessage(error.data.message);
+    } else if (
+      "message" in error &&
+      typeof (error as any).message === "string"
+    ) {
+      setErrorMessage((error as any).message);
+    } else {
+      setErrorMessage("Неизвестная ошибка сервера");
+    }
+
+  } else {
+    setErrorMessage("Неизвестная ошибка сервера");
+  }
+}
+
 export const useAuthStore = defineStore("auth", () => {
+  const { STORAGE_ID } = useAppConstants();
+  const { storage } = useAppwriteClient();
+
   const user = ref(defaultValue);
   const accessToken = ref("");
   const errorMessage = ref<string | null>(null);
@@ -29,6 +79,7 @@ export const useAuthStore = defineStore("auth", () => {
       if (data?.accessToken && data.user) {
         accessToken.value = data.accessToken;
         user.value = { ...data.user, status: true };
+        console.log(user.value, "init");
       } else {
         errorMessage.value = "Не удалось войти";
         resetAuth();
@@ -107,15 +158,86 @@ export const useAuthStore = defineStore("auth", () => {
       resetAuth();
       return data;
     } catch (error) {
-      if (error instanceof Error) {
-        errorMessage.value = error.message;
-        throw error;
-      } else {
-        errorMessage.value = "Неизвестная ошибка сервера";
-        throw new Error("Неизвестная ошибка сервера");
-      }
+
+      handleFetchError(error, (msg) => errorMessage.value = msg);
+      throw error;
     }
   };
+  const deleteAccount = async () => {
+    try {
+      errorMessage.value = null;
+      const data = await $fetch("/api/auth/delete-user", {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${accessToken.value}`,
+        },
+      });
+      resetAuth();
+      return data;
+    } catch (error) {
+      handleFetchError(error, (msg) => errorMessage.value = msg);
+      throw error;
+    }
+  };
+  const updateAccount = async (updateData: UpdateAccount) => {
+    try {
+      errorMessage.value = null;
+      const data = await $fetch("/api/auth/update", {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${accessToken.value}`,
+        },
+        body: updateData,
+      });
+
+      if (data.user && data.user.name) {
+        user.value = {
+          ...data.user, status: true
+        } as User
+      }
+
+
+    } catch (error: any) {
+
+      handleFetchError(error, (msg) => errorMessage.value = msg);
+      console.log(errorMessage.value);
+
+      throw error;
+    }
+  };
+
+
+  const changeAvatar = async (file: File | undefined) => {
+    if (!file) return;
+
+    const uniqueId = Date.now().toString();
+    try {
+
+      const result = await storage.createFile(
+        STORAGE_ID,
+        uniqueId,
+        file
+      );
+
+      console.log(result);
+
+      const bucketId = result.bucketId; 
+      const fileId = result.$id;
+
+      const fileUrl =  storage.getFileView(bucketId, fileId);
+
+      console.log('URL для просмотра файла:', fileUrl);
+
+      const user = updateAccount({avatar: fileUrl as unknown as string})
+
+    } catch (error) {
+      console.error(error);
+    }
+
+
+  }
+
+
 
   const resetAuth = () => {
     user.value = defaultValue;
@@ -127,6 +249,9 @@ export const useAuthStore = defineStore("auth", () => {
     login,
     register,
     logout,
+    deleteAccount,
+    updateAccount,
+    changeAvatar,
     user,
     errorMessage,
   };

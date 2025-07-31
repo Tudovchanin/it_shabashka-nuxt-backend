@@ -15,7 +15,7 @@ const handleFileChange = (e: Event) => {
 const handleSubmitAvatar = async () => {
   if (!refFileInput.value?.files) return;
 
-  const file = refFileInput.value.files[0];
+  const file:File | undefined = refFileInput.value.files[0];
   if (!file) return;
 
   if (file.size > 50 * 1024) {
@@ -23,7 +23,7 @@ const handleSubmitAvatar = async () => {
     return;
   }
 
-  await authStore.createAvatar(file);
+  await authStore.changeAvatar(file);
   refFileInput.value.value = ""; // Сброс значения
   fileName.value = "Файл не выбран";
 };
