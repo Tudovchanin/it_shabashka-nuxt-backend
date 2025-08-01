@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import type { FormProjectKanban } from "../forms/CreateProject.vue";
+import type { Project } from "#imports";
 import { formatDate } from "#imports";
 import { COLOR_TEXT_MAP } from "~/constants/color-mapping.constants";
 import type { ColorKeyTextMap } from "~/constants/color-mapping.constants";
 
-export type CardKanban = FormProjectKanban & {
-  createdAt: string;
-  id: string;
-  color: string;
-};
+// export type CardKanban = FormProjectKanban & {
+//   createdAt: string;
+//   id: string;
+//   color: string;
+// };
 
-const props = defineProps<CardKanban>();
+const props = defineProps<Project>();
 const hiddenPanelConfirm = ref(true);
 const createdAtFormatted = computed(() => formatDate(props.createdAt));
 const deadLineFormatted = computed(() => props.deadline && formatDate(props.deadline));

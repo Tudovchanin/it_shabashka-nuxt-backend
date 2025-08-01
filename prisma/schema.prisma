@@ -25,10 +25,10 @@ model User {
   name   String
   // Необязательное поле (может быть null) — имя пользователя
 
-  avatar String? @default("/images/avatar-default.png")
+  avatar String @default("/images/avatar-default.png")
   // Необязательное поле URL аватара, по умолчанию ссылка на дефолтный аватар
 
-  cards  Project[]  
+  projects  Project[]  
   // Связь "один ко многим" — у пользователя может быть много карточек
   refreshToken RefreshToken?  // один или ноль токенов (опционально)
 }
@@ -128,8 +128,8 @@ model Project {
 model Comment {
   id        String   @id @default(cuid())
   text      String   
-  card      Project     @relation(fields: [cardId], references: [id], onDelete: Cascade)
-  cardId    String   // Внешний ключ на карточку (projectId в Appwrite)
+  project      Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId    String   // Внешний ключ на карточку (projectId в Appwrite)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

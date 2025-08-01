@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import type { DataCommentAppWrite } from "#imports";
+
+
 import { formatDateToRussianLocale, getDaysUntilDeadline } from "#imports";
+
+import type { Project } from "~/stores/projects.store";
+
 import { InputMask } from "~/utils/mask-helpers";
 
 import type { ColorKeyTextMap } from "~/constants/color-mapping.constants";
@@ -8,22 +12,22 @@ import { COLOR_TEXT_MAP } from "~/constants/color-mapping.constants";
 
 
 
-type AsideCardInfo = {
-  color?: string;
-  id?: string;
-  client?: string;
-  client_email?: string;
-  client_phone?: string;
-  name?: string;
-  price?: number;
-  description?: string;
-  link?: string;
-  createdAt?: string;
-  deadline?: string;
-  comments?: DataCommentAppWrite[];
-};
+// type AsideCardInfo = {
+//   color?: string;
+//   id?: string;
+//   client?: string;
+//   client_email?: string;
+//   client_phone?: string;
+//   name?: string;
+//   price?: number;
+//   description?: string;
+//   link?: string;
+//   createdAt?: string;
+//   deadline?: string;
+//   comments?: Comment[];
+// };
 
-const props = defineProps<AsideCardInfo>();
+const props = defineProps<Project>();
 
 const modelName = ref("");
 const modelDescription = ref("");
@@ -641,23 +645,23 @@ onBeforeUnmount(() => {
         <div
           class="aside-panel__comment"
           v-for="comment in props.comments"
-          :key="comment.$id"
+          :key="comment.id"
         >
           <span class="aside-panel__comment-date">{{
-            formatDateToRussianLocale(comment.$createdAt)
+            formatDateToRussianLocale(comment.createdAt)
           }}</span>
           <span>{{ comment.text }}</span>
           <button
             :aria-label="
               flagHiddenPanelDeleteComment
                 ? `Открыть панель удаления комментария от ${formatDateToRussianLocale(
-                    comment.$createdAt
+                    comment.createdAt
                   )}`
                 : 'Закрыть панель'
             "
-            :data-id="comment.$id"
+            :data-id="comment.id"
             @click="
-              handleClickBtnTogglePanelDeleteComment(comment.$id, comment.text)
+              handleClickBtnTogglePanelDeleteComment(comment.id, comment.text)
             "
             class="aside-panel__comments-delete"
           >

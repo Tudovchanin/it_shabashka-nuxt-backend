@@ -1,13 +1,14 @@
-import type { Models } from 'appwrite';
+import type { Project } from "./projects.store";
 
 
-
-
-export type DataCommentAppWrite = Models.Document & {
-  text: string
-  projectId: string
-}
-
+export type Comment = {
+  id: string;
+  text: string;
+  projectId: string;
+  createdAt: string;
+  updatedAt: string;
+  card?: Project;
+};
 
 
 export const useCommentsStore = defineStore('comments', () => {
@@ -16,7 +17,7 @@ export const useCommentsStore = defineStore('comments', () => {
   const loadStore = useIsLoadingStore();
 
 
-  const comments = ref<DataCommentAppWrite[]>([]);
+  const comments = ref<Comment[]>([]);
   const error = ref<Error | null>(null);
 
   const getCommentsByProject = async (projectId:string) => {

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ProjectStatus } from "~/stores/projects.store";
-import type { DataProjectAppWrite, TypeProjectStatus } from "~/stores/projects.store";
-import type { FormProjectKanban } from "~/components/forms/CreateProject.vue";
+import type {
+  ProjectCreateFrontend,
+  TypeProjectStatus,
+  Project,
+} from "~/stores/projects.store";
 import { STATUS_TRANSLATIONS } from "~/constants/project.constants";
 
 import { COLORS_CARD } from "~/constants/project.constants";
-import { useAuthStore } from "../stores/auth.store";
 
 const router = useRouter();
 
@@ -25,7 +26,7 @@ const searchStore = useSearchStore();
  * Data is fetched from the projectsStore and passed to the Kanban component via props.
  * This approach makes Kanban reusable and independent from specific stores.
  */
-const projects = ref<DataProjectAppWrite[]>([]);
+const projects = ref<Project[]>([]);
 
 // Refs to DOM elements
 const refPageProjects = ref();
@@ -36,9 +37,8 @@ const refFormAdd = ref();
 
 // PROJECTS / COLUMNS
 
-
 // Handle project click event from Board component
-const handleClickProject = (project: DataProjectAppWrite) => {
+const handleClickProject = (project: Project) => {
   if (project) {
     asidePanelData.value = project;
   }
@@ -46,43 +46,36 @@ const handleClickProject = (project: DataProjectAppWrite) => {
 };
 
 // Delete a project and update the projects list
-const handleDeleteProject = async (project: DataProjectAppWrite) => {
+const handleDeleteProject = async (project: Project) => {
   await deleteProject(project);
   updateLocalProjects(projectsStore.projects);
   asidePanelVisible.value = false;
 };
 
 // Update local projects state with a new array
-const updateLocalProjects = (arrProjects: DataProjectAppWrite[])=> {
+const updateLocalProjects = (arrProjects: Project[]) => {
   projects.value = [...arrProjects];
-}
+};
 
 // Create a new project via the store
-const createProject = async(project: FormProjectKanban) => {
+const createProject = async (project: ProjectCreateFrontend) => {
   const dataProject = {
     ...project,
   };
   await projectsStore.createProject(dataProject);
-}
+};
 
 // Move a Project to a different column and refresh projects
-const moveProjectToColumn = async(projectId: string, columnStatus: string)=> {
+const moveProjectToColumn = async (projectId: string, columnStatus: string) => {
   await projectsStore.updateProject(projectId, { status: columnStatus });
   await projectsStore.getProjectsByUser();
   updateLocalProjects(projectsStore.projects);
-}
+};
 
 // Delete a project by its ID via the store
-const  deleteProject = async(project: DataProjectAppWrite)=> {
-  await projectsStore.deleteProject(project.$id);
-}
-
-
-
-
-
-
-
+const deleteProject = async (project: Project) => {
+  await projectsStore.deleteProject(project.id);
+};
 
 // -------------------------------------------------------------------------
 
@@ -111,32 +104,21 @@ const handleOpenAddProjectForm = (status: TypeProjectStatus) => {
   setProjectStatus(status);
 };
 
-
-
-const handleSubmitCreateProject = async (project: FormProjectKanban) => {
+const handleSubmitCreateProject = async (project: ProjectCreateFrontend) => {
   await createProject(project);
   updateLocalProjects(projectsStore.projects);
 };
 
 const handleChangeProjectStatus = (status: TypeProjectStatus) => {
-   setProjectStatus(status)
+  setProjectStatus(status);
 };
 
 // -------------------------------------------------------------------------
 
-
-
-
-
-
-
-
-
-
 //БОКОВАЯ ПАНЕЛЬ:
 
 // данные для вывода в боковой панели
-const asidePanelData = ref<DataProjectAppWrite | null>(null);
+const asidePanelData = ref<Project | null>(null);
 // state боковой панели
 const asidePanelVisible = ref(false);
 
@@ -208,19 +190,17 @@ const handleChangeColorProject = async (projectId: string, color: string) => {
 
 // функция helpers, обновляет asidePanelData
 function updateProjectInAside(projectId: string) {
-  const updateProject = projectsStore.projects.find(
-    (project) => project.$id === projectId
+  const updateProject: Project | undefined = projectsStore.projects.find(
+    (project) => project.id === projectId
   );
-  if (updateProject?.$id) {
-    asidePanelData.value = updateProject as DataProjectAppWrite;
+  if (updateProject?.id) {
+    asidePanelData.value = updateProject;
   }
 }
 
 // цвета карточки в боковой панели
 const colors_project = COLORS_CARD;
 // -------------------------------------------------------------------------
-
-
 
 // watcher
 
@@ -233,7 +213,8 @@ watch(
 
       if (nameSearchedProject.trim().length !== 0) {
         const validProjects = allProjects.filter(
-          (project) => project.name.toLowerCase() === nameSearchedProject.toLowerCase()
+          (project) =>
+            project.name.toLowerCase() === nameSearchedProject.toLowerCase()
         );
         if (validProjects.length === 0) return;
         updateLocalProjects(validProjects);
@@ -255,10 +236,7 @@ watch(
   }
 );
 
-
 // -------------------------------------------------------------------------
-
-
 
 /**
  * Lifecycle hook: onBeforeMount
@@ -267,55 +245,44 @@ watch(
  */
 
 onBeforeMount(async () => {
-  // await projectsStore.getProjectsByUser();
-  // updateLocalProjects(projectsStore.projects);
+  await projectsStore.getProjectsByUser();
+  updateLocalProjects(projectsStore.projects);
 });
-
 
 // del acc
 
 const authStore = useAuthStore();
 
-const handleClickDelete = async() => {
-  console.log('удалить аккаунт');
+const handleClickDelete = async () => {
+  console.log("удалить аккаунт");
 
   try {
     const response = await authStore.deleteAccount();
-    console.log(response, 'delete user account');
+    console.log(response, "delete user account");
     await router.push("/");
-    
   } catch (error) {
     console.log(error);
-    
   }
-  
-}
-
+};
 
 const updateData = reactive({
-  name: '',
-  email: '',
-  newPassword: '',
-  currentPassword: ''
-})
+  name: "",
+  email: "",
+  newPassword: "",
+  currentPassword: "",
+});
 
-const handleClickUpdate = async() => {
+const handleClickUpdate = async () => {
   console.log(updateData);
 
   try {
     const response = await authStore.updateAccount(updateData);
 
     console.log(response);
-    
-  } catch (error:any) {
-    
-      console.error(error);
-      
-    
+  } catch (error: any) {
+    console.error(error);
   }
-  
-}
-
+};
 </script>
 
 <template>
@@ -323,26 +290,46 @@ const handleClickUpdate = async() => {
     <div v-if="loadStore.isLoading" class="user-project__loader">
       <LoadersAppLoader />
     </div>
-    <button @click="handleClickDelete" style="padding: 20px 40px; margin: 200px; background-color: red; cursor: pointer;">DELETE ACCOUNT</button>
+    <button
+      @click="handleClickDelete"
+      style="
+        padding: 20px 40px;
+        margin: 200px;
+        background-color: red;
+        cursor: pointer;
+      "
+    >
+      DELETE ACCOUNT
+    </button>
 
-    <form  style="display: grid; gap: 20px; color: red;" submit="handleUpdate">
+    <form style="display: grid; gap: 20px; color: red" submit="handleUpdate">
       <label for="name">
         Name
-        <input v-model="updateData.name" id="name" type="text">
+        <input v-model="updateData.name" id="name" type="text" />
       </label>
       <label for="email">
         Email
-        <input v-model="updateData.email" id="email" type="text">
+        <input v-model="updateData.email" id="email" type="text" />
       </label>
       <label for="newPassword">
         NewPassword
-        <input v-model="updateData.newPassword" id="newPassword" type="text">
+        <input v-model="updateData.newPassword" id="newPassword" type="text" />
       </label>
       <label for="currentPassword">
         Current Password
-        <input v-model="updateData.currentPassword" id="currentPassword" type="text">
+        <input
+          v-model="updateData.currentPassword"
+          id="currentPassword"
+          type="text"
+        />
       </label>
-      <button @click="handleClickUpdate" type="button" style="width: 100px; cursor: pointer;">Обновить</button>
+      <button
+        @click="handleClickUpdate"
+        type="button"
+        style="width: 100px; cursor: pointer"
+      >
+        Обновить
+      </button>
     </form>
 
     <div
@@ -375,7 +362,7 @@ const handleClickUpdate = async() => {
     </div>
 
     <KanbanBoard
-      style="display: none;"
+   
       @card-create="handleOpenAddProjectForm"
       @card-move-to-column="moveProjectToColumn"
       @card-delete="handleDeleteProject"
@@ -396,38 +383,21 @@ const handleClickUpdate = async() => {
           <img src="/images/icon-close.png" alt="закрыть боковую панель" />
         </button>
         <SectionsAsideCardInfo
-          v-if="asidePanelData?.$id"
-          :key="asidePanelData?.$id"
-          ref="refPanelAside"
-          :color="asidePanelData?.color || 'black'"
-          :id="asidePanelData?.$id"
-          :client="asidePanelData?.client"
-          :client_email="asidePanelData?.client_email"
-          :client_phone="asidePanelData?.client_phone"
-          :name="asidePanelData?.name"
-          :price="asidePanelData?.price"
-          :description="asidePanelData?.description || ''"
-          :comments="asidePanelData?.comments"
-          :link="asidePanelData?.link"
-          :createdAt="asidePanelData?.$createdAt"
-          :deadline="asidePanelData?.deadline"
+          v-if="asidePanelData?.id"
+          :key="asidePanelData?.id"
+          v-bind="asidePanelData"
           @update-card="handleUpdateProject"
           @add-comment="handleAddComment"
           @delete-comment="handleDeleteComment"
         >
           <template #card>
             <CardsKanbanCard
-              v-if="asidePanelData?.$id"
-              :color="asidePanelData?.color"
-              :id="asidePanelData?.$id"
-              :status="asidePanelData?.status || ProjectStatus.NEW"
-              :client="asidePanelData?.client"
-              :name="asidePanelData?.name"
-              :price="asidePanelData?.price || 0"
-              :description="asidePanelData?.description"
-              :link="asidePanelData?.link"
-              :deadline="asidePanelData?.deadline"
-              :createdAt="asidePanelData?.$createdAt || '-'"
+              v-if="asidePanelData?.id"
+              v-bind="{
+                ...asidePanelData,
+                price: asidePanelData.price || 0,
+                createdAt: asidePanelData.createdAt || '-',
+              }"
               @delete-card="
                 asidePanelData && handleDeleteProject(asidePanelData)
               "
@@ -438,7 +408,7 @@ const handleClickUpdate = async() => {
             <div style="margin-bottom: 10px">изменить цвет карточки</div>
 
             <PanelsColorsPanel
-              @click-color="(color: string) => handleChangeColorProject(asidePanelData?.$id || '', color)"
+              @click-color="(color: string) => handleChangeColorProject(asidePanelData?.id || '', color)"
               :colors="colors_project"
             />
           </template>
@@ -451,7 +421,6 @@ const handleClickUpdate = async() => {
 <style lang="scss" scoped>
 .user-project {
   position: relative;
-  
 
   &__loader {
     position: fixed;
@@ -518,7 +487,6 @@ const handleClickUpdate = async() => {
     transition: transform var(--timing-animation-min),
       backdrop-filter var(--timing-animation-min) var(--timing-animation-min);
     backdrop-filter: blur(10px);
-   
 
     &--visible {
       transform: translateX(0);

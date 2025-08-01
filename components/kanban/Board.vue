@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ProjectStatus } from "~/stores/projects.store";
-import type {DataProjectAppWrite, TypeProjectStatus } from "~/stores/projects.store";
+import type {
+  GetProject,
+  TypeProjectStatus,
+} from "~/stores/projects.store";
 
 import { STATUS_TRANSLATIONS } from "~/constants/project.constants";
 import {
@@ -14,13 +17,20 @@ import { GRADIENT_COLUMN, COLORS_COLUMN } from "~/constants/project.constants";
 
 // type
 type Kanban = {
-  [key in TypeProjectStatus]: DataProjectAppWrite[];
+  [key in TypeProjectStatus]: GetProject[];
+};
+
+type KanbanProps = {
+  projects?: GetProject[];
+  isDraggingAllowed?: boolean;
 };
 type SortColumns = {
   [key: string]: {
     [key: string]: string;
   };
 };
+
+
 
 const eventStore = useEventStore();
 const colorColumnStore = useColumnColor();
@@ -37,10 +47,6 @@ watch(
   }
 );
 
-type KanbanProps = {
-  projects?: DataProjectAppWrite[];
-  isDraggingAllowed?: boolean;
-};
 const kanbanOriginal = ref<Kanban>({
   [ProjectStatus.NEW]: [],
   [ProjectStatus.IN_PROGRESS]: [],
@@ -83,12 +89,6 @@ const refKanban = ref();
 const refMenuColumn = ref();
 const refWrapperColumn = ref();
 
-
-
-
-
-
-
 // flags
 let flagClickCard = false;
 let flagEventSelect = false;
@@ -111,7 +111,7 @@ const emitCreateCard = (status: TypeProjectStatus) => {
 };
 
 // Удаление карточки
-const emitDeleteCard = async (project: DataProjectAppWrite) => {
+const emitDeleteCard = async (project: GetProject) => {
   emit("card-delete", project);
 };
 
@@ -121,7 +121,7 @@ function emitAddCardInColumn(projectId: string, columnStatus: string) {
 }
 
 // обработчик клика на карточку
-const emitClickCard = (project: DataProjectAppWrite) => {
+const emitClickCard = (project: GetProject) => {
   if (!flagClickCard) return;
   if (project) {
     emit("card-click", project);
@@ -263,7 +263,6 @@ function handleTouchStart(e: any) {
 
     if (!selectedProduct) return;
 
-
     clickProductX = e.type !== "mousedown" ? e.touches[0].clientX : e.clientX;
     clickProductY = e.type !== "mousedown" ? e.touches[0].clientY : e.clientY;
 
@@ -291,16 +290,13 @@ function handleTouchStart(e: any) {
   }
 }
 
-
 function canScrollRight(element: HTMLElement): boolean {
   let baseScrollWidthPageProducts = element.scrollWidth;
   const { scrollLeft, clientWidth } = element;
 
-  console.log('baseScrollWidthPageProducts', baseScrollWidthPageProducts);
-  console.log('scrollLeft ContainerKanban', scrollLeft);
-  console.log('clientWidth ContainerKanban', clientWidth);
-
-
+  console.log("baseScrollWidthPageProducts", baseScrollWidthPageProducts);
+  console.log("scrollLeft ContainerKanban", scrollLeft);
+  console.log("clientWidth ContainerKanban", clientWidth);
 
   return scrollLeft + clientWidth < baseScrollWidthPageProducts;
 }
@@ -308,7 +304,7 @@ function canScrollRight(element: HTMLElement): boolean {
 function handleTouchMove(e: any) {
   if (selectedProduct) {
     e.preventDefault();
-    refContainerKanban.value.style.scrollSnapType = "none"
+    refContainerKanban.value.style.scrollSnapType = "none";
     // emit("card-drag");
     indexPanelMenu.value = -1;
 
@@ -316,28 +312,20 @@ function handleTouchMove(e: any) {
     const clientY = e.type !== "mousemove" ? e.touches[0].clientY : e.clientY;
 
     if (clientX + 95 > window.innerWidth) {
-
-      console.log('scroll to the right');
+      console.log("scroll to the right");
 
       // emitScroll("right");
 
       if (canScrollRight(refContainerKanban.value)) {
-
         refContainerKanban.value.scrollLeft += 10;
         scrollXContainerKanban += 10;
-      };
-
+      }
     } else if (refContainerKanban.value.scrollLeft > 0 && clientX - 90 < 0) {
-     
-        // emitScroll("left");
-        refContainerKanban.value.scrollLeft -= 10;
+      // emitScroll("left");
+      refContainerKanban.value.scrollLeft -= 10;
 
-        scrollXContainerKanban -= 10;
-      
+      scrollXContainerKanban -= 10;
     }
-
-
-
 
     valueTransformX = clientX - clickProductX + scrollXContainerKanban;
     valueTransformY = clientY - clickProductY - scrollYContainerCards;
@@ -387,11 +375,6 @@ function handleTouchMove(e: any) {
   }
 }
 
-
-
-
-
-
 let timerIdPageScroll: number | null = null;
 function handleTouchEnd() {
   // записываем в store  drag over
@@ -405,10 +388,9 @@ function handleTouchEnd() {
   }
 
   if (selectedProduct) {
-
-     timerIdPageScroll = window.setTimeout(() => {
-     refContainerKanban.value.style.scrollSnapType = "x mandatory";
-  }, 1500);
+    timerIdPageScroll = window.setTimeout(() => {
+      refContainerKanban.value.style.scrollSnapType = "x mandatory";
+    }, 1500);
 
     const elementsUnderCard = document.elementsFromPoint(
       touchClientMoveX,
@@ -627,30 +609,67 @@ onUnmounted(() => {
 <template>
   <div ref="refContainerKanban" class="container-kanban">
     <div @click="handleClickKanban" ref="refKanban" class="kanban">
-      <div ref="refWrapperColumn" v-for="(column, key, i) in kanban" :key="key"
-        :style="{ '--column-color': colorColumnStore.columnColors[key] }" class="kanban__wrapper-column"
-        :data-status="key">
-        <div :style="{
-          background: colorColumnStore.columnColors[key],
-        }" class="kanban-column kanban__column" :class="{ 'kanban-column--hidden': hiddenColumns[i] }">
-          <div :aria-label="STATUS_TRANSLATIONS[key]" class="kanban-column__title">
+      <div
+        ref="refWrapperColumn"
+        v-for="(column, key, i) in kanban"
+        :key="key"
+        :style="{ '--column-color': colorColumnStore.columnColors[key] }"
+        class="kanban__wrapper-column"
+        :data-status="key"
+      >
+        <div
+          :style="{
+            background: colorColumnStore.columnColors[key],
+          }"
+          class="kanban-column kanban__column"
+          :class="{ 'kanban-column--hidden': hiddenColumns[i] }"
+        >
+          <div
+            :aria-label="STATUS_TRANSLATIONS[key]"
+            class="kanban-column__title"
+          >
             {{ STATUS_TRANSLATIONS[key] }}
           </div>
-          <button aria-hidden="true" @click="handleHiddenColumn(i)" class="kanban-column__toggle-visible">
-            <img src="/images/icon-toggle-column-white.png" alt="кнопка свернуть-развернуть колонку" />
+          <button
+            aria-hidden="true"
+            @click="handleHiddenColumn(i)"
+            class="kanban-column__toggle-visible"
+          >
+            <img
+              src="/images/icon-toggle-column-white.png"
+              alt="кнопка свернуть-развернуть колонку"
+            />
           </button>
-          <button @click="handleClickColumnDots(i)" class="kanban-column__button-open-menu">
+          <button
+            @click="handleClickColumnDots(i)"
+            class="kanban-column__button-open-menu"
+          >
             <img src="/images/icon-1.png" alt="открыть меню колонки" />
           </button>
-          <button @click="emitCreateCard(key)" class="kanban-column__add-project">
-            <span><img src="/public/images/icon-2.png" alt="добавить карточку" /></span><span>добавить шабашку</span>
+          <button
+            @click="emitCreateCard(key)"
+            class="kanban-column__add-project"
+          >
+            <span
+              ><img
+                src="/public/images/icon-2.png"
+                alt="добавить карточку" /></span
+            ><span>добавить шабашку</span>
           </button>
 
           <Transition name="fade">
-            <div v-show="indexPanelMenu === i" ref="refMenuColumn" class="kanban-column__menu column-menu" :class="{
-              'kanban-column__menu--open': indexPanelMenu === i,
-            }">
-              <button @click.stop="indexPanelMenu = -1" class="kanban-column__menu-close">
+            <div
+              v-show="indexPanelMenu === i"
+              ref="refMenuColumn"
+              class="kanban-column__menu column-menu"
+              :class="{
+                'kanban-column__menu--open': indexPanelMenu === i,
+              }"
+            >
+              <button
+                @click.stop="indexPanelMenu = -1"
+                class="kanban-column__menu-close"
+              >
                 <img src="/images/icon-close.png" alt="закрыть меню" />
               </button>
               <div class="column-menu__title">
@@ -663,35 +682,52 @@ onUnmounted(() => {
                 </div>
               </div>
               <div class="column-menu__title">Сортировать:</div>
-              <PanelsSortPanel @sort-select="(sortValue: string) => handleEmitSort(sortValue, key)" />
+              <PanelsSortPanel
+                @sort-select="(sortValue: string) => handleEmitSort(sortValue, key)"
+              />
               <div class="column-menu__title">цвет колонки</div>
-              <PanelsColorsPanel @click-color="(color: string) => handleChangeColorColumn(key, color)"
-                :colors="colors_column" />
+              <PanelsColorsPanel
+                @click-color="(color: string) => handleChangeColorColumn(key, color)"
+                :colors="colors_column"
+              />
               <div class="column-menu__title">градиент колонки</div>
-              <PanelsColorsPanel @click-color="(color: string) => handleChangeColorColumn(key, color)"
-                :colors="gradient_column" />
+              <PanelsColorsPanel
+                @click-color="(color: string) => handleChangeColorColumn(key, color)"
+                :colors="gradient_column"
+              />
               <div class="column-menu__title">Сбросить цвет</div>
-              <PanelsColorsPanel @click-color="(color: string) => handleChangeColorColumn(key, color)"
-                :colors="color_transparent"><img class="reset-color-img" src="/images/icon-close.png"
-                  alt="сбросить цвет" /></PanelsColorsPanel>
+              <PanelsColorsPanel
+                @click-color="(color: string) => handleChangeColorColumn(key, color)"
+                :colors="color_transparent"
+                ><img
+                  class="reset-color-img"
+                  src="/images/icon-close.png"
+                  alt="сбросить цвет"
+              /></PanelsColorsPanel>
             </div>
           </Transition>
 
           <div class="kanban__container-cards kanban-column__container-cards">
-            <div :style="{ background: project.color }" :data-project-status="key" :data-project-id="project.$id"
-              v-for="(project, i) in column" class="kanban__card" :key="project.$id">
-              <CardsKanbanCard v-if="props.projects.length" :color="project.color" :id="project.$id"
-                :status="project.status" :client="project.client" :name="project.name" :link="project.link"
-                :price="project.price" :deadline="project.deadline" :createdAt="project.$createdAt"
-                :description="project.description" @click-card="emitClickCard(project)"
-                @delete-card="emitDeleteCard(project)" />
+            <div
+              :style="{ background: project.color }"
+              :data-project-status="key"
+              :data-project-id="project.id"
+              v-for="(project, i) in column"
+              class="kanban__card"
+              :key="project.id"
+            >
+              <CardsKanbanCard
+                v-if="props.projects.length"
+               v-bind="project"
+                @click-card="emitClickCard(project)"
+                @delete-card="emitDeleteCard(project)"
+              />
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-
 </template>
 
 <style lang="scss" scoped>
@@ -743,7 +779,6 @@ onUnmounted(() => {
   &__wrapper-column {
     position: relative;
     scroll-snap-align: start;
-
 
     &::before {
       content: "";
@@ -805,7 +840,6 @@ onUnmounted(() => {
   padding-top: 20px;
   padding-bottom: 20px;
 
-
   border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.199);
   box-shadow: 0 0 20px 1px black;
@@ -819,7 +853,8 @@ onUnmounted(() => {
   user-select: none;
   /* Стандартный синтаксис */
 
-  @media (max-width: 550px) {}
+  @media (max-width: 550px) {
+  }
 
   &:not(.kanban-column--hidden) {
     .kanban-column__container-cards {
@@ -860,7 +895,8 @@ onUnmounted(() => {
     scrollbar-width: thin;
     scrollbar-color: rgb(250, 250, 250) black;
 
-    @media (max-width: 550px) {}
+    @media (max-width: 550px) {
+    }
   }
 
   &__title {
@@ -1001,7 +1037,8 @@ onUnmounted(() => {
   }
 }
 
-.selected-menu {}
+.selected-menu {
+}
 
 .highlight {
   &::before {

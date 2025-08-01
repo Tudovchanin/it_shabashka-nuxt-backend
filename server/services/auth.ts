@@ -6,7 +6,7 @@ type CreateUserParams = {
   email: string;
   hashedPassword: string;
   name: string;
-  avatar?: string;
+  avatar: string;
 };
 
 
@@ -51,8 +51,8 @@ export async function deleteUser(
   userId: string
 ): Promise<{
   email: string;
-  name: string | null;
-  avatar: string | null;
+  name: string;
+  avatar: string;
   id: string;
   password: string;
 }> {
@@ -72,7 +72,7 @@ export async function updateUser(
   id: string;
   email: string;
   name: string;
-  avatar: string | null;
+  avatar: string;
   password: string;
 }> {
   const updatedUser = await prisma.user.update({

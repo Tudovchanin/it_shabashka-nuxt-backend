@@ -2,14 +2,15 @@
 
 import { useAppConstants } from '~/constants/app.constants';
 import { useAppwriteClient } from '~/composables/useAppwriteClient';
+import type { Project } from './projects.store';
 
-
-type User = {
+export type User = {
   id: string;
   email: string;
   name: string;
-  status: boolean;
   avatar: string;
+  status: boolean
+  projects?: Project[]; 
 };
 
 export type UpdateAccount = {
@@ -253,6 +254,7 @@ export const useAuthStore = defineStore("auth", () => {
     updateAccount,
     changeAvatar,
     user,
+    accessToken,
     errorMessage,
   };
 });

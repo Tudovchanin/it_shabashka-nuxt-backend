@@ -1,8 +1,9 @@
 
-export function formatDateToRussianLocale(dateString: string): string {
-  const date: Date = new Date(dateString);
+export function formatDateToRussianLocale(dateInput: string | Date): string {
+  const date: Date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
   return new Intl.DateTimeFormat('ru').format(date);
 }
+
 
 export function getDaysUntilDeadline(date: string): number {
   const currentDate = new Date().getTime();

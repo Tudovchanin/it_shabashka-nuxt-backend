@@ -1,30 +1,22 @@
 <script setup lang="ts">
+
+import type { ProjectCreateFrontend } from "~/stores/projects.store";
+
+
 import type {
-  DataProjectAppWrite,
+
   TypeProjectStatus,
 } from "~/stores/projects.store";
 import { ProjectStatus } from "~/stores/projects.store";
 import { STATUS_TRANSLATIONS } from "~/constants/project.constants";
 import { InputMask } from "~/utils/mask-helpers";
 
-export type FormProjectKanban = Pick<
-  DataProjectAppWrite,
-  | "name"
-  | "price"
-  | "status"
-  | "description"
-  | "client"
-  | "link"
-  | "deadline"
-  | "client_email"
-  | "client_phone"
->;
 
 const props = defineProps<{
   status?: TypeProjectStatus;
 }>();
 
-const formData = ref<FormProjectKanban>({
+const formData = ref<ProjectCreateFrontend>({
   client: "",
   client_phone: "",
   client_email: "",
