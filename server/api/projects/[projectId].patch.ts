@@ -2,7 +2,11 @@ import { authenticate, getUserIdFromPayload } from "~/server/utils/auth";
 import { getUserById } from "~/server/services/auth";
 import { verifyAccessToken } from "~/server/utils/jwt";
 
-import { deleteProject } from "~/server/services/projects";
+import { updateProject } from "~/server/services/projects";
+
+import type { UpdateProjectFrontend } from "~/stores/projects.store";
+import type { UpdateProjectBackend } from "~/server/services/projects";
+
 
 export default defineEventHandler(async (e) => {
   const accessToken = authenticate(e);
@@ -19,20 +23,24 @@ export default defineEventHandler(async (e) => {
       });
     }
 
-    const projectId = e.context.params?.projectId;
+    const body: UpdateProjectFrontend = await readBody(e);
+    console.log(body, 'BACKEND BODY');
+    let dataUpdate: UpdateProjectBackend;
 
-    if (!projectId) {
-      throw createError({
-        statusCode: 400,
-        message: "Отсутствует параметр projectId",
-      });
+    if ('deadline' in body) {
+      dataUpdate = {
+        ...body,
+        deadline: body.deadline ? new Date(body.deadline) : null,
+      };
+    } else {
+      dataUpdate = { ...body as UpdateProjectBackend };
     }
+    
 
-  
-    const projectDelete = await deleteProject(projectId);
+     const project =  await updateProject(dataUpdate);
+     return project;
 
-    return projectDelete;
-
+    
   } catch (error: any) {
     throw createError({
       statusCode: error.statusCode || 500,

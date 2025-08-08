@@ -39,14 +39,3 @@ export default defineEventHandler (async(e)=> {
   }
 
 })
-
-
-
-
-// const userWithPostsAndComments = await prisma.user.findUnique({
-//   where: { email },
-//   include: {
-//     posts: true,
-//     comments: true
-//   }
-// })

@@ -5,7 +5,7 @@ import { formatDateToRussianLocale, getDaysUntilDeadline } from "#imports";
 
 import type { Project } from "~/stores/projects.store";
 
-import { InputMask } from "~/utils/mask-helpers";
+import { InputMask } from "~/utils/mask.utils";
 
 import type { ColorKeyTextMap } from "~/constants/color-mapping.constants";
 import { COLOR_TEXT_MAP } from "~/constants/color-mapping.constants";

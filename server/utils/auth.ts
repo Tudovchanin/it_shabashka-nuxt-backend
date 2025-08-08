@@ -4,7 +4,7 @@ import type { JwtPayload } from 'jsonwebtoken';
 
 
 export function authenticate(e: H3Event) {
-  console.log(e);
+
   const authorization = getRequestHeader(e, "authorization");
   if (!authorization) {
     throw createError({

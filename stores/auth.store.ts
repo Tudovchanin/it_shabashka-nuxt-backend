@@ -74,7 +74,7 @@ export const useAuthStore = defineStore("auth", () => {
     try {
       const data = await $fetch("/api/auth/refresh-token", {
         method: "POST",
-        credentials: "include", // ключевой момент для отправки httpOnly cookie
+        credentials: "include", // для отправки httpOnly cookie
       });
 
       if (data?.accessToken && data.user) {
@@ -165,8 +165,9 @@ export const useAuthStore = defineStore("auth", () => {
     }
   };
   const deleteAccount = async () => {
+    errorMessage.value = null;
+
     try {
-      errorMessage.value = null;
       const data = await $fetch("/api/auth/delete-user", {
         method: "DELETE",
         headers: {

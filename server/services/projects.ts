@@ -6,23 +6,26 @@ import type { Project as PrismaProject } from '@prisma/client';
 import type { ProjectCreateFrontend } from "~/stores/projects.store";
 
 export type ProjectCreateBackend = Pick<PrismaProject,
-'userId' |
-'name' |
-'client' |
-'link' |
-'price' |
-'status' |
-'description' |
-'client_email' |
-'client_phone' |
-'deadline'
+  'userId' |
+  'name' |
+  'client' |
+  'link' |
+  'price' |
+  'status' |
+  'description' |
+  'client_email' |
+  'client_phone' |
+  'deadline'
 >;
+
+export type UpdateProjectBackend = Partial<ProjectCreateBackend> & { id: string };
+
 
 
 export async function getProjectsByUserId(userId: string) {
   const projects = await prisma.project.findMany({
     where: { userId },
-    include : {
+    include: {
       comments: true
     }
   });
@@ -39,6 +42,26 @@ export async function createProject(obj: ProjectCreateBackend): Promise<PrismaPr
   });
 
   return project;
+}
+
+export async function updateProject(updateData: UpdateProjectBackend) {
+  const project = await prisma.project.update({
+    where: {
+      id: updateData.id,
+    },
+    data: updateData
+  })
+  return project;
+}
+
+export async function deleteProject(projectId: string) {
+  const projectDelete = await prisma.project.delete ({
+    where: {
+      id: projectId
+    }
+  });
+
+  return projectDelete;
 }
 
 

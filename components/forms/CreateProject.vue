@@ -9,7 +9,7 @@ import type {
 } from "~/stores/projects.store";
 import { ProjectStatus } from "~/stores/projects.store";
 import { STATUS_TRANSLATIONS } from "~/constants/project.constants";
-import { InputMask } from "~/utils/mask-helpers";
+import { InputMask } from "~/utils/mask.utils";
 
 
 const props = defineProps<{

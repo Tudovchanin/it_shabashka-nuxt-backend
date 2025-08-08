@@ -3,7 +3,6 @@ import { getRefreshToken, getUserById, saveRefreshToken } from '~/server/service
 
 export default defineEventHandler(async (e)=> {
 
-  console.log('Request cookies:', e.node.req.headers.cookie);
   const refreshToken = getCookie(e, 'refreshToken');
 
   if (!refreshToken) {
@@ -29,7 +28,6 @@ export default defineEventHandler(async (e)=> {
     
 
     if(!tokenRecord || tokenRecord.token !== refreshToken)  {
-      console.log('Refresh token недействителен');
       
       throw createError({ statusCode: 401, message: 'Refresh token недействителен' });
     }

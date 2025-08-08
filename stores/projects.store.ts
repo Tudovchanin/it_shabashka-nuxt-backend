@@ -3,8 +3,6 @@
 
 import type { Comment } from "./comments.store";
 
-
-
 export type Project = {
   id: string;
   color: string;
@@ -41,6 +39,12 @@ export type ProjectCreateFrontend = Pick<
 
 
 
+export type UpdateProjectFrontend = Partial<ProjectCreateFrontend> & { 
+  id: string; 
+};
+
+
+
 export const ProjectStatus = {
   NEW: "NEW",
   IN_PROGRESS: "IN_PROGRESS",
@@ -63,20 +67,20 @@ export const useProjectsStore = defineStore("projects", () => {
 
   const getProjectsByUser = async () => {
     error.value = null;
-  
+
 
     const useMock = import.meta.env.VITE_USE_MOCK === "true";
-    if (useMock) {
-      try {
-        const { dataTest } = await import("~/mock/mockData");
-        projects.value = dataTest;
-        console.log("Используем моковые данные");
-      } catch (e) {
-        error.value = e instanceof Error ? e : new Error(String(e));
-        console.error("Ошибка при загрузке моковых данных:", error.value);
-      }
-      return;
-    }
+    // if (useMock) {
+    //   try {
+    //     const { dataTest } = await import("~/mock/mockData");
+    //     projects.value = dataTest;
+    //     console.log("Используем моковые данные");
+    //   } catch (e) {
+    //     error.value = e instanceof Error ? e : new Error(String(e));
+    //     console.error("Ошибка при загрузке моковых данных:", error.value);
+    //   }
+    //   return;
+    // }
 
     try {
       console.log('запрос карточек');
@@ -87,18 +91,16 @@ export const useProjectsStore = defineStore("projects", () => {
           Authorization: `Bearer ${authStore.accessToken}`,
         }
       });
-      
+
       if (data) {
         projects.value = [...data]
         console.log(projects.value);
-        
-       
       }
 
     } catch (error) { }
 
-   console.log(error);
-   
+    console.log(error);
+
   };
 
   const createProject = async (project: ProjectCreateFrontend) => {
@@ -120,17 +122,57 @@ export const useProjectsStore = defineStore("projects", () => {
       }
     } catch (error: any) {
       console.log(error.data.message);
+    } finally {
+      loadStore.set(false);
     }
   };
 
-  const updateProject = async (projectId: string, data: any) => {
+  const updateProject = async (projectId: string, updateData: any) => {
     loadStore.set(true);
-   
+    try {
+
+      const data = await $fetch(`api/projects/${projectId}`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${authStore.accessToken}`,
+        },
+        body: {id: projectId,...updateData},
+      });
+      console.log(data, 'проект обновлен');
+    } catch (error:any) {
+        console.log(error.data.message);
+        
+    } finally {
+      loadStore.set(false)
+    }
+
   };
 
   const deleteProject = async (projectId: string) => {
     loadStore.set(true);
-   
+
+    console.log(projectId, 'del');
+    
+
+    try {
+      const data = await $fetch(`/api/projects/${projectId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${authStore.accessToken}`,
+        }
+      });
+
+      console.log(data, 'проект удален');
+      await getProjectsByUser();
+      
+      
+    } catch (error:any) {
+      console.log(error.data.message);
+      
+    } finally {
+      loadStore.set(false)
+    }
+
   };
 
   return {

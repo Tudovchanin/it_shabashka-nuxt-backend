@@ -31,8 +31,6 @@ export default defineEventHandler(async (e) => {
 
       const body = await readBody(e);
       const { name, email, currentPassword, newPassword, avatar } = body;
-
-      console.log(body, 'BODY');
       
 
       const updateData: Record<string, string> = {};

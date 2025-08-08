@@ -1,27 +1,23 @@
 <script setup lang="ts">
 import { ProjectStatus } from "~/stores/projects.store";
 import type {
-  GetProject,
+  Project,
   TypeProjectStatus,
 } from "~/stores/projects.store";
 
 import { STATUS_TRANSLATIONS } from "~/constants/project.constants";
-import {
-  sortAsc,
-  sortDesc,
-  sortDateStringAsc,
-  sortDateStringDesc,
-} from "#imports";
+
 
 import { GRADIENT_COLUMN, COLORS_COLUMN } from "~/constants/project.constants";
+import { sortAscNumbers, sortDescNumbers, sortDateAsc, sortDateDesc } from "~/utils/sort.utils";
 
 // type
 type Kanban = {
-  [key in TypeProjectStatus]: GetProject[];
+  [key in TypeProjectStatus]: Project[];
 };
 
 type KanbanProps = {
-  projects?: GetProject[];
+  projects?: Project[];
   isDraggingAllowed?: boolean;
 };
 type SortColumns = {
@@ -111,7 +107,7 @@ const emitCreateCard = (status: TypeProjectStatus) => {
 };
 
 // Удаление карточки
-const emitDeleteCard = async (project: GetProject) => {
+const emitDeleteCard = async (project: Project) => {
   emit("card-delete", project);
 };
 
@@ -121,7 +117,7 @@ function emitAddCardInColumn(projectId: string, columnStatus: string) {
 }
 
 // обработчик клика на карточку
-const emitClickCard = (project: GetProject) => {
+const emitClickCard = (project: Project) => {
   if (!flagClickCard) return;
   if (project) {
     emit("card-click", project);
@@ -147,36 +143,84 @@ function refreshKanban() {
   removeHighlighted();
 }
 
-// сортировка карточек
-const handleEmitSort = (sortValue: string, key: TypeProjectStatus) => {
-  const [nameBySort, direction] = sortValue.split(":");
-  if (direction === "desc") {
-    if (nameBySort === "price") {
-      sortDesc(kanban.value[key], nameBySort);
-      stateSortColumn[nameBySort][key] = "desc";
-      resetStateSortColumn(stateSortColumn.deadline);
-    } else {
-      sortDateStringDesc(kanban.value[key], nameBySort);
-      stateSortColumn[nameBySort][key] = "desc";
-      resetStateSortColumn(stateSortColumn.price);
-    }
-  } else if (direction === "asc") {
-    if (nameBySort === "price") {
-      sortAsc(kanban.value[key], nameBySort);
-      stateSortColumn[nameBySort][key] = "asc";
-      resetStateSortColumn(stateSortColumn.deadline);
-    } else {
-      sortDateStringAsc(kanban.value[key], nameBySort);
-      stateSortColumn[nameBySort][key] = "asc";
-      resetStateSortColumn(stateSortColumn.price);
-    }
-  } else {
-    kanban.value[key] = [];
-    kanban.value[key] = [...kanbanOriginal.value[key]];
-    resetStateSortColumn(stateSortColumn.price);
-    resetStateSortColumn(stateSortColumn.deadline);
-  }
+
+// сортировка  
+
+type SortDirection = "asc" | "desc";
+type SortField = "price" | "deadline";
+type SortFunction<T> = (array: T[], property: keyof T) => void;
+
+
+const sortObj: Record<
+  SortDirection,
+  Record<SortField, SortFunction<Project>>
+> = {
+  desc: {
+    price: sortDescNumbers,
+    deadline: sortDateDesc,
+  },
+  asc: {
+    price: sortAscNumbers,
+    deadline: sortDateAsc,
+  },
 };
+
+
+const handleSort = (sortValue: string, key: TypeProjectStatus) => {
+  if (!sortValue) {
+    kanban.value[key] = [...kanbanOriginal.value[key]];
+    Object.keys(stateSortColumn).forEach(sortName => resetStateSortColumn(stateSortColumn[sortName]));
+    return;
+  }
+  const [nameBySort, direction] = sortValue.split(":") as [SortField, SortDirection]
+
+  sortObj[direction][nameBySort](kanban.value[key], nameBySort);
+
+  stateSortColumn[nameBySort][key] = direction;
+  Object.keys(stateSortColumn).forEach(sortName => {
+    if (sortName === nameBySort) return;
+    resetStateSortColumn(stateSortColumn[sortName]);
+  });
+
+};
+
+// сортировка карточек
+// const handleSort = (sortValue: string, key: TypeProjectStatus) => {
+//   const [nameBySort, direction] = sortValue.split(":");
+
+//   if (direction === "desc") {
+//     if (nameBySort === "price") {
+//       sortDescNumbers(kanban.value[key], nameBySort);
+//       stateSortColumn[nameBySort][key] = "desc";
+//       resetStateSortColumn(stateSortColumn.deadline);
+//     } else if(nameBySort === "deadline") {
+//       sortDateDesc(kanban.value[key], nameBySort);
+//       stateSortColumn[nameBySort][key] = "desc";
+//       resetStateSortColumn(stateSortColumn.price);
+//     }
+//   } else if (direction === "asc") {
+//     if (nameBySort === "price") {
+//       sortAscNumbers(kanban.value[key], nameBySort);
+//       stateSortColumn[nameBySort][key] = "asc";
+//       resetStateSortColumn(stateSortColumn.deadline);
+//     } else if(nameBySort === "deadline")  {
+//       sortDateAsc(kanban.value[key], nameBySort);
+//       stateSortColumn[nameBySort][key] = "asc";
+//       resetStateSortColumn(stateSortColumn.price);
+//     }
+//   } else {
+//     kanban.value[key] = [];
+//     kanban.value[key] = [...kanbanOriginal.value[key]];
+//     resetStateSortColumn(stateSortColumn.price);
+//     resetStateSortColumn(stateSortColumn.deadline);
+//   }
+// };
+
+
+
+
+
+
 
 const handleHiddenColumn = (i: number) => {
   hiddenColumns.value[i] = !hiddenColumns.value[i];
@@ -609,67 +653,30 @@ onUnmounted(() => {
 <template>
   <div ref="refContainerKanban" class="container-kanban">
     <div @click="handleClickKanban" ref="refKanban" class="kanban">
-      <div
-        ref="refWrapperColumn"
-        v-for="(column, key, i) in kanban"
-        :key="key"
-        :style="{ '--column-color': colorColumnStore.columnColors[key] }"
-        class="kanban__wrapper-column"
-        :data-status="key"
-      >
-        <div
-          :style="{
-            background: colorColumnStore.columnColors[key],
-          }"
-          class="kanban-column kanban__column"
-          :class="{ 'kanban-column--hidden': hiddenColumns[i] }"
-        >
-          <div
-            :aria-label="STATUS_TRANSLATIONS[key]"
-            class="kanban-column__title"
-          >
+      <div ref="refWrapperColumn" v-for="(column, key, i) in kanban" :key="key"
+        :style="{ '--column-color': colorColumnStore.columnColors[key] }" class="kanban__wrapper-column"
+        :data-status="key">
+        <div :style="{
+          background: colorColumnStore.columnColors[key],
+        }" class="kanban-column kanban__column" :class="{ 'kanban-column--hidden': hiddenColumns[i] }">
+          <div :aria-label="STATUS_TRANSLATIONS[key]" class="kanban-column__title">
             {{ STATUS_TRANSLATIONS[key] }}
           </div>
-          <button
-            aria-hidden="true"
-            @click="handleHiddenColumn(i)"
-            class="kanban-column__toggle-visible"
-          >
-            <img
-              src="/images/icon-toggle-column-white.png"
-              alt="кнопка свернуть-развернуть колонку"
-            />
+          <button aria-hidden="true" @click="handleHiddenColumn(i)" class="kanban-column__toggle-visible">
+            <img src="/images/icon-toggle-column-white.png" alt="кнопка свернуть-развернуть колонку" />
           </button>
-          <button
-            @click="handleClickColumnDots(i)"
-            class="kanban-column__button-open-menu"
-          >
+          <button @click="handleClickColumnDots(i)" class="kanban-column__button-open-menu">
             <img src="/images/icon-1.png" alt="открыть меню колонки" />
           </button>
-          <button
-            @click="emitCreateCard(key)"
-            class="kanban-column__add-project"
-          >
-            <span
-              ><img
-                src="/public/images/icon-2.png"
-                alt="добавить карточку" /></span
-            ><span>добавить шабашку</span>
+          <button @click="emitCreateCard(key)" class="kanban-column__add-project">
+            <span><img src="/public/images/icon-2.png" alt="добавить карточку" /></span><span>добавить шабашку</span>
           </button>
 
           <Transition name="fade">
-            <div
-              v-show="indexPanelMenu === i"
-              ref="refMenuColumn"
-              class="kanban-column__menu column-menu"
-              :class="{
-                'kanban-column__menu--open': indexPanelMenu === i,
-              }"
-            >
-              <button
-                @click.stop="indexPanelMenu = -1"
-                class="kanban-column__menu-close"
-              >
+            <div v-show="indexPanelMenu === i" ref="refMenuColumn" class="kanban-column__menu column-menu" :class="{
+              'kanban-column__menu--open': indexPanelMenu === i,
+            }">
+              <button @click.stop="indexPanelMenu = -1" class="kanban-column__menu-close">
                 <img src="/images/icon-close.png" alt="закрыть меню" />
               </button>
               <div class="column-menu__title">
@@ -682,46 +689,25 @@ onUnmounted(() => {
                 </div>
               </div>
               <div class="column-menu__title">Сортировать:</div>
-              <PanelsSortPanel
-                @sort-select="(sortValue: string) => handleEmitSort(sortValue, key)"
-              />
+              <PanelsSortPanel @sort-select="(sortValue: string) => handleSort(sortValue, key)" />
               <div class="column-menu__title">цвет колонки</div>
-              <PanelsColorsPanel
-                @click-color="(color: string) => handleChangeColorColumn(key, color)"
-                :colors="colors_column"
-              />
+              <PanelsColorsPanel @click-color="(color: string) => handleChangeColorColumn(key, color)"
+                :colors="colors_column" />
               <div class="column-menu__title">градиент колонки</div>
-              <PanelsColorsPanel
-                @click-color="(color: string) => handleChangeColorColumn(key, color)"
-                :colors="gradient_column"
-              />
+              <PanelsColorsPanel @click-color="(color: string) => handleChangeColorColumn(key, color)"
+                :colors="gradient_column" />
               <div class="column-menu__title">Сбросить цвет</div>
-              <PanelsColorsPanel
-                @click-color="(color: string) => handleChangeColorColumn(key, color)"
-                :colors="color_transparent"
-                ><img
-                  class="reset-color-img"
-                  src="/images/icon-close.png"
-                  alt="сбросить цвет"
-              /></PanelsColorsPanel>
+              <PanelsColorsPanel @click-color="(color: string) => handleChangeColorColumn(key, color)"
+                :colors="color_transparent"><img class="reset-color-img" src="/images/icon-close.png"
+                  alt="сбросить цвет" /></PanelsColorsPanel>
             </div>
           </Transition>
 
           <div class="kanban__container-cards kanban-column__container-cards">
-            <div
-              :style="{ background: project.color }"
-              :data-project-status="key"
-              :data-project-id="project.id"
-              v-for="(project, i) in column"
-              class="kanban__card"
-              :key="project.id"
-            >
-              <CardsKanbanCard
-                v-if="props.projects.length"
-               v-bind="project"
-                @click-card="emitClickCard(project)"
-                @delete-card="emitDeleteCard(project)"
-              />
+            <div :style="{ background: project.color }" :data-project-status="key" :data-project-id="project.id"
+              v-for="(project, i) in column" class="kanban__card" :key="project.id">
+              <CardsKanbanCard v-if="props.projects.length" v-bind="project" @click-card="emitClickCard(project)"
+                @delete-card="emitDeleteCard(project)" />
             </div>
           </div>
         </div>
@@ -853,8 +839,7 @@ onUnmounted(() => {
   user-select: none;
   /* Стандартный синтаксис */
 
-  @media (max-width: 550px) {
-  }
+  @media (max-width: 550px) {}
 
   &:not(.kanban-column--hidden) {
     .kanban-column__container-cards {
@@ -895,8 +880,7 @@ onUnmounted(() => {
     scrollbar-width: thin;
     scrollbar-color: rgb(250, 250, 250) black;
 
-    @media (max-width: 550px) {
-    }
+    @media (max-width: 550px) {}
   }
 
   &__title {
@@ -1037,8 +1021,7 @@ onUnmounted(() => {
   }
 }
 
-.selected-menu {
-}
+.selected-menu {}
 
 .highlight {
   &::before {
